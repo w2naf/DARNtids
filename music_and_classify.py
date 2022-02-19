@@ -9,7 +9,6 @@ matplotlib.use('Agg')
 
 import multiprocessing
 
-import ipdb; ipdb.set_trace()
 import mstid
 from mstid import run_helper
 
@@ -28,7 +27,8 @@ radars.append('kap')
 radars.append('gbr')
 
 db_name                     = 'mstid'
-tunnel,mongo_port           = mstid.createTunnel()
+# Used for creating an SSH tunnel when running the MSTID database on a remote machine.
+tunnel,mongo_port           = mstid.createTunnel() 
 
 dct                         = {}
 dct['radars']               = radars
@@ -38,21 +38,21 @@ dct['list_eDate']           = datetime.datetime(2013,5,1)
 #dct['list_eDate']           = datetime.datetime(2012,12,15)
 dct['hanning_window_space'] = False # Set to False for MSTID Index Calculation
 dct['bad_range_km']         = None  # Set to None for MSTID Index Calculation
-dct['mongo_port']           = mongo_port
+#dct['mongo_port']           = mongo_port
 dct['db_name']              = db_name
 dct['data_path']            = 'mstid_data/mstid_index'
 dct_list                    = run_helper.create_music_run_list(**dct)
 
-mstid_index         = False
+mstid_index         = True
 new_list            = True
 reupdate_db         = True
 
-music_process       = True
+music_process       = False
 music_new_list      = True
 music_reupdate_db   = True
 
 nprocs              = 20
-multiproc           = True
+multiproc           = False
 
 # Classification parameters go here. ###########################################
 classification_path = 'mstid_data/classification'
@@ -64,6 +64,7 @@ if mstid_index:
     # Generate MSTID List and do rti_interp level processing.
     run_helper.get_events_and_run(dct_list,process_level='rti_interp',new_list=new_list,
             multiproc=multiproc,nprocs=nprocs)
+    import ipdb; ipdb.set_trace()
 
     # Reload RTI Data into MongoDb. ################################################
     if reupdate_db:
@@ -105,5 +106,5 @@ if music_process:
         for dct in dct_list:
             mstid.updateDb_mstid_list(multiproc=multiproc,nprocs=nprocs,**dct)
 
-tunnel.kill()
+#tunnel.kill()
 print("I'm done!")

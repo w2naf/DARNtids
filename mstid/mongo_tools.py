@@ -17,7 +17,8 @@ import ephem # pip install pyephem (on Python 2)
 
 import pymongo
 
-import davitpy
+import pydarn
+#import davitpy
 
 from . import more_music
 from .general_lib import generate_radar_dict
@@ -49,9 +50,10 @@ def createTunnel(localport=27018,remoteport=27017,
     # This is probably getting a little OS-dependent here...
     ps = sh.ps('-ef')
     for line in ps.stdout.splitlines():
-        if port_fwd not in line: continue
+        line_str = line.decode('utf-8')
+        if port_fwd not in line_str: continue
 
-        pid = int(line.split()[1])
+        pid = int(line_str.split()[1])
         os.kill(pid,15)
 
     #### Create the new tunnel.
@@ -196,6 +198,7 @@ def generate_mongo_list(mstid_list,radar,list_sDate,list_eDate,
         nextDate = currentDate + datetime.timedelta(hours=2)
 
         tm              = currentDate
+        import ipdb; ipdb.set_trace()
         mlat, mlon, r   = davitpy.models.aacgm.aacgmConv(lat, lon, height, tm.year, 0)
         mlt             = davitpy.models.aacgm.mltFromYmdhms(tm.year,tm.month,tm.day,tm.hour,tm.minute,tm.second,mlon)
 

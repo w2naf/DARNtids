@@ -33,8 +33,8 @@ import pandas as pd
 
 import pymongo
 
-import davitpy
-import davitpy.pydarn.proc.music as music
+#import davitpy
+#import davitpy.pydarn.proc.music as music
 
 from .general_lib import prepare_output_dirs
 from . import more_music

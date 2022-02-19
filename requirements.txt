@@ -1,0 +1,7 @@
+matplotlib
+tqdm
+numpy
+pandas
+sh
+ephem
+pymongo

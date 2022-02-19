@@ -15,13 +15,11 @@ from scipy import stats
 
 import multiprocessing
 
-from new_colormaps import viridis
+#from davitpy import pydarn
+#from davitpy import utils
+#import davitpy.pydarn.proc.music as music
 
-from davitpy import pydarn
-from davitpy import utils
-import davitpy.pydarn.proc.music as music
-
-from .musicRTI3 import musicRTI3
+#from .musicRTI3 import musicRTI3
 from . import mongo_tools
 
 from .general_lib import prepare_output_dirs
@@ -816,7 +814,7 @@ def music_plot_all(run_params,dataObj,process_level='music'):
     plotSerial = plotSerial + 1
 
     fig = plt.figure(figsize=(10,10))
-    pydarn.plotting.musicPlot.plotKarr(dataObj,fig=fig,maxSignals=25,cmap=viridis)
+    pydarn.plotting.musicPlot.plotKarr(dataObj,fig=fig,maxSignals=25,cmap='viridis')
     fileName = os.path.join(output_dir,'%03i_karr.png' % plotSerial)
     fig.savefig(fileName,bbox_inches='tight')
     plt.close(fig)

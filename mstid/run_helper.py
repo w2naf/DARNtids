@@ -151,7 +151,7 @@ def run_init_file(init_file):
     subprocess.check_call(cmd)
 
 def get_events_and_run(dct_list,process_level=None,new_list=False,
-        category=None,multiproc=True,nprocs=None):
+        category=None,recompute=False,multiproc=True,nprocs=None):
     """
     Launch the MUSIC scripts for multiple events given a list of dictionaries
     describing which radars to use, the start and end dates of the run,
@@ -181,7 +181,7 @@ def get_events_and_run(dct_list,process_level=None,new_list=False,
             dct['process_level']    = process_level
 
         # Figure out which events need to be computed.
-        these_events    = events_from_mongo(category=category,**dct)
+        these_events    = events_from_mongo(category=category,recompute=recompute,**dct)
         events += these_events
 
     # Prepare initial_param.json files #############################################

@@ -512,7 +512,7 @@ class DriverObj(object):
         """
 
         if self.parent is None:
-            print 'No parent object; cannot copy.'
+            print('No parent object; cannot copy.')
             return
 
         all_data_sets   = self.parent.get_all_data_sets()
@@ -609,15 +609,15 @@ class DriverObj(object):
             md          = self.metadata
             warn        = 'WARNING'
             if md.has_key('title'): warn = ' '.join([warn,'FOR','"'+md['title']+'"'])
-            print warn + ':'
-            print '   Date time vector is not regularly sampled!'
-            print '   Maximum difference in sampling rates is ' + str(maxDt) + ' sec.'
+            print(warn + ':')
+            print('   Date time vector is not regularly sampled!')
+            print('   Maximum difference in sampling rates is ' + str(maxDt) + ' sec.')
             samplePeriod = mode
 
             if not allow_mode:
                 raise()
             else:
-                print '   Using mode sampling period of ' + str(mode) + ' sec.'
+                print('   Using mode sampling period of ' + str(mode) + ' sec.')
         
         smp = datetime.timedelta(seconds=samplePeriod)
         return smp
@@ -641,7 +641,7 @@ class DriverObj(object):
         keys = self.metadata.keys()
         keys.sort()
         for key in keys:
-            print key+':',self.metadata[key]
+            print(key+':',self.metadata[key])
 
     def append_history(self,comment):
         """Add an entry to the processing history dictionary of the current musicDataObj object.
@@ -661,7 +661,7 @@ class DriverObj(object):
         keys = self.history.keys()
         keys.sort()
         for key in keys:
-            print key,self.history[key]
+            print(key,self.history[key])
 
     def get_short_name(self,sep='-'):
         """
@@ -906,11 +906,11 @@ def get_mbar_diff(sTime,eTime,mbars=[1,10],lat_min=65,zscore=True,cache=True):
             dt_1    = dct_1['dt']
 
             if dt_0 != dt_1:
-                print 'Bad!  dt_0 != dt_1!!!'
+                print('Bad!  dt_0 != dt_1!!!')
                 import ipdb; ipdb.set_trace()
                 continue
 
-            print 'mBar Residual Calculation: {!s}'.format(dt_0)
+            print('mBar Residual Calculation: {!s}'.format(dt_0))
             lats,lons = dct_0['latlon']
 
             lat_tf  = lats >= lat_min
@@ -1004,11 +1004,11 @@ def get_mbar_corr(sTime,eTime,mbars=[1,10],lat_min=50,cache=True):
             dt_1    = dct_1['dt']
 
             if dt_0 != dt_1:
-                print 'Bad!  dt_0 != dt_1!!!'
+                print('Bad!  dt_0 != dt_1!!!')
                 import ipdb; ipdb.set_trace()
                 continu
 
-            print 'mBar Residual Calculation: {!s}'.format(dt_0)
+            print('mBar Residual Calculation: {!s}'.format(dt_0))
             lats,lons = dct_0['latlon']
 
             lat_tf  = lats >= lat_min
@@ -1115,7 +1115,7 @@ class Filter(object):
             d[numtaps/2] = d[numtaps/2] + 1
 
         if cutoff_high == None and cutoff_low == None:
-            print "WARNING!! You must define cutoff frequencies!"
+            print("WARNING!! You must define cutoff frequencies!")
             return
         
         self.comment    = ' '.join(['Filter:',window+',','Nyquist:',str(nyq),'Hz,','Cuttoff:','['+str(cutoff_low)+', '+str(cutoff_high)+']','Hz'])

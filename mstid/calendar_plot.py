@@ -132,7 +132,7 @@ def get_sDate_eDate(group_dict,sDate,eDate):
     """
     if (sDate is None) or (eDate is None):
         dates       = []
-        for key,val in group_dict.items():
+        for key,val in list(group_dict.items()):
             dct_list = val['dct_list']
             for dct in dct_list:
                 dates.append(dct['list_sDate'])
@@ -608,7 +608,7 @@ def calendar_plot(dct_list=None,group_dict=None,sDate=None,eDate=None,val_key='m
 
     filepath    = os.path.join(output_dir,'_'.join(filename))+'.png'
     fig.savefig(filepath,bbox_inches='tight')
-    print('Calendar plot: {}'.format(filepath))
+    print(('Calendar plot: {}'.format(filepath)))
 
     return filepath
 
@@ -624,7 +624,7 @@ def calendar_plot_with_polar_data(dct_list=None,group_dict=None,sDate=None,eDate
     this_date   = dt
     filename    = '{}_vortex_calendar.png'.format(this_date.strftime('%Y%m%d_%H%M'))
     filepath    = os.path.join(output_dir,filename)
-    print('Plotting: {}'.format(filepath))
+    print(('Plotting: {}'.format(filepath)))
     
     if dct_list is not None:
         group_dict      = {}
@@ -674,7 +674,7 @@ def calendar_plot_with_polar_data(dct_list=None,group_dict=None,sDate=None,eDate
     geo_prm_ax  = {}
     geo_prm_ax_grib_only  = {}
     for geo_inx,geo_param in enumerate(geo_params):
-        for mbar_level,grb_d in grib_data.items():
+        for mbar_level,grb_d in list(grib_data.items()):
                 grb     = grb_d[geo_param]
                 ax_info = geo_prm_ax.get(geo_param)
                 if ax_info is None:
@@ -788,13 +788,13 @@ def calculate_reduced_mstid_azm(music_groups,val_key='music_azm',
     for music_group in music_groups:
         # Work with one year at a time.
         date_str    = run_helper.get_seDates_from_groups(music_group,date_fmt='%Y%m%d')
-        for radar_bank_inx, radar_bank_dict in music_group.items():
+        for radar_bank_inx, radar_bank_dict in list(music_group.items()):
             # Work with either the high or mid latitudes
             bank_name   = radar_bank_dict['name']
             for radar_dict in radar_bank_dict['dct_list']:
                 # Work with one radar at a time
                 mstid_list      = radar_dict['mstid_list']
-                print('Reducing MSTID Azimuth: {} - {}'.format(bank_name,mstid_list))
+                print(('Reducing MSTID Azimuth: {} - {}'.format(bank_name,mstid_list)))
                 events          = db[mstid_list].find()
                 # Go get the actual data.
                 for event in events:
@@ -831,7 +831,7 @@ def calculate_reduced_mstid_azm(music_groups,val_key='music_azm',
                     this_dct[radar] = val
 
     # Check to make sure all entries have all radars represented.
-    for this_sTime,this_dct in mstid_inx_dict.items():
+    for this_sTime,this_dct in list(mstid_inx_dict.items()):
         for radar in radars:
             if radar not in this_dct:
                 this_dct[radar] = np.nan
@@ -902,13 +902,13 @@ def calculate_reduced_mstid_index(music_groups,val_key='meanSubIntSpect_by_rtiCn
     for music_group in music_groups:
         # Work with one year at a time.
         date_str    = run_helper.get_seDates_from_groups(music_group,date_fmt='%Y%m%d')
-        for radar_bank_inx, radar_bank_dict in music_group.items():
+        for radar_bank_inx, radar_bank_dict in list(music_group.items()):
             # Work with either the high or mid latitudes
             bank_name   = radar_bank_dict['name']
             for radar_dict in radar_bank_dict['dct_list']:
                 # Work with one radar at a time
                 mstid_list      = radar_dict['mstid_list']
-                print('Reducing MSTID Index: {} - {}'.format(bank_name,mstid_list))
+                print(('Reducing MSTID Index: {} - {}'.format(bank_name,mstid_list)))
                 events          = db[mstid_list].find()
                 # Go get the actual data.
                 for event in events:
@@ -933,7 +933,7 @@ def calculate_reduced_mstid_index(music_groups,val_key='meanSubIntSpect_by_rtiCn
                     this_dct[radar] = mstid_index
 
     # Check to make sure all entries have all radars represented.
-    for this_sTime,this_dct in mstid_inx_dict.items():
+    for this_sTime,this_dct in list(mstid_inx_dict.items()):
         for radar in radars:
             if radar not in this_dct:
                 this_dct[radar] = np.nan
@@ -1256,7 +1256,7 @@ def calendar_plot_vortex_movie_strip(plot_list,frame_times=None,keograms=None,fi
     this_date   = dt
     filename    = '{}{}_vortex_calendar.png'.format(this_date.strftime('%Y%m%d_%H%M'),file_suffix)
     filepath    = os.path.join(output_dir,filename)
-    print('Plotting: {}'.format(filepath))
+    print(('Plotting: {}'.format(filepath)))
     
     if dct_list is not None:
         group_dict      = {}
@@ -1780,7 +1780,7 @@ def calendar_plot_vortex_movie_strip_paper(plot_list,frame_times=None,file_suffi
     this_date   = dt
     filename    = '{}{}_vortex_calendar.png'.format(this_date.strftime('%Y%m%d_%H%M'),file_suffix)
     filepath    = os.path.join(output_dir,filename)
-    print('Plotting: {}'.format(filepath))
+    print(('Plotting: {}'.format(filepath)))
     
     if dct_list is not None:
         group_dict      = {}
@@ -1993,7 +1993,7 @@ def polar_vortex_only(plot_list,frame_times=None,file_suffix='',
     this_date   = dt
     filename    = '{}{}_polarvortex_timeseries.png'.format(this_date.strftime('%Y%m%d_%H%M'),file_suffix)
     filepath    = os.path.join(output_dir,filename)
-    print('Plotting: {}'.format(filepath))
+    print(('Plotting: {}'.format(filepath)))
     
     if dct_list is not None:
         group_dict      = {}
@@ -2126,7 +2126,7 @@ def drivers_only(plot_list,frame_times=None,file_suffix='',
     this_date   = dt
     filename    = '{}{}_driver_timeseries.png'.format(this_date.strftime('%Y%m%d_%H%M'),file_suffix)
     filepath    = os.path.join(output_dir,filename)
-    print('Plotting: {}'.format(filepath))
+    print(('Plotting: {}'.format(filepath)))
     
     if dct_list is not None:
         group_dict      = {}

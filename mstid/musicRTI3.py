@@ -53,11 +53,11 @@ from matplotlib.patches import Polygon
 from matplotlib import dates as md
 import matplotlib
 
-from mpl_toolkits.basemap import Basemap
-
-from davitpy import utils
-from davitpy.pydarn.radar.radUtils import getParamDict
-from davitpy.pydarn.proc.music import getDataSet
+#from mpl_toolkits.basemap import Basemap
+#
+#from davitpy import utils
+#from davitpy.pydarn.radar.radUtils import getParamDict
+#from davitpy.pydarn.proc.music import getDataSet
 
 #Global Figure Size
 figsize=(20,10)

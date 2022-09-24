@@ -14,28 +14,28 @@ from mstid import run_helper
 
 # User-Defined Run Parameters Go Here. #########################################
 radars = []
-radars.append('cvw')
-radars.append('cve')
-radars.append('fhw')
-radars.append('fhe')
+#radars.append('cvw')
+#radars.append('cve')
+#radars.append('fhw')
+#radars.append('fhe')
 radars.append('bks')
-radars.append('wal')
-
-radars.append('sas')
-radars.append('pgr')
-radars.append('kap')
-radars.append('gbr')
+#radars.append('wal')
+#
+#radars.append('sas')
+#radars.append('pgr')
+#radars.append('kap')
+#radars.append('gbr')
 
 db_name                     = 'mstid'
 # Used for creating an SSH tunnel when running the MSTID database on a remote machine.
-tunnel,mongo_port           = mstid.createTunnel() 
+#tunnel,mongo_port           = mstid.createTunnel() 
 
 dct                         = {}
 dct['radars']               = radars
-dct['list_sDate']           = datetime.datetime(2012,11,1)
-dct['list_eDate']           = datetime.datetime(2013,5,1)
-#dct['list_sDate']           = datetime.datetime(2012,12,1)
-#dct['list_eDate']           = datetime.datetime(2012,12,15)
+#dct['list_sDate']           = datetime.datetime(2012,11,1)
+#dct['list_eDate']           = datetime.datetime(2013,5,1)
+dct['list_sDate']           = datetime.datetime(2012,12,1)
+dct['list_eDate']           = datetime.datetime(2012,12,15)
 dct['hanning_window_space'] = False # Set to False for MSTID Index Calculation
 dct['bad_range_km']         = None  # Set to None for MSTID Index Calculation
 #dct['mongo_port']           = mongo_port
@@ -45,6 +45,7 @@ dct_list                    = run_helper.create_music_run_list(**dct)
 
 mstid_index         = True
 new_list            = True
+recompute           = True
 reupdate_db         = True
 
 music_process       = False
@@ -63,7 +64,7 @@ classification_path = 'mstid_data/classification'
 if mstid_index:
     # Generate MSTID List and do rti_interp level processing.
     run_helper.get_events_and_run(dct_list,process_level='rti_interp',new_list=new_list,
-            multiproc=multiproc,nprocs=nprocs)
+            recompute=recompute,multiproc=multiproc,nprocs=nprocs)
     import ipdb; ipdb.set_trace()
 
     # Reload RTI Data into MongoDb. ################################################

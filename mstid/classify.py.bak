@@ -33,12 +33,12 @@ import pandas as pd
 
 import pymongo
 
-import davitpy
-import davitpy.pydarn.proc.music as music
+#import davitpy
+#import davitpy.pydarn.proc.music as music
 
-from general_lib import prepare_output_dirs
-import more_music
-from more_music import get_output_path
+from .general_lib import prepare_output_dirs
+from . import more_music
+from .more_music import get_output_path
 
 def mstid_classification(radar,list_sDate,list_eDate,mstid_list,
         sort_key='meanSubIntSpect_by_rtiCnt',
@@ -57,8 +57,8 @@ def mstid_classification(radar,list_sDate,list_eDate,mstid_list,
     cmd.append(classification_path)
     cmd.append(db_name)
     cmd.append(str(mongo_port))
-    print 'MSTID Classifying: {} {} {!s} {!s}'.format(mstid_list,radar,list_sDate,list_eDate)
-    print ' '.join(cmd)
+    print('MSTID Classifying: {} {} {!s} {!s}'.format(mstid_list,radar,list_sDate,list_eDate))
+    print(' '.join(cmd))
     subprocess.check_call(cmd)
 
 def mstid_classification_dct(dct):
@@ -93,14 +93,14 @@ def copy_plot(radar,sDatetime,fDatetime,output_dir,search_string,plot_type,width
         new_path    = os.path.join(output_dir,new_fname)
         if os.path.exists(rti_path):
             shutil.copy(rti_path,new_path)
-            print '-----> {0}'.format(new_path)
+            print('-----> {0}'.format(new_path))
             if top_text:
                 txt = '{}<br/>'.format(top_text)
             else:
                 txt = ''
             return '<td>{}<img src="{}" width="{:d}px" /></td>'.format(txt,new_fname,width)
 
-    print 'ERROR: {0}'.format(rti_path)
+    print('ERROR: {0}'.format(rti_path))
     return '<td></td>'
 
 def rcgb(mstid_list,db_name='mstid',mongo_port=27017,
@@ -233,21 +233,21 @@ def rcss(data_dict,classification_path='classification'):
         plot_key        ='intSpect'
         tmp = {}
         tmp['yvals']    = sort_df[plot_key]
-        tmp['ylabel']   = u'$\sum$PSD'
+        tmp['ylabel']   = '$\sum$PSD'
 #        tmp['ylim']     = (0,1400)
         plot_dicts[plot_key] = tmp
 
         plot_key        = 'intSpect_by_rtiCnt'
         tmp = {}
         tmp['yvals']    = sort_df[plot_key]
-        tmp['ylabel']   = u'$\sum$PSD/rti_poss'
+        tmp['ylabel']   = '$\sum$PSD/rti_poss'
 #        tmp['ylim']     = (0,0.08)
         plot_dicts[plot_key] = tmp
 
         plot_key        ='meanSubIntSpect'
         tmp = {}
         tmp['yvals']    = sort_df[plot_key]
-        tmp['ylabel']   = u'$\sum$PSD - $\mu$'
+        tmp['ylabel']   = '$\sum$PSD - $\mu$'
 #        tmp['ylim']     = (-450,650)
         tmp['thresh']   = 0
         plot_dicts[plot_key] = tmp
@@ -255,7 +255,7 @@ def rcss(data_dict,classification_path='classification'):
         plot_key        ='meanSubIntSpect_by_rtiCnt'
         tmp = {}
         tmp['yvals']    = sort_df[plot_key]
-        tmp['ylabel']   = u'($\sum$PSD - $\mu$)/rti_poss'
+        tmp['ylabel']   = '($\sum$PSD - $\mu$)/rti_poss'
 #        tmp['ylim']     = (-0.025,0.025)
         tmp['thresh']   = 0
         plot_dicts[plot_key] = tmp
@@ -364,7 +364,7 @@ def classify_none_events(mstid_list,db_name='mstid',mongo_port=27017,
         _id = event['_id']
         delete_list = ['category_auto','category_manu']
         for item in delete_list:
-            if event.has_key(item):
+            if item in event:
                 status = db[mstid_list].update({'_id':_id},{'$unset': {item: 1}})
 
     # Run the classifier.
@@ -379,19 +379,19 @@ def classify_none_events(mstid_list,db_name='mstid',mongo_port=27017,
     for item in crsr:
         good            = True
         reject_message  = []
-        if item.has_key('no_data'):
+        if 'no_data' in item:
             if item['no_data']:
                 no_data += 1
                 reject_message.append('No Data')
                 good    = False
 
-        if item.has_key('good_period'):
+        if 'good_period' in item:
             if not item['good_period']:
                 bad_period += 1
                 reject_message.append('Failed Quality Check')
                 good    = False
 
-        if not item.has_key('orig_rti_fraction'):
+        if 'orig_rti_fraction' not in item:
             no_orig_rti_fract   += 1
             reject_message.append('No RTI Fraction')
             good = False
@@ -403,7 +403,7 @@ def classify_none_events(mstid_list,db_name='mstid',mongo_port=27017,
                 good = False
 
         # Check for excessive terminator coverage
-        if not item.has_key('terminator_fraction'):
+        if 'terminator_fraction' not in item:
             no_orig_rti_fract   += 1
             reject_message.append('No Terminator Fraction')
             good = False
@@ -417,12 +417,12 @@ def classify_none_events(mstid_list,db_name='mstid',mongo_port=27017,
             bad_counter += 1
             entry_id = db[mstid_list].update({'_id':item['_id']}, {'$set':{'category_manu': 'None', 'reject_message':reject_message}})
 
-    print '{bc:d} events marked as None.'.format(bc=bad_counter)
-    print 'no_data: {!s}'.format(no_data)
-    print 'bad_period: {!s}'.format(bad_period)
-    print 'no_orig_rti_fract: {!s}'.format(no_orig_rti_fract)
-    print 'low_orig_rti_fract: {!s}'.format(low_orig_rti_fract)
-    print 'low_termin_fract: {!s}'.format(low_termin_fract)
+    print('{bc:d} events marked as None.'.format(bc=bad_counter))
+    print('no_data: {!s}'.format(no_data))
+    print('bad_period: {!s}'.format(bad_period))
+    print('no_orig_rti_fract: {!s}'.format(no_orig_rti_fract))
+    print('low_orig_rti_fract: {!s}'.format(low_orig_rti_fract))
+    print('low_termin_fract: {!s}'.format(low_termin_fract))
     mongo.close()
 
 def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_only=False,
@@ -462,7 +462,7 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
         mongo       = pymongo.MongoClient(port=mongo_port)
         db          = mongo[db_name]
 
-        print "MSTID Classification: Cache <{}> does not exist.  Creating.".format(cache_name)
+        print("MSTID Classification: Cache <{}> does not exist.  Creating.".format(cache_name))
         data_dict   = {'unclassified':{'color':'blue'},
                        'mstid': {'color':'red'},
                        'quiet': {'color':'green'}}
@@ -491,7 +491,7 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
                 sDatetime   = item['sDatetime']
                 fDatetime   = item['fDatetime']
 
-                print "MSTID Classification: Loading dataObj ({!s}/{!s}): {!s} {!s}-{!s}".format(item_inx,crsr.count(),radar,sDatetime,fDatetime)
+                print("MSTID Classification: Loading dataObj ({!s}/{!s}): {!s} {!s}-{!s}".format(item_inx,crsr.count(),radar,sDatetime,fDatetime))
                 dataObj = more_music.get_dataObj(radar,sDatetime,fDatetime,data_path=data_path)
 
                 if dataObj is None:
@@ -524,7 +524,7 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
                     data_dict[categ]['radar_sTime_eTime'][0]  = (radar,sDatetime,fDatetime)
                 else:
                     #Get the index for the next spectrum.
-                    series.name                     = spect_df.keys().max() + 1
+                    series.name                     = list(spect_df.keys()).max() + 1
 
                     # Append the spectrum and radar,sDatetime,fDatetime to the appropriate dictionaries.
                     data_dict[categ]['spect_df']    = spect_df.join(series,how='outer')
@@ -570,7 +570,7 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
             pickle.dump(data_dict,fl)
         mongo.close()
     else:
-        print "I'm using the cache! ({})".format(cache_name)
+        print("I'm using the cache! ({})".format(cache_name))
         with open(cache_name,'rb') as fl:
             data_dict = pickle.load(fl)
 
@@ -735,7 +735,7 @@ def spectral_plot(data_dict,output_dir='output',subtract_mean=False,plot_all_spe
 #            for key,val in rad_se_times.iteritems():
 #                sTime_dct[val[1]]   = key
 
-        for series_inx,series in data_dict[categ]['spect_df'].iteritems():
+        for series_inx,series in data_dict[categ]['spect_df'].items():
             xvals   = series.index * 1e3
             yvals   = series
             if subtract_mean:
@@ -747,7 +747,7 @@ def spectral_plot(data_dict,output_dir='output',subtract_mean=False,plot_all_spe
 
             sTime   = rad_se_times[series_inx][1]
             if highlight is not None:
-                if sTime in highlight.keys():
+                if sTime in list(highlight.keys()):
                     line    = ax.plot(xvals,yvals,color=rgba,alpha=1.,zorder=10,lw=2.5)
 
                     tf      = yvals.index >= 0
@@ -902,7 +902,7 @@ def this_actually_does_the_sorting(spect_df,orig_rti_info,all_spect_mean,sort_ke
         sort_df[col_name]   = sort_df[key]/orig_rti_info['orig_rti_cnt']
 
     sort_df.sort(sort_key,ascending=True,inplace=True)
-    sort_df['order'] = range(len(sort_df))
+    sort_df['order'] = list(range(len(sort_df)))
     return sort_df 
 
 def sort_by_spectrum(data_dict,sort_key):
@@ -958,7 +958,7 @@ def classify_mstid_events(data_dict,threshold=0.,read_only=False):
 #        data_dict[categ]['sort_df']             = []
         data_dict[categ]['sort_key']            = data_dict['unclassified']['sort_key']
 
-    event_inxs      = data_dict['unclassified']['radar_sTime_eTime'].keys()
+    event_inxs      = list(data_dict['unclassified']['radar_sTime_eTime'].keys())
     event_inxs.sort()
 
     for event_inx in event_inxs:
@@ -986,7 +986,7 @@ def classify_mstid_events(data_dict,threshold=0.,read_only=False):
             
             unset_keys = ['intpsd_mean', 'intpsd_max', 'intpsd_sum']
             for unset_key in unset_keys:
-                if item.has_key(unset_key):
+                if unset_key in item:
                     status = db[mstid_list].update({'_id':_id},{'$unset':{unset_key:1}})
 
             sort_df = data_dict[categ]['sort_df']

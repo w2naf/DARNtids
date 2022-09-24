@@ -5,8 +5,8 @@
 import sys
 import datetime
 
-from . import more_music
-from . import mongo_tools
+import more_music
+import mongo_tools
 
 date_fmt    = '%Y%m%d%H%M'
 radar       = sys.argv[1]

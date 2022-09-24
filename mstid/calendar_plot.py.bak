@@ -14,12 +14,12 @@ import pandas as pd
 
 import pymongo
 
-from general_lib import prepare_output_dirs
-import general_lib as gl
-import polar_met
-import drivers
-import mongo_tools
-import run_helper
+from .general_lib import prepare_output_dirs
+from . import general_lib as gl
+from . import polar_met
+from . import drivers
+from . import mongo_tools
+from . import run_helper
 
 cbar_title_fontdict     = {'weight':'bold','size':30}
 cbar_ytick_fontdict     = {'size':30}
@@ -35,7 +35,7 @@ title_fontdict          = {'weight': 'bold', 'size':36}
 def get_time_res(driver_obj):
     time_reses  = np.unique(np.diff(driver_obj.ind_times))
     if len(time_reses) > 1:
-        print 'Error! Time series not evenly sampled.'
+        print('Error! Time series not evenly sampled.')
         import ipdb; ipdb.set_trace()
     else:
         time_res = time_reses[0]
@@ -132,7 +132,7 @@ def get_sDate_eDate(group_dict,sDate,eDate):
     """
     if (sDate is None) or (eDate is None):
         dates       = []
-        for key,val in group_dict.iteritems():
+        for key,val in group_dict.items():
             dct_list = val['dct_list']
             for dct in dct_list:
                 dates.append(dct['list_sDate'])
@@ -239,7 +239,7 @@ def plot_calendar_panel(dct_list,sDate,eDate,scale,st_uts,val_key,ax,
                         azm_lim = None
                     val = mongo_tools.get_mstid_value(item,sig_key,lambda_max=lambda_max,azm_lim=azm_lim)
                 else:
-                    if not item.has_key(val_key): continue
+                    if val_key not in item: continue
                     val = item.get(val_key)
 
                 if val is None:
@@ -289,7 +289,7 @@ def plot_calendar_panel(dct_list,sDate,eDate,scale,st_uts,val_key,ax,
 
     # Set xticks and yticks to every unit to make a nice grid.
     # However, do not use this for actual labeling.
-    yticks = range(len(radars)*len(st_uts))
+    yticks = list(range(len(radars)*len(st_uts)))
     ax.set_yticks(yticks)
     ytls = ax.get_yticklabels()
     for ytl in ytls:
@@ -438,7 +438,7 @@ def plot_cbars_grib(mappables,ax,expon=5,
     y_scale = 0.800
 #    y_scale = 0.925
 
-    mbar_levels = mappables.keys()
+    mbar_levels = list(mappables.keys())
     mbar_levels.sort()
     mbar_levels = mbar_levels[::-1]
 
@@ -499,7 +499,7 @@ def get_radar_ax_frac(this_key,group_dict):
     """
     all_radars      = []
     these_radars    = []
-    keys            = group_dict.keys()
+    keys            = list(group_dict.keys())
     for key in keys:
         dct_list    = group_dict[key]['dct_list']
         radars      = [dct['radar'] for dct in dct_list]
@@ -536,7 +536,7 @@ def calendar_plot(dct_list=None,group_dict=None,sDate=None,eDate=None,val_key='m
 
     ax_nr   = 0
     ax_nx   = 1
-    ax_ny   = len(group_dict.keys())
+    ax_ny   = len(list(group_dict.keys()))
 
     ax_left             = 0.
     ax_width            = 1.0
@@ -570,7 +570,7 @@ def calendar_plot(dct_list=None,group_dict=None,sDate=None,eDate=None,val_key='m
     #### Plot the radar data.
     radars      = []
     if plot_radars:
-        keys    = group_dict.keys()
+        keys    = list(group_dict.keys())
         keys.sort()
         nr_groups   = len(keys)
         for key in keys:
@@ -608,7 +608,7 @@ def calendar_plot(dct_list=None,group_dict=None,sDate=None,eDate=None,val_key='m
 
     filepath    = os.path.join(output_dir,'_'.join(filename))+'.png'
     fig.savefig(filepath,bbox_inches='tight')
-    print 'Calendar plot: {}'.format(filepath)
+    print('Calendar plot: {}'.format(filepath))
 
     return filepath
 
@@ -624,7 +624,7 @@ def calendar_plot_with_polar_data(dct_list=None,group_dict=None,sDate=None,eDate
     this_date   = dt
     filename    = '{}_vortex_calendar.png'.format(this_date.strftime('%Y%m%d_%H%M'))
     filepath    = os.path.join(output_dir,filename)
-    print 'Plotting: {}'.format(filepath)
+    print('Plotting: {}'.format(filepath))
     
     if dct_list is not None:
         group_dict      = {}
@@ -641,7 +641,7 @@ def calendar_plot_with_polar_data(dct_list=None,group_dict=None,sDate=None,eDate
 
     ax_nr   = 0
     ax_nx   = 1
-    ax_ny   = len(group_dict.keys())
+    ax_ny   = len(list(group_dict.keys()))
 
     ax_left             = 0.
     ax_width            = 1.0
@@ -674,7 +674,7 @@ def calendar_plot_with_polar_data(dct_list=None,group_dict=None,sDate=None,eDate
     geo_prm_ax  = {}
     geo_prm_ax_grib_only  = {}
     for geo_inx,geo_param in enumerate(geo_params):
-        for mbar_level,grb_d in grib_data.iteritems():
+        for mbar_level,grb_d in grib_data.items():
                 grb     = grb_d[geo_param]
                 ax_info = geo_prm_ax.get(geo_param)
                 if ax_info is None:
@@ -733,7 +733,7 @@ def calendar_plot_with_polar_data(dct_list=None,group_dict=None,sDate=None,eDate
             ax.axvline(this_date,ls='--',lw=6,color='k',zorder=750)
 
     # Radar MSTID Data ############################################################# 
-    keys    = group_dict.keys()
+    keys    = list(group_dict.keys())
     keys.sort()
     nr_groups   = len(keys)
     radars      = []
@@ -777,7 +777,7 @@ def calculate_reduced_mstid_azm(music_groups,val_key='music_azm',
     """
     Reduce the MSTID index from all radars into a single number as a function of time.
     """
-    print "Calulating reduced MSTID index."
+    print("Calulating reduced MSTID index.")
 
     mongo       = pymongo.MongoClient(port=mongo_port)
     db          = mongo[db_name]
@@ -788,13 +788,13 @@ def calculate_reduced_mstid_azm(music_groups,val_key='music_azm',
     for music_group in music_groups:
         # Work with one year at a time.
         date_str    = run_helper.get_seDates_from_groups(music_group,date_fmt='%Y%m%d')
-        for radar_bank_inx, radar_bank_dict in music_group.iteritems():
+        for radar_bank_inx, radar_bank_dict in music_group.items():
             # Work with either the high or mid latitudes
             bank_name   = radar_bank_dict['name']
             for radar_dict in radar_bank_dict['dct_list']:
                 # Work with one radar at a time
                 mstid_list      = radar_dict['mstid_list']
-                print 'Reducing MSTID Azimuth: {} - {}'.format(bank_name,mstid_list)
+                print('Reducing MSTID Azimuth: {} - {}'.format(bank_name,mstid_list))
                 events          = db[mstid_list].find()
                 # Go get the actual data.
                 for event in events:
@@ -831,9 +831,9 @@ def calculate_reduced_mstid_azm(music_groups,val_key='music_azm',
                     this_dct[radar] = val
 
     # Check to make sure all entries have all radars represented.
-    for this_sTime,this_dct in mstid_inx_dict.iteritems():
+    for this_sTime,this_dct in mstid_inx_dict.items():
         for radar in radars:
-            if not this_dct.has_key(radar):
+            if radar not in this_dct:
                 this_dct[radar] = np.nan
 
     # Put everything into a dataframe.
@@ -853,7 +853,7 @@ def calculate_reduced_mstid_azm(music_groups,val_key='music_azm',
                 tmp_vals    = tmp_df.median().to_dict()
             elif reduction_type == 'mean':
                 tmp_vals    = {}
-                for rdr in tmp_df.keys():
+                for rdr in list(tmp_df.keys()):
                     no_na   = tmp_df[rdr].dropna().values
                     val     = scipy.stats.circmean(no_na,low=0.,high=360.)
                     tmp_vals[rdr] = val
@@ -891,7 +891,7 @@ def calculate_reduced_mstid_index(music_groups,val_key='meanSubIntSpect_by_rtiCn
     """
     Reduce the MSTID index from all radars into a single number as a function of time.
     """
-    print "Calulating reduced MSTID index."
+    print("Calulating reduced MSTID index.")
 
     mongo       = pymongo.MongoClient(port=mongo_port)
     db          = mongo[db_name]
@@ -902,13 +902,13 @@ def calculate_reduced_mstid_index(music_groups,val_key='meanSubIntSpect_by_rtiCn
     for music_group in music_groups:
         # Work with one year at a time.
         date_str    = run_helper.get_seDates_from_groups(music_group,date_fmt='%Y%m%d')
-        for radar_bank_inx, radar_bank_dict in music_group.iteritems():
+        for radar_bank_inx, radar_bank_dict in music_group.items():
             # Work with either the high or mid latitudes
             bank_name   = radar_bank_dict['name']
             for radar_dict in radar_bank_dict['dct_list']:
                 # Work with one radar at a time
                 mstid_list      = radar_dict['mstid_list']
-                print 'Reducing MSTID Index: {} - {}'.format(bank_name,mstid_list)
+                print('Reducing MSTID Index: {} - {}'.format(bank_name,mstid_list))
                 events          = db[mstid_list].find()
                 # Go get the actual data.
                 for event in events:
@@ -933,9 +933,9 @@ def calculate_reduced_mstid_index(music_groups,val_key='meanSubIntSpect_by_rtiCn
                     this_dct[radar] = mstid_index
 
     # Check to make sure all entries have all radars represented.
-    for this_sTime,this_dct in mstid_inx_dict.iteritems():
+    for this_sTime,this_dct in mstid_inx_dict.items():
         for radar in radars:
-            if not this_dct.has_key(radar):
+            if radar not in this_dct:
                 this_dct[radar] = np.nan
 
     # Put everything into a dataframe.
@@ -1256,7 +1256,7 @@ def calendar_plot_vortex_movie_strip(plot_list,frame_times=None,keograms=None,fi
     this_date   = dt
     filename    = '{}{}_vortex_calendar.png'.format(this_date.strftime('%Y%m%d_%H%M'),file_suffix)
     filepath    = os.path.join(output_dir,filename)
-    print 'Plotting: {}'.format(filepath)
+    print('Plotting: {}'.format(filepath))
     
     if dct_list is not None:
         group_dict      = {}
@@ -1273,7 +1273,7 @@ def calendar_plot_vortex_movie_strip(plot_list,frame_times=None,keograms=None,fi
 
     ax_nr   = 0
     ax_nx   = 1
-    ax_ny   = len(group_dict.keys())
+    ax_ny   = len(list(group_dict.keys()))
 
     ax_left             = 0.
     ax_width            = 1.0
@@ -1339,7 +1339,7 @@ def calendar_plot_vortex_movie_strip(plot_list,frame_times=None,keograms=None,fi
                 ax.text(letter_xpos,letter_ypos,'({})'.format(string.lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
                 letter_inx  += 1
 
-            grib_times  = grib_data_days.keys()
+            grib_times  = list(grib_data_days.keys())
             grib_times.sort()
             
             xvec,yvec,vals  = (None, None, None)
@@ -1422,7 +1422,7 @@ def calendar_plot_vortex_movie_strip(plot_list,frame_times=None,keograms=None,fi
                 letter_inx  += 1
 
     # Radar MSTID Data ############################################################# 
-    keys    = group_dict.keys()
+    keys    = list(group_dict.keys())
     keys.sort()
     nr_groups   = len(keys)
     radars      = []
@@ -1487,7 +1487,7 @@ def plot_geopot_movie_strip(grib_data_days,sDate,eDate,frame_times,
 
     my_xticks(sDate,eDate,ax_0,radar_ax=True)
 
-    grib_times  = grib_data_days.keys()
+    grib_times  = list(grib_data_days.keys())
     grib_times.sort()
 
     td_width    = datetime.timedelta(days=15)
@@ -1514,7 +1514,7 @@ def plot_geopot_movie_strip(grib_data_days,sDate,eDate,frame_times,
         geo_param   = 'raw'
 
         mappables   = {}
-        mbar_levels = grib_data.keys()
+        mbar_levels = list(grib_data.keys())
         mbar_levels.sort()
         for mbar_inx,mbar_level in enumerate(mbar_levels):
             grb_d       = grib_data[mbar_level]
@@ -1602,7 +1602,7 @@ def calendar_plot_key(fig,rect,boxes,arrow_ypos,radar_groups):
     from mpl_toolkits.axes_grid import Divider
     from matplotlib.patches import Rectangle
 
-    ny_plots    = len(radar_groups.keys())
+    ny_plots    = len(list(radar_groups.keys()))
 
     nr_rads = []
     for key in range(ny_plots):
@@ -1780,7 +1780,7 @@ def calendar_plot_vortex_movie_strip_paper(plot_list,frame_times=None,file_suffi
     this_date   = dt
     filename    = '{}{}_vortex_calendar.png'.format(this_date.strftime('%Y%m%d_%H%M'),file_suffix)
     filepath    = os.path.join(output_dir,filename)
-    print 'Plotting: {}'.format(filepath)
+    print('Plotting: {}'.format(filepath))
     
     if dct_list is not None:
         group_dict      = {}
@@ -1797,7 +1797,7 @@ def calendar_plot_vortex_movie_strip_paper(plot_list,frame_times=None,file_suffi
 
     ax_nr   = 0
     ax_nx   = 1
-    ax_ny   = len(group_dict.keys())
+    ax_ny   = len(list(group_dict.keys()))
 
     ax_left             = 0.
     ax_width            = 1.0
@@ -1862,7 +1862,7 @@ def calendar_plot_vortex_movie_strip_paper(plot_list,frame_times=None,file_suffi
     fig         = plt.figure(figsize=figsize)
 
     # Radar MSTID Data ############################################################# 
-    keys    = group_dict.keys()
+    keys    = list(group_dict.keys())
     keys.sort()
     nr_groups   = len(keys)
     radars      = []
@@ -1993,7 +1993,7 @@ def polar_vortex_only(plot_list,frame_times=None,file_suffix='',
     this_date   = dt
     filename    = '{}{}_polarvortex_timeseries.png'.format(this_date.strftime('%Y%m%d_%H%M'),file_suffix)
     filepath    = os.path.join(output_dir,filename)
-    print 'Plotting: {}'.format(filepath)
+    print('Plotting: {}'.format(filepath))
     
     if dct_list is not None:
         group_dict      = {}
@@ -2010,7 +2010,7 @@ def polar_vortex_only(plot_list,frame_times=None,file_suffix='',
 
     ax_nr   = 0
     ax_nx   = 1
-    ax_ny   = len(group_dict.keys())
+    ax_ny   = len(list(group_dict.keys()))
 
     ax_left             = 0.
     ax_width            = 1.0
@@ -2126,7 +2126,7 @@ def drivers_only(plot_list,frame_times=None,file_suffix='',
     this_date   = dt
     filename    = '{}{}_driver_timeseries.png'.format(this_date.strftime('%Y%m%d_%H%M'),file_suffix)
     filepath    = os.path.join(output_dir,filename)
-    print 'Plotting: {}'.format(filepath)
+    print('Plotting: {}'.format(filepath))
     
     if dct_list is not None:
         group_dict      = {}
@@ -2143,7 +2143,7 @@ def drivers_only(plot_list,frame_times=None,file_suffix='',
 
     ax_nr   = 0
     ax_nx   = 1
-    ax_ny   = len(group_dict.keys())
+    ax_ny   = len(list(group_dict.keys()))
 
     ax_left             = 0.
     ax_width            = 1.0

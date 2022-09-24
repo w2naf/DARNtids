@@ -57,8 +57,8 @@ def mstid_classification(radar,list_sDate,list_eDate,mstid_list,
     cmd.append(classification_path)
     cmd.append(db_name)
     cmd.append(str(mongo_port))
-    print('MSTID Classifying: {} {} {!s} {!s}'.format(mstid_list,radar,list_sDate,list_eDate))
-    print(' '.join(cmd))
+    print(('MSTID Classifying: {} {} {!s} {!s}'.format(mstid_list,radar,list_sDate,list_eDate)))
+    print((' '.join(cmd)))
     subprocess.check_call(cmd)
 
 def mstid_classification_dct(dct):
@@ -93,14 +93,14 @@ def copy_plot(radar,sDatetime,fDatetime,output_dir,search_string,plot_type,width
         new_path    = os.path.join(output_dir,new_fname)
         if os.path.exists(rti_path):
             shutil.copy(rti_path,new_path)
-            print('-----> {0}'.format(new_path))
+            print(('-----> {0}'.format(new_path)))
             if top_text:
                 txt = '{}<br/>'.format(top_text)
             else:
                 txt = ''
             return '<td>{}<img src="{}" width="{:d}px" /></td>'.format(txt,new_fname,width)
 
-    print('ERROR: {0}'.format(rti_path))
+    print(('ERROR: {0}'.format(rti_path)))
     return '<td></td>'
 
 def rcgb(mstid_list,db_name='mstid',mongo_port=27017,
@@ -417,12 +417,12 @@ def classify_none_events(mstid_list,db_name='mstid',mongo_port=27017,
             bad_counter += 1
             entry_id = db[mstid_list].update({'_id':item['_id']}, {'$set':{'category_manu': 'None', 'reject_message':reject_message}})
 
-    print('{bc:d} events marked as None.'.format(bc=bad_counter))
-    print('no_data: {!s}'.format(no_data))
-    print('bad_period: {!s}'.format(bad_period))
-    print('no_orig_rti_fract: {!s}'.format(no_orig_rti_fract))
-    print('low_orig_rti_fract: {!s}'.format(low_orig_rti_fract))
-    print('low_termin_fract: {!s}'.format(low_termin_fract))
+    print(('{bc:d} events marked as None.'.format(bc=bad_counter)))
+    print(('no_data: {!s}'.format(no_data)))
+    print(('bad_period: {!s}'.format(bad_period)))
+    print(('no_orig_rti_fract: {!s}'.format(no_orig_rti_fract)))
+    print(('low_orig_rti_fract: {!s}'.format(low_orig_rti_fract)))
+    print(('low_termin_fract: {!s}'.format(low_termin_fract)))
     mongo.close()
 
 def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_only=False,
@@ -462,7 +462,7 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
         mongo       = pymongo.MongoClient(port=mongo_port)
         db          = mongo[db_name]
 
-        print("MSTID Classification: Cache <{}> does not exist.  Creating.".format(cache_name))
+        print(("MSTID Classification: Cache <{}> does not exist.  Creating.".format(cache_name)))
         data_dict   = {'unclassified':{'color':'blue'},
                        'mstid': {'color':'red'},
                        'quiet': {'color':'green'}}
@@ -491,7 +491,7 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
                 sDatetime   = item['sDatetime']
                 fDatetime   = item['fDatetime']
 
-                print("MSTID Classification: Loading dataObj ({!s}/{!s}): {!s} {!s}-{!s}".format(item_inx,crsr.count(),radar,sDatetime,fDatetime))
+                print(("MSTID Classification: Loading dataObj ({!s}/{!s}): {!s} {!s}-{!s}".format(item_inx,crsr.count(),radar,sDatetime,fDatetime)))
                 dataObj = more_music.get_dataObj(radar,sDatetime,fDatetime,data_path=data_path)
 
                 if dataObj is None:
@@ -570,7 +570,7 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
             pickle.dump(data_dict,fl)
         mongo.close()
     else:
-        print("I'm using the cache! ({})".format(cache_name))
+        print(("I'm using the cache! ({})".format(cache_name)))
         with open(cache_name,'rb') as fl:
             data_dict = pickle.load(fl)
 
@@ -735,7 +735,7 @@ def spectral_plot(data_dict,output_dir='output',subtract_mean=False,plot_all_spe
 #            for key,val in rad_se_times.iteritems():
 #                sTime_dct[val[1]]   = key
 
-        for series_inx,series in data_dict[categ]['spect_df'].items():
+        for series_inx,series in list(data_dict[categ]['spect_df'].items()):
             xvals   = series.index * 1e3
             yvals   = series
             if subtract_mean:

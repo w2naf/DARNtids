@@ -14,11 +14,12 @@ import pandas as pd
 
 import ephem # pip install pyephem (on Python 2)
              # pip install ephem   (on Python 3)
+             # conda install -c anaconda ephem
 
 import pymongo
 
 import pydarn
-#import davitpy
+import pyDARNmusic
 
 from . import more_music
 from .general_lib import generate_radar_dict
@@ -198,13 +199,11 @@ def generate_mongo_list(mstid_list,radar,list_sDate,list_eDate,
         nextDate = currentDate + datetime.timedelta(hours=2)
 
         tm              = currentDate
-        import ipdb; ipdb.set_trace()
-        mlat, mlon, r   = davitpy.models.aacgm.aacgmConv(lat, lon, height, tm.year, 0)
-        mlt             = davitpy.models.aacgm.mltFromYmdhms(tm.year,tm.month,tm.day,tm.hour,tm.minute,tm.second,mlon)
+        mlat, mlon, r   = pydarn.utils.coordinates.aacgmv2.convert_latlon(lat,lon,height,tm,'G2A')
+        mlt             = (pydarn.utils.coordinates.aacgmv2.convert_mlt(mlon,tm))[0]
 
         o.date      = tm
         slt         = solartime(o)
-
 
         if slt_range is not None:
             if slt < slt_range[0] or slt >= slt_range[1]:
@@ -272,7 +271,7 @@ def dataObj_update_mongoDb(radar,sTime,eTime,dataObj,
     dct = more_music.get_orig_rti_info(dataObj,sTime,eTime)
 
     # Update Terminator Fraction Information ####################################### 
-    currentData         = davitpy.pydarn.proc.music.getDataSet(dataObj,'active')
+    currentData         = pyDARNmusic.getDataSet(dataObj,'active')
     if hasattr(currentData,'terminator'):
         bools               = np.logical_and(currentData.time > sTime,
                                              currentData.time < eTime)
@@ -283,7 +282,7 @@ def dataObj_update_mongoDb(radar,sTime,eTime,dataObj,
         dct.update(tmp)
 
     # Update Sig List ############################################################## 
-    currentData         = davitpy.pydarn.proc.music.getDataSet(dataObj,'active')
+    currentData         = pyDARNmusic.getDataSet(dataObj,'active')
     if hasattr(currentData,'sigDetect'):
         sigs    = currentData.sigDetect
         sigs.reorder()
@@ -323,21 +322,21 @@ def updateDb_mstid_list_event(event_tuple):
             ))
 
     date_fmt    = '%Y%m%d%H%M'
-    cmd        = []
-    cmd.append(os.path.join(path,'mstid_list_updateDb.py'))
-    cmd.append(radar)
-    cmd.append(sTime.strftime(date_fmt))
-    cmd.append(eTime.strftime(date_fmt))
-    cmd.append(data_path)
-    cmd.append(mstid_list)
-    cmd.append(db_name)
-    cmd.append(str(mongo_port))
-
-    print(' '.join(cmd))
-    subprocess.check_call(cmd)
+#    cmd        = []
+#    cmd.append(os.path.join(path,'mstid_list_updateDb.py'))
+#    cmd.append(radar)
+#    cmd.append(sTime.strftime(date_fmt))
+#    cmd.append(eTime.strftime(date_fmt))
+#    cmd.append(data_path)
+#    cmd.append(mstid_list)
+#    cmd.append(db_name)
+#    cmd.append(str(mongo_port))
+#
+#    print(' '.join(cmd))
+#    subprocess.check_call(cmd)
     
-#    dataObj     = more_music.get_dataObj(radar,sTime,eTime,data_path)
-#    status      = dataObj_update_mongoDb(radar,sTime,eTime,dataObj,mstid_list)
+    dataObj     = more_music.get_dataObj(radar,sTime,eTime,data_path)
+    status      = dataObj_update_mongoDb(radar,sTime,eTime,dataObj,mstid_list)
 
 def updateDb_mstid_list(mstid_list,
         db_name='mstid',mongo_port=27017,data_path='music_data/music',

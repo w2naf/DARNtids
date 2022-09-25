@@ -366,7 +366,16 @@ def classify_none_events(mstid_list,db_name='mstid',mongo_port=27017,
         3. The fraction of radar scatter points present in the data window.
             (Default requires minimum 67.5% data coverage.)
         4. The percentage of daylight in the data window.
-            (Default requires 100% daylight at the start of the data window.)
+            (Default requires 100% daylight in the data window.)
+
+    Arguments:
+        mstid_list:     <str> Name of MongoDB collection to operate on.
+        db_name:        <str> Name of MongoDB database to use.
+        mongo_port:     <27017> Port number to connect to MongoDB.
+        rti_fraction_threshold:         
+                        <float> Minimum fraction of data coverage within the data window.
+        terminator_fraction_threshold:
+                        <float> Maximum terminator (nighttime) allowed in the data window
     """
 
     # Clear out any old classifications.

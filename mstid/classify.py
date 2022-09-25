@@ -356,6 +356,19 @@ def thresh_box(yvals,ax,thresh=0.):
 
 def classify_none_events(mstid_list,db_name='mstid',mongo_port=27017,
         rti_fraction_threshold=0.675,terminator_fraction_threshold=0.,**kwargs):
+    """
+    Classify an event period as good or bad based on:
+        1. Whether or not data is available.
+        2. Results of pyDARNmusic.utils.checkDataQuality()
+            (Ensures radar is operational for a minimum amount of time during the data window.
+             Default is to require the radar to be turned off no more than 10 minutes in the
+             data window.)
+        3. The fraction of radar scatter points present in the data window.
+            (Default requires minimum 67.5% data coverage.)
+        4. The percentage of daylight in the data window.
+            (Default requires 100% daylight at the start of the data window.)
+    """
+
     # Clear out any old classifications.
     mongo   = pymongo.MongoClient(port=mongo_port)
     db      = mongo[db_name]

@@ -44,8 +44,8 @@ dct['data_path']            = 'mstid_data/mstid_index'
 dct_list                    = run_helper.create_music_run_list(**dct)
 
 mstid_index         = True
-new_list            = True
-recompute           = True
+new_list            = True      # Create a completely fresh list of events in MongoDB. Delete an old list if it exists.
+recompute           = False     # Recalculate all events from raw data. If False, use existing cached pickle files.
 reupdate_db         = True
 
 music_process       = False
@@ -65,12 +65,13 @@ if mstid_index:
     # Generate MSTID List and do rti_interp level processing.
     run_helper.get_events_and_run(dct_list,process_level='rti_interp',new_list=new_list,
             recompute=recompute,multiproc=multiproc,nprocs=nprocs)
-    import ipdb; ipdb.set_trace()
 
     # Reload RTI Data into MongoDb. ################################################
     if reupdate_db:
         for dct in dct_list:
             mstid.updateDb_mstid_list(multiproc=multiproc,nprocs=nprocs,**dct)
+
+    import ipdb; ipdb.set_trace()
 
     for dct in dct_list:
         mstid.classify.classify_none_events(**dct)
@@ -79,6 +80,7 @@ if mstid_index:
     # Run FFT Level processing on unclassified events.
     run_helper.get_events_and_run(dct_list,process_level='fft',category='unclassified',
             multiproc=multiproc,nprocs=nprocs)
+    import ipdb; ipdb.set_trace()
 
     # Now run the real MSTID classification.
     mstid.classify.run_mstid_classification(dct_list,classification_path=classification_path,
@@ -87,6 +89,7 @@ if mstid_index:
     print('Plotting calendar plot...')
     mstid.calendar_plot(dct_list,db_name=db_name,mongo_port=mongo_port)
 
+import ipdb; ipdb.set_trace()
 # Run actual MUSIC Processing ##################################################
 if music_process:
     for dct in dct_list:

@@ -99,6 +99,21 @@ def solartime(observer, sun=ephem.Sun()):
 def generate_mongo_list_from_list(mstid_list,db_name,mongo_port,
         input_mstid_list,input_db_name,input_mongo_port,
         category=None):
+    """
+    Copy an existing MongoDB MSTID List into a new MSTID List, keeping only the following fields:
+        'radar'
+        'date'
+        'sDatetime'
+        'fDatetime'
+        'lat'
+        'lon'
+        'slt'
+        'mlt'
+        'height_km'
+        'gscat'
+        'category_auto'
+        'category_manu'
+    """
 
     #### Connect to output and input databases.
     mongo       = pymongo.MongoClient(port=mongo_port)
@@ -125,6 +140,7 @@ def generate_mongo_list_from_list(mstid_list,db_name,mongo_port,
     keep.append('lon')
     keep.append('slt')
     keep.append('mlt')
+    keep.append('height_km')
     keep.append('gscat')
     keep.append('category_auto')
     keep.append('category_manu')
@@ -173,8 +189,55 @@ def generate_mongo_list_from_list(mstid_list,db_name,mongo_port,
     mongo.close()
 
 def generate_mongo_list(mstid_list,radar,list_sDate,list_eDate,
-        lat=None,lon=None,slt_range=(6,18),height=350.,
+        lat=None,lon=None,slt_range=(6,18),height=350.,timedelta=datetime.timedelta(hours=2),
         db_name='mstid',mongo_port=27017,**kwargs):
+    """
+    Generates a MongoDB collection with one entry for every period being studied. A single
+    collection is defined for a single radar and range of dates. While any name may be given
+    to the collection through the mstid_list argument, a typical name would be in the form of:
+        guc_bks_20121101_20130501
+
+    Where 'guc' stands for Grand Unified Classification, 'bks' is the radar code, '20121101' is
+    the start date of the collection, and '201305001' is the end date of the collection.
+
+    This function generates one MongoDB document in the collection for every event period to be
+    studied. The document are created with the following fields:
+            'date':             currentDate
+            'sDatetime':        currentDate     # Beginning of event period
+            'fDatetime':        nextDate        # End of event period
+            'radar':            radar           # Radar code
+            'intpsd_sum':       'NaN'           # Placeholder for integrated Power Spectral Density summation
+            'intpsd_max':       'NaN"           # Placeholder for integrated Power Spectral Density maximum
+            'intpsd_mean':      'NaN'           # Placeholder for integrated Power Spectral Density mean
+            'lat':              lat             # Center of data latitude
+            'lon':              lon             # Center of data longitude
+            'slt':              slt             # Solar Local Time of lat/lon calcuated by this routine using pyEphem
+            'mlt':              mlt             # Magnetic Local Time of lat/lon calcuated by this routine using aacgmv2
+            'gscat':            1               # Ground Scatter Flag set to 1 (TODO: Take in gscat as arguement rather than force to 1)
+            'category_auto':    'None'          # Placeholder for MSTID classification
+            'height_km':        height          # Height in kilometers used to calculate SLT and MLT.
+
+    WARNING: This function will delete and overwrite the MongoDB collection specified in mstid_list.
+
+    Arguments:
+        mstid_list: <str> Name of MongoDB collection to be created. Existing collection will
+            be deleted before new collection is created.
+        radar:      <str> SupderDARN radar three-letter code.
+        list_sDate: <datetime.datetime> Start datetime of list
+        list_eDate: <datetime.datetime> End datetime of list
+        lat:        <float> Latitude of center of radar data Field of View
+        lon:        <float> Longitude of center of radar data Field of View
+        slt_range:  <(6,18)> Range of Solar Local Times to keep. If an event is not within the
+            Solar Local Time range specified, it is not added to the list. SLT of an event is
+            calculated using pyEphem based on the specified lat, lon, height, and start time
+            of the event.
+        height:     <350.> Height of observation in kilometers.
+        timedelta:  <datetime.timedelta(hours=2)> Duration of event.
+        db_name:    <'mstid'> Name of MongoDB database to use.
+        mongo_port: <27017> Port number to connect to MongoDB server.
+        **kwargs:   No kwargs used by this function. This is here to ignore any other keyword
+            arguements passed to the function.
+    """
 
     mongo   = pymongo.MongoClient(port=mongo_port)
     db      = mongo[db_name]
@@ -192,11 +255,11 @@ def generate_mongo_list(mstid_list,radar,list_sDate,list_eDate,
     o           = ephem.Observer()
     o.lon       = np.radians(lon)
     o.lat       = np.radians(lat)
-    o.elevation = height
+    o.elevation = height*1000. # pyEphem expects height in m.
     
     currentDate = list_sDate
     while currentDate < list_eDate: 
-        nextDate = currentDate + datetime.timedelta(hours=2)
+        nextDate = currentDate + timedelta
 
         tm              = currentDate
         mlat, mlon, r   = pydarn.utils.coordinates.aacgmv2.convert_latlon(lat,lon,height,tm,'G2A')
@@ -221,7 +284,8 @@ def generate_mongo_list(mstid_list,radar,list_sDate,list_eDate,
         if not crsr:
             record= {'date':currentDate, 'sDatetime': currentDate, 'fDatetime': nextDate, 'radar':radar,
                      'intpsd_sum': intpsd_sum, 'intpsd_max': intpsd_max, 'intpsd_mean': intpsd_mean,
-                     'lat': lat, 'lon': lon, 'slt': slt, 'mlt': mlt,'gscat': 1, 'category_auto':'None'}
+                     'lat': lat, 'lon': lon, 'slt': slt, 'mlt': mlt,'gscat': 1, 'category_auto':'None',
+                     'height_km': height}
             db[mstid_list].insert(record)
 
         currentDate = nextDate

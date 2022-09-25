@@ -6,7 +6,7 @@ import string
 import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib.collections import PolyCollection
-from mpl_toolkits.basemap import Basemap
+
 import numpy as np
 import scipy as sp
 import scipy.stats
@@ -16,8 +16,8 @@ import pymongo
 
 from .general_lib import prepare_output_dirs
 from . import general_lib as gl
-from . import polar_met
-from . import drivers
+#from . import polar_met
+#from . import drivers
 from . import mongo_tools
 from . import run_helper
 
@@ -256,7 +256,7 @@ def plot_calendar_panel(dct_list,sDate,eDate,scale,st_uts,val_key,ax,
     ax.add_collection(pcoll,autolim=False)
 
     # Make gray missing data.
-    ax.set_axis_bgcolor('0.90')
+    ax.set_facecolor('0.90')
 
     # Add radar labels.
     trans = matplotlib.transforms.blended_transform_factory(ax.transAxes,ax.transData)

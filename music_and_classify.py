@@ -71,23 +71,33 @@ if mstid_index:
         for dct in dct_list:
             mstid.updateDb_mstid_list(multiproc=multiproc,nprocs=nprocs,**dct)
 
-    import ipdb; ipdb.set_trace()
-
     for dct in dct_list:
-        mstid.classify.classify_none_events(**dct)
+        # Determine if each event is good or bad based on:
+        #   1. Whether or not data is available.
+        #   2. Results of pyDARNmusic.utils.checkDataQuality()
+        #       (Ensures radar is operational for a minimum amount of time during the data window.
+        #        Default is to require the radar to be turned off no more than 10 minutes in the
+        #        data window.)
+        #   3. The fraction of radar scatter points present in the data window.
+        #       (Default requires minimum 67.5% data coverage.)
+        #   4. The percentage of daylight in the data window.
+        #       (Default requires 100% daylight in the data window.)
+        mstid.classify.classify_none_events(**dct) 
+
+        # Generate a web page and copy select figures into new directory to make it easier
+        # to evaluate data and see if classification algorithm is working.
         mstid.classify.rcgb(classification_path=classification_path,**dct)
 
     # Run FFT Level processing on unclassified events.
     run_helper.get_events_and_run(dct_list,process_level='fft',category='unclassified',
             multiproc=multiproc,nprocs=nprocs)
-    import ipdb; ipdb.set_trace()
 
     # Now run the real MSTID classification.
     mstid.classify.run_mstid_classification(dct_list,classification_path=classification_path,
             multiproc=multiproc,nprocs=5)
 
     print('Plotting calendar plot...')
-    mstid.calendar_plot(dct_list,db_name=db_name,mongo_port=mongo_port)
+#    mstid.calendar_plot(dct_list,db_name=db_name,mongo_port=mongo_port)
 
 import ipdb; ipdb.set_trace()
 # Run actual MUSIC Processing ##################################################

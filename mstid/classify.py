@@ -82,6 +82,10 @@ def run_mstid_classification(dct_list,multiproc=True,nprocs=None,
             mstid_classification_dct(dct)
 
 def copy_plot(radar,sDatetime,fDatetime,output_dir,search_string,plot_type,width=300,data_path='music_data/music',top_text=None):
+    """
+    Copy a figure from the original processing directory to a directory for a new view and return an html td/img tag with the 
+    figure's path and image display size.
+    """
     # KArr Plot ####################################################################
     musicPath   = get_output_path(radar,sDatetime,fDatetime,data_path=data_path)
     rti_path    = glob.glob(os.path.join(musicPath,search_string))
@@ -106,7 +110,11 @@ def copy_plot(radar,sDatetime,fDatetime,output_dir,search_string,plot_type,width
 def rcgb(mstid_list,db_name='mstid',mongo_port=27017,
         data_path='music_data/music',classification_path='classification',**kwargs):
     """
-    RTI Checker Good Bad
+    rcgb: RTI Checker Good Bad
+
+    This routine does not actually check if the RTI is good or bad. Instead, it reorganizes files
+    and writes out html files to help the user quickly evaluate if the current classification
+    algorithms are working correctly and doing a good job.
     """
     mongo       = pymongo.MongoClient(port=mongo_port)
     db          = mongo[db_name]
@@ -198,7 +206,7 @@ def rcss(data_dict,classification_path='classification'):
     """
     mstid_list  = data_dict['mstid_list']
     categs      = data_dict['categs']
-    data_path = data_dict['data_path']
+    data_path   = data_dict['data_path']
 
     output_path = os.path.join(classification_path,'rti_checker')
 
@@ -355,7 +363,7 @@ def thresh_box(yvals,ax,thresh=0.):
     ax.axhline(0,ls='--',color='r',lw=2.0)
 
 def classify_none_events(mstid_list,db_name='mstid',mongo_port=27017,
-        rti_fraction_threshold=0.675,terminator_fraction_threshold=0.,**kwargs):
+        rti_fraction_threshold=0.25,terminator_fraction_threshold=0.,**kwargs):
     """
     Classify an event period as good or bad based on:
         1. Whether or not data is available.
@@ -364,9 +372,12 @@ def classify_none_events(mstid_list,db_name='mstid',mongo_port=27017,
              Default is to require the radar to be turned off no more than 10 minutes in the
              data window.)
         3. The fraction of radar scatter points present in the data window.
-            (Default requires minimum 67.5% data coverage.)
+            (Default requires minimum <rti_fraction_threshold> data coverage.)
         4. The percentage of daylight in the data window.
             (Default requires 100% daylight in the data window.)
+
+    If an event is determined to be bad, 'category_manu' is set to 'None' and a 'reject_message' is
+    stored in the database explaining why the event was rejected.
 
     Arguments:
         mstid_list:     <str> Name of MongoDB collection to operate on.
@@ -546,7 +557,7 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
                     data_dict[categ]['radar_sTime_eTime'][0]  = (radar,sDatetime,fDatetime)
                 else:
                     #Get the index for the next spectrum.
-                    series.name                     = list(spect_df.keys()).max() + 1
+                    series.name = max(list(spect_df.keys())) + 1
 
                     # Append the spectrum and radar,sDatetime,fDatetime to the appropriate dictionaries.
                     data_dict[categ]['spect_df']    = spect_df.join(series,how='outer')
@@ -923,7 +934,7 @@ def this_actually_does_the_sorting(spect_df,orig_rti_info,all_spect_mean,sort_ke
         col_name            = '{}_by_rtiCnt'.format(key)
         sort_df[col_name]   = sort_df[key]/orig_rti_info['orig_rti_cnt']
 
-    sort_df.sort(sort_key,ascending=True,inplace=True)
+    sort_df.sort_values(sort_key,ascending=True,inplace=True)
     sort_df['order'] = list(range(len(sort_df)))
     return sort_df 
 

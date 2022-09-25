@@ -530,7 +530,6 @@ def run_music(radar,sTime,eTime,
     print(datetime.datetime.now(), 'Processing: ', radar, sTime)
 
     process_level   = ProcessLevel(str(process_level))
-
     music_path  = get_output_path(radar, sTime, eTime,data_path=data_path,create=True)
     pickle_path = get_pickle_name(radar,sTime,eTime,data_path=data_path,getPath=True)
 
@@ -673,13 +672,13 @@ def run_music(radar,sTime,eTime,
                 plt.close(fig)
 
         if detrend:
-            music.detrend(dataObj, dataSet='active')
+            pyDARNmusic.detrend(dataObj, dataSet='active')
 
         # Recalculate terminator because time vector changed.
         calculate_terminator_for_dataSet(dataObj)
 
         if hanning_window_time:
-            music.windowData(dataObj, dataSet='active')
+            pyDARNmusic.windowData(dataObj, dataSet='active')
 
         if hanning_window_space:
             window_beam_gate(dataObj)
@@ -689,14 +688,14 @@ def run_music(radar,sTime,eTime,
 
         # Recalculate terminator because time vector changed.
         calculate_terminator_for_dataSet(dataObj)
-        music.calculateFFT(dataObj)
+        pyDARNmusic.calculateFFT(dataObj)
 
         completed_process_level = 'fft'
 
     if process_level >= ProcessLevel('music'):
-        music.calculateDlm(dataObj)
-        music.calculateKarr(dataObj,kxMax=kx_max,kyMax=ky_max)
-        music.detectSignals(dataObj,threshold=autodetect_threshold,neighborhood=neighborhood)
+        pyDARNmusic.calculateDlm(dataObj)
+        pyDARNmusic.calculateKarr(dataObj,kxMax=kx_max,kyMax=ky_max)
+        pyDARNmusic.detectSignals(dataObj,threshold=autodetect_threshold,neighborhood=neighborhood)
         sigs_to_txt(dataObj,music_path)
         completed_process_level = 'music'
 
@@ -825,8 +824,7 @@ def music_plot_all(run_params,dataObj,process_level='music'):
     plotSerial = plotSerial + 1
 
     fig = plt.figure(figsize=figsize)
-    ax  = fig.add_subplot(111)
-    pyDARNmusic.plotting.musicPlot.musicFan(dataObj,plotZeros=True,axis=ax,autoScale=True,time=time)
+    pyDARNmusic.plotting.musicPlot.musicFan(dataObj,plotZeros=True,autoScale=True,time=time,fig=fig,subplot_tuple=(1,1,1))
     fileName = os.path.join(output_dir,'%03i_finalDataFan.png' % plotSerial)
     fig.savefig(fileName,bbox_inches='tight')
     plt.close(fig)

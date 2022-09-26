@@ -108,7 +108,7 @@ for driver_dct in drivers:
         dates               = run_helper.get_seDates_from_groups(radar_groups,date_fmt=None)
         key_dates           = run_helper.get_key_dates(*dates)
         if season != '2012_2013': continue
-        print('Calendar plot: {}; Driver: {!s}'.format(date_str,driver))
+        print 'Calendar plot: {}; Driver: {!s}'.format(date_str,driver)
 
         subsec_datestr  = run_helper.get_seDates_from_groups(radar_groups,date_fmt='%d %b %Y',sep=' - ')
         slide_str   = '{} / {}'.format(subsec_datestr,section_title)
@@ -155,7 +155,7 @@ for driver_dct in drivers:
             slide_list  = []
             png_path    = mstid.calendar_plot_lib.drivers_only(plot_list,frame_times=key_dates,
                                 save_pdf=True,paper_legend=True,plot_letters=True,file_suffix='_'+file_suffix,plot_geopot_maps=plot_geopot_maps)
-            print(png_path)
+            print png_path
             slide_list.append(png_path)
 
             beamer.add_subsection(subsec_str)
@@ -163,4 +163,4 @@ for driver_dct in drivers:
 
 beamer.write_latex()
 beamer.make()
-print("I'm done!")
+print "I'm done!"

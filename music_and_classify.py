@@ -32,8 +32,8 @@ db_name                     = 'mstid'
 
 dct                         = {}
 dct['radars']               = radars
-dct['list_sDate']           = datetime.datetime(2012,11,1)
-dct['list_eDate']           = datetime.datetime(2013,5,1)
+dct['list_sDate']           = datetime.datetime(2017,11,1)
+dct['list_eDate']           = datetime.datetime(2018,5,1)
 #dct['list_sDate']           = datetime.datetime(2012,12,1)
 #dct['list_eDate']           = datetime.datetime(2012,12,15)
 dct['hanning_window_space'] = False # Set to False for MSTID Index Calculation
@@ -52,7 +52,7 @@ music_process       = False
 music_new_list      = True
 music_reupdate_db   = True
 
-nprocs              = 8 
+nprocs              = 60
 multiproc           = True  
 
 # Classification parameters go here. ###########################################

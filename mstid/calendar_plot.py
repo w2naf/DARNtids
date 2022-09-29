@@ -17,7 +17,7 @@ import pymongo
 from .general_lib import prepare_output_dirs
 from . import general_lib as gl
 #from . import polar_met
-#from . import drivers
+from . import drivers
 from . import mongo_tools
 from . import run_helper
 
@@ -60,8 +60,8 @@ def get_y_coords(ut_time,st_uts,radar,radars):
 
 def get_coords(radar,win_sDate,radars,sDate,eDate,st_uts,verts=True):
     # Y-coordinate.
-    x1  = get_x_coords(win_sDate,sDate,eDate)
-    y1  = get_y_coords(win_sDate.hour,st_uts,radar,radars)
+    x1  = float(get_x_coords(win_sDate,sDate,eDate))
+    y1  = float(get_y_coords(win_sDate.hour,st_uts,radar,radars))
 
     if verts:
 #        x1,y1   = x1+0,y1+0
@@ -123,7 +123,7 @@ def my_xticks(sDate,eDate,ax,radar_ax=False,labels=True,
     else:
         ax.set_xlim(sDate,sDate+datetime.timedelta(days=xmax))
 
-    ax.grid(zorder=500)
+#    ax.grid(zorder=500)
 
 def get_sDate_eDate(group_dict,sDate,eDate):
     """
@@ -297,7 +297,7 @@ def plot_calendar_panel(dct_list,sDate,eDate,scale,st_uts,val_key,ax,
 
     my_xticks(sDate,eDate,ax,radar_ax=True,labels=xlabels)
     
-    txt = ' '.join([x.upper() for x in radars])
+    txt = ' '.join([x.upper() for x in radars[::-1]])
     if group_name is not None:
         txt = '{} ({})'.format(group_name,txt)
     ax.set_title(txt,fontdict=title_fontdict)
@@ -1003,7 +1003,7 @@ def plot_the_drivers(sDate,eDate,driver_list,
             load_dct['smooth_kind']         = smooth_kind
             driver_obj                      = drivers.get_driver_obj(**load_dct)
 
-        if this_driver == 'mstid_inx':
+        if this_driver == 'mstid_inx' or this_driver == 'mstid_reduced_inx':
             mstid_scores    = mongo_tools.get_mstid_scores(sDate,eDate)
 
         driver_objs.append(driver_obj)
@@ -1076,7 +1076,7 @@ def plot_the_drivers(sDate,eDate,driver_list,
             mu  = do_0.data.mean()
             ax.axhline(mu,ls='--',color='r',lw=1.5)
 
-        if this_driver == 'mstid_inx':
+        if this_driver == 'mstid_inx' or this_driver == 'mstid_reduced_inx':
             # Add the number of good radars.
             ax2 = ax.twinx()
             ax.set_zorder(ax2.get_zorder()+1)
@@ -1085,26 +1085,26 @@ def plot_the_drivers(sDate,eDate,driver_list,
             ax2_xvals       = n_good_radars.data.index.to_pydatetime()
             ax2_yvals       = n_good_radars.data.values
             ylbl            = 'n Data Points'
-            tmp,            = ax2.plot(ax2_xvals,ax2_yvals,color='k',zorder=0.5,lw=3,ls='--',label=ylbl)
+            tmp,            = ax2.plot(ax2_xvals,ax2_yvals,color='0.2',zorder=0.5,lw=3,ls=':',label=ylbl)
             lines.append(tmp)
 
             ytls = ax2.get_yticklabels()
             for ytl in ytls:
                 ytl.set_fontsize(24)
 
-            for tick in ax2.get_yaxis().get_major_ticks():
-                tick.set_pad(10.)
-                tick.label1 = tick._get_text1()
-
+#            for tick in ax2.get_yaxis().get_major_ticks():
+#                tick.set_pad(10.)
+#                tick.label1 = tick._get_text1()
+#
             fontdict    = driver_ylabel_fontdict
             labelpad    = 15
             txt         = n_good_radars.plot_info['ind_0_gme_label']
             ax2.set_ylabel(ylbl,fontdict=fontdict,labelpad=labelpad)
 
-            txt         = '(Dashed Line)'
-            fontdict    = {'weight': 'normal','style':'italic', 'size': 24}
-            ax2.text(1.029,0.5,txt,fontdict=fontdict,transform=ax.transAxes,
-                    rotation=90.,va='center')
+#            txt         = '(Dashed Line)'
+#            fontdict    = {'weight': 'normal','style':'italic', 'size': 24}
+#            ax2.text(1.029,0.5,txt,fontdict=fontdict,transform=ax.transAxes,
+#                    rotation=90.,va='center')
 
 
             # Shade the plot to indicate MSTID vs Quiet Periods
@@ -1129,7 +1129,7 @@ def plot_the_drivers(sDate,eDate,driver_list,
             abs_max     = 30.
 #            cmap        = matplotlib.cm.seismic
             cmap        = gl.get_custom_cmap('blue_red')
-            bounds      = np.linspace(-abs_max,abs_max,2*abs_max+1)
+            bounds      = np.linspace(-abs_max,abs_max,int(2*abs_max+1))
             norm        = matplotlib.colors.BoundaryNorm(bounds,cmap.N)
 
             ytransaxes = matplotlib.transforms.blended_transform_factory(ax.transData,ax.transAxes)
@@ -1155,13 +1155,13 @@ def plot_the_drivers(sDate,eDate,driver_list,
 #            txts    = [(0.77,'MSTID\nDays'),
 #                       (0.23,'Quiet\nDays')]
 
-            txts    = [(0.77,'MSTID\nActive'),
-                       (0.23,'MSTID\nQuiet')]
-            fontdict = {'weight': 'bold', 'size': 28}
-            for ypos,txt in txts:
-                axColor.text(xpos,ypos,txt,ha='center',va='center',
-                        rotation=90.,
-                        fontdict=fontdict,transform=caxta)
+#            txts    = [(0.77,'MSTID\nActive'),
+#                       (0.23,'MSTID\nQuiet')]
+#            fontdict = {'weight': 'bold', 'size': 28}
+#            for ypos,txt in txts:
+#                axColor.text(xpos,ypos,txt,ha='center',va='center',
+#                        rotation=90.,
+#                        fontdict=fontdict,transform=caxta)
 
             labels = cbar.ax.get_yticklabels()
             fontweight  = cbar_ytick_fontdict.get('weight')
@@ -1181,13 +1181,13 @@ def plot_the_drivers(sDate,eDate,driver_list,
         ax.set_ylabel(do_0.plot_info['ind_0_gme_label'],fontdict=fontdict,labelpad=labelpad)
         ax.set_title(do_0.plot_info['title'],fontdict=title_fontdict)
 
-        for tick in ax.get_yaxis().get_major_ticks():
-            tick.set_pad(10.)
-            tick.label1 = tick._get_text1()
+#        for tick in ax.get_yaxis().get_major_ticks():
+#            tick.set_pad(10.)
+#            tick.label1 = tick._get_text1()
 
-        ytls = ax.get_yticklabels()
-        for ytl in ytls:
-            ytl.set_fontsize(24)
+#        ytls = ax.get_yticklabels()
+#        for ytl in ytls:
+#            ytl.set_fontsize(24)
 
         if xlabels == True:
             nd = len(driver_list)
@@ -1317,7 +1317,7 @@ def calendar_plot_vortex_movie_strip(plot_list,frame_times=None,keograms=None,fi
     ax_top      = ret_info['ax_top']
     ax          = ret_info['ax']
     if plot_letters:
-        ax.text(letter_xpos,letter_ypos,'({})'.format(string.lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
+        ax.text(letter_xpos,letter_ypos,'({})'.format(string.ascii_lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
         letter_inx  += 1
 
     if keograms is not None:
@@ -1336,7 +1336,7 @@ def calendar_plot_vortex_movie_strip(plot_list,frame_times=None,keograms=None,fi
             ax              = fig.add_axes((ax_left,ax_bottom,ax_width,ax_height))
 
             if plot_letters:
-                ax.text(letter_xpos,letter_ypos,'({})'.format(string.lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
+                ax.text(letter_xpos,letter_ypos,'({})'.format(string.ascii_lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
                 letter_inx  += 1
 
             grib_times  = list(grib_data_days.keys())
@@ -1418,7 +1418,7 @@ def calendar_plot_vortex_movie_strip(plot_list,frame_times=None,keograms=None,fi
             ax.axvline(this_date,ls='--',lw=6,color='k',zorder=750)
 
             if plot_letters:
-                ax.text(letter_xpos,letter_ypos,'({})'.format(string.lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
+                ax.text(letter_xpos,letter_ypos,'({})'.format(string.ascii_lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
                 letter_inx  += 1
 
     # Radar MSTID Data ############################################################# 
@@ -1437,7 +1437,7 @@ def calendar_plot_vortex_movie_strip(plot_list,frame_times=None,keograms=None,fi
         ax          = fig.add_axes((ax_left,ax_bottom,ax_width,ax_height))
 
         if plot_letters:
-            ax.text(letter_xpos,letter_ypos,'({})'.format(string.lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
+            ax.text(letter_xpos,letter_ypos,'({})'.format(string.ascii_lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
             letter_inx  += 1
 
         if key == max(keys):
@@ -1607,7 +1607,7 @@ def calendar_plot_key(fig,rect,boxes,arrow_ypos,radar_groups):
     nr_rads = []
     for key in range(ny_plots):
         rdr_grp     = radar_groups[key]
-        grp_name    = rdr_grp['name']
+        grp_name    = rdr_grp.get('name','')
         radars      = [x['radar'] for x in rdr_grp['dct_list']]
         nr_rads.append(len(radars))
 
@@ -1736,6 +1736,210 @@ def calendar_plot_key(fig,rect,boxes,arrow_ypos,radar_groups):
 #
 #    for ytl in big_ax.get_yticks():
 #        ytl.set_visible(False)
+
+def plot_mstid_index(frame_times=None,file_suffix='',
+        save_pdf=False,paper_legend=False,plot_letters=True,plot_geopot_maps=False,rasterized=False,dpi=400,**kwargs):
+    letter_inx      = 0
+    letter_fontdict = {'weight':'bold', 'size':48}
+    letter_xpos     = -0.095
+    letter_ypos     = 0.5
+
+    # This function is derived from calendar_plot_with_polar_data().  The following section
+    # replicates the call for that function.
+    dct_list            = kwargs.pop('dct_list',None)
+    group_dict          = kwargs.pop('group_dict',None)
+    sDate               = kwargs.pop('sDate',None)
+    eDate               = kwargs.pop('eDate',None)
+    val_key             = kwargs.pop('val_key','meanSubIntSpect_by_rtiCnt')
+    scale               = kwargs.pop('scale',[-0.03,0.03])
+    st_uts              = kwargs.pop('st_uts',[14, 16, 18, 20])
+    driver              = kwargs.pop('driver',None)
+    output_dir          = kwargs.pop('output_dir','mstid_data/calendar')
+    db_name             = kwargs.pop('db_name','mstid')
+    mongo_port          = kwargs.pop('mongo_port',27017)
+    dt                  = kwargs.pop('dt',None)
+    mstid_reduced_inx   = kwargs.pop('mstid_reduced_inx',None)
+    correlate           = kwargs.pop('correlate',None)
+    highlight_ew        = kwargs.pop('highlight_ew',False)
+    classification_colors   = kwargs.pop('classification_colors',False)
+
+    driver_list         = gl.get_iterable(driver)
+    if correlate:
+        driver_list = [driver_list[0],'mstid_reduced_inx','correlate']
+
+    this_date   = sDate
+    filename    = '{}{}_mstid_index.png'.format(this_date.strftime('%Y%m%d_%H%M'),file_suffix)
+    filepath    = os.path.join(output_dir,filename)
+    print(('Plotting: {}'.format(filepath)))
+    
+    if dct_list is not None:
+        group_dict      = {}
+        group_dict[0]   = {}
+        group_dict[0]['dct_list']   = dct_list
+
+    prepare_output_dirs({0:output_dir},clear_output_dirs=False)
+
+    sDate,eDate = get_sDate_eDate(group_dict,sDate,eDate)
+    xmax        = get_xmax(sDate,eDate)
+
+    # Plotting section. ############################################################
+    ax_list = []
+
+    ax_nr   = 0
+    ax_nx   = 1
+    ax_ny   = len(list(group_dict.keys()))
+
+    ax_left             = 0.
+    ax_width            = 1.0
+    ax_top              = 1.0
+    h_pad               = 0.030
+    w_pad               = 0.025
+
+    fig_scale_x         = 1.
+    fig_scale_y         = 0.180
+    sup_title_bump      = 0.
+
+    ax_ny += 1
+    if driver is None:
+        grib_panel_frac     = 0.50
+        radar_panel_frac    = 0.50
+    if driver == ['mstid_reduced_inx'] and not plot_geopot_maps:
+        radar_panel_frac    = 0.40
+        driver_panel_frac   = 0.20
+        grib_panel_frac     = 0.0
+
+        h_pad               = 0.025
+        fig_scale_x         = 1.
+        fig_scale_y         = 0.300
+    elif len(driver) == 4 and not plot_geopot_maps:
+        # Paper with 3 driver panels.
+        radar_panel_frac    = 0.40
+        driver_panel_frac   = 0.55
+        grib_panel_frac     = 0.0
+
+        h_pad               = 0.025
+        fig_scale_x         = 1.
+        fig_scale_y         = 0.300
+    elif len(driver) == 3 and not plot_geopot_maps:
+        # Paper with 3 driver panels.
+        radar_panel_frac    = 0.40
+        driver_panel_frac   = 0.45
+        grib_panel_frac     = 0.0
+
+        h_pad               = 0.025
+        fig_scale_x         = 1.
+        fig_scale_y         = 0.300
+    elif len(driver) == 2 and plot_geopot_maps:
+        # Paper with 3 driver panels.
+        radar_panel_frac    = 0.40
+        driver_panel_frac   = 0.30
+        grib_panel_frac     = 0.15
+
+        h_pad               = 0.025
+        fig_scale_x         = 1.
+        fig_scale_y         = 0.300
+    else:
+        radar_panel_frac    = 0.44
+        driver_panel_frac   = 0.44
+        grib_panel_frac     = 0.12
+
+        h_pad               = 0.025
+        fig_scale_x         = 1.
+        fig_scale_y         = 0.300
+
+    fig_scale   = 40.
+    figsize     = (fig_scale*fig_scale_x,fig_scale*fig_scale_y*ax_ny)
+    fig         = plt.figure(figsize=figsize)
+
+    # Radar MSTID Data ############################################################# 
+    keys    = list(group_dict.keys())
+    keys.sort()
+    nr_groups   = len(keys)
+    radars      = []
+    for key in keys:
+        dct_list    = group_dict[key]['dct_list']
+        group_name  = group_dict[key].get('name')
+        radars  += [dct['radar'] for dct in dct_list]
+
+        ax_height   = get_radar_ax_frac(key,group_dict) * (radar_panel_frac - h_pad*nr_groups)
+        ax_bottom   = ax_top - ax_height - h_pad
+        ax_top      = ax_bottom
+        ax          = fig.add_axes((ax_left,ax_bottom,ax_width,ax_height))
+
+        if plot_letters:
+            ax.text(letter_xpos,letter_ypos,'({})'.format(string.ascii_lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
+            letter_inx  += 1
+
+        xlabels = False
+
+        ax_info     = plot_calendar_panel(dct_list,sDate,eDate,scale,st_uts,val_key,ax,
+                xlabels=xlabels,db_name=db_name,mongo_port=mongo_port,group_name=group_name,
+                highlight_ew=highlight_ew,classification_colors=classification_colors,rasterized=rasterized)
+
+        vline_xpos = get_x_coords(this_date,sDate,eDate,full=True)
+        ax.axvline(vline_xpos,ls='--',lw=6,color='k',zorder=750)
+        ax_list.append(ax_info)
+
+    if driver is not None:
+        ylim_dict   = {}
+        ylim_dict['mstid_reduced_inx']      = (-2.5,2.5)
+        ylim_dict['mstid_inx']              = (-2.5,2.5)
+        ylim_dict['smoothed_ae']            = (-1400,0)
+        ylim_dict['ae_proc_0']              = (-1400,0)
+        ylim_dict['ae_proc_2']              = (1400,0)
+        ylim_dict['omni_symh']              = (-150,100)
+        ylim_dict['neg_mbar_diff']          = (-2.5,2.5)
+        ylim_dict['mstid_reduced_azm']      = (270.,90.)
+        ylim_dict['mstid_reduced_azm_dev']  = (-50., 50.)
+
+        ax_info = plot_the_drivers(sDate,eDate,driver_list,
+                driver_panel_frac,ax_left,ax_width,ax_top,h_pad,
+                output_dir,mstid_reduced_inx,correlate,ylim_dict=ylim_dict,
+                xlabels=True)
+
+        ax_top  = ax_info['ax_top']
+
+        for ax in ax_info['axs']:
+            ax.axvline(this_date,ls='--',lw=6,color='k',zorder=750)
+
+            if plot_letters:
+                ax.text(letter_xpos,letter_ypos,'({})'.format(string.ascii_lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
+                letter_inx  += 1
+
+    if plot_geopot_maps:
+        ret_info    = plot_geopot_movie_strip(grib_data_days,sDate,eDate,frame_times,
+                        grib_panel_frac,ax_left,ax_width,ax_top,h_pad,w_pad,fig)
+
+        ax_top      = ret_info['ax_top']
+        ax          = ret_info['ax']
+
+        if plot_letters:
+            ax.text(letter_xpos,letter_ypos,'({})'.format(string.ascii_lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
+            letter_inx  += 1
+
+    plot_cbars(ax_list)
+
+    date_fmt    = '%d %b %Y'
+    date_str    = '{} - {}'.format(sDate.strftime(date_fmt),eDate.strftime(date_fmt))
+    fig.text(0.5,1.000+sup_title_bump,date_str,ha='center',fontdict={'weight':'bold','size':48})
+
+#    if paper_legend:
+#        leg_scale   = 0.60
+#        rect        = [-0.140,0.7400,leg_scale*0.010,leg_scale*0.25]
+#
+#        boxes       = []
+#        boxes.append({'box':[0.000,0.100,0.25,0.8]})  # Box around the key.
+#        boxes.append({'box':[0.425,0.195,0.05,0.6]})  # Box around actual calendar plot.
+#        arrow_ypos  = 0.535
+#
+#        calendar_plot_key(fig,rect,boxes,arrow_ypos,group_dict)
+
+    fig.savefig(filepath,bbox_inches='tight',dpi=dpi)
+    if save_pdf:
+        fig.savefig(filepath[:-3]+'pdf',bbox_inches='tight',dpi=dpi)
+    plt.close(fig)
+
+    return filepath
 
 def calendar_plot_vortex_movie_strip_paper(plot_list,frame_times=None,file_suffix='',
         save_pdf=False,paper_legend=False,plot_letters=True,plot_geopot_maps=True,rasterized=False,dpi=400,**kwargs):
@@ -1877,7 +2081,7 @@ def calendar_plot_vortex_movie_strip_paper(plot_list,frame_times=None,file_suffi
         ax          = fig.add_axes((ax_left,ax_bottom,ax_width,ax_height))
 
         if plot_letters:
-            ax.text(letter_xpos,letter_ypos,'({})'.format(string.lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
+            ax.text(letter_xpos,letter_ypos,'({})'.format(string.ascii_lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
             letter_inx  += 1
 
         xlabels = False
@@ -1912,7 +2116,7 @@ def calendar_plot_vortex_movie_strip_paper(plot_list,frame_times=None,file_suffi
             ax.axvline(this_date,ls='--',lw=6,color='k',zorder=750)
 
             if plot_letters:
-                ax.text(letter_xpos,letter_ypos,'({})'.format(string.lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
+                ax.text(letter_xpos,letter_ypos,'({})'.format(string.ascii_lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
                 letter_inx  += 1
 
     if plot_geopot_maps:
@@ -1923,7 +2127,7 @@ def calendar_plot_vortex_movie_strip_paper(plot_list,frame_times=None,file_suffi
         ax          = ret_info['ax']
 
         if plot_letters:
-            ax.text(letter_xpos,letter_ypos,'({})'.format(string.lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
+            ax.text(letter_xpos,letter_ypos,'({})'.format(string.ascii_lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
             letter_inx  += 1
 
     plot_cbars(ax_list)
@@ -2044,7 +2248,7 @@ def polar_vortex_only(plot_list,frame_times=None,file_suffix='',
         ax          = ret_info['ax']
 
         if plot_letters:
-            ax.text(letter_xpos,letter_ypos,'({})'.format(string.lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
+            ax.text(letter_xpos,letter_ypos,'({})'.format(string.ascii_lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
             letter_inx  += 1
 
     if driver is not None:
@@ -2067,7 +2271,7 @@ def polar_vortex_only(plot_list,frame_times=None,file_suffix='',
             ax.axvline(this_date,ls='--',lw=6,color='k',zorder=750)
 
             if plot_letters:
-                ax.text(letter_xpos,letter_ypos,'({})'.format(string.lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
+                ax.text(letter_xpos,letter_ypos,'({})'.format(string.ascii_lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
                 letter_inx  += 1
 
     plot_cbars(ax_list)
@@ -2177,7 +2381,7 @@ def drivers_only(plot_list,frame_times=None,file_suffix='',
         ax          = ret_info['ax']
 
         if plot_letters:
-            ax.text(letter_xpos,letter_ypos,'({})'.format(string.lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
+            ax.text(letter_xpos,letter_ypos,'({})'.format(string.ascii_lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
             letter_inx  += 1
 
     if driver is not None:
@@ -2199,7 +2403,7 @@ def drivers_only(plot_list,frame_times=None,file_suffix='',
             ax.axvline(this_date,ls='--',lw=6,color='k',zorder=750)
 
             if plot_letters:
-                ax.text(letter_xpos,letter_ypos,'({})'.format(string.lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
+                ax.text(letter_xpos,letter_ypos,'({})'.format(string.ascii_lowercase[letter_inx]),transform=ax.transAxes,fontdict=letter_fontdict)
                 letter_inx  += 1
 
     plot_cbars(ax_list)

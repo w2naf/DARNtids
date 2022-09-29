@@ -33,10 +33,10 @@ class FakeTunnel(object):
 
 def createTunnel(localport=27018,remoteport=27017,
         identityfile='~/.ssh/id_rsa',user=None,
-        server='sd-work1.ece.vt.edu'):
+        server='localhost'):
     """Create SSH Tunnels for Database connections"""
 
-    if socket.gethostname() == 'sd-work1':
+    if socket.gethostname() == 'localhost':
         return FakeTunnel(), remoteport
 
     identityfile    = os.path.expanduser(identityfile)
@@ -68,7 +68,7 @@ def createTunnel(localport=27018,remoteport=27017,
     # after the script ends
     return tunnel, localport
 
-def open_mongo_tunnel(db_name='mstid',host='sd-work1.ece.vt.edu',port=1247):
+def open_mongo_tunnel(db_name='mstid',host='localhost',port=1247):
     key_path    = os.path.join(os.getenv('HOME'),'.ssh','id_rsa')
     rsa_key     = sshtunnel.paramiko.RSAKey.from_private_key_file(key_path)
 
@@ -544,7 +544,7 @@ def get_mstid_value(mongo_item,sig_key,lambda_max=750,azm_lim=None):
     return val
 
 def get_mstid_scores(sDate=None,eDate=None,
-        mstid_list_format='music_guc_{radar}_{sDate}_{eDate}',
+        mstid_list_format='guc_{radar}_{sDate}_{eDate}',
         db_name='mstid',mongo_port=27017,**kwargs):
     """
     Returns a score for how many radars saw MSTIDs in a given day.  All default

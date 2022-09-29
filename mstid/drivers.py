@@ -12,16 +12,16 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
-from mpl_toolkits.basemap import solar
+#from mpl_toolkits.basemap import solar
 
-import davitpy.gme as gme
+#import davitpy.gme as gme
 #import davitpy.pydarn.proc.signal as signal
 
-from general_lib import prepare_output_dirs
-import mongo_tools
+#from . import general_lib import prepare_output_dirs
+from . import mongo_tools
 
-import run_helper
-import calendar_plot
+from . import run_helper
+from . import calendar_plot
 
 import inspect
 curr_file = inspect.getfile(inspect.currentframe()) # script filename (usually with path)
@@ -343,18 +343,18 @@ class DriverObj(object):
 
     def resample(self,dt=datetime.timedelta(minutes=1),data_set='resample',comment=None):
         no_na_data  = self.data.dropna()
-        new_data    = no_na_data.resample(dt)
+        new_data    = no_na_data.resample(dt).interpolate(method='linear')
         
         if comment is None: comment = 'dt = {!s}'.format(dt)
         new_do      = self.copy(data_set,comment,new_data)
         return new_do
 
-    def interpolate(self,data_set='interpolate',comment=None):
-        new_data    = self.data.interpolate()
-        
-        if comment is None: comment = 'Interpolate'
-        new_do      = self.copy(data_set,comment,new_data)
-        return new_do
+#    def interpolate(self,data_set='interpolate',comment=None):
+#        new_data    = self.data.interpolate()
+#        
+#        if comment is None: comment = 'Interpolate'
+#        new_do      = self.copy(data_set,comment,new_data)
+#        return new_do
 
     def simulate(self,wave_list=None,data_set='simulate',comment=None):
         if wave_list is None:
@@ -392,8 +392,9 @@ class DriverObj(object):
         dt          = self.sample_period()
         roll_win    = int(window.total_seconds() / dt.total_seconds())
 
-        rlng        = getattr(pd,'rolling_{}'.format(kind))
-        new_data    = rlng(self.data,roll_win,center=center)
+#        rlng        = getattr(pd,'rolling_{}'.format(kind))
+#        new_data    = rlng(self.data,roll_win,center=center)
+        new_data    = self.data.rolling(roll_win).mean()
 
 #        if kind == 'mean': 
 #            new_data    = pd.rolling_mean(self.data,roll_win,center=center)
@@ -1259,13 +1260,13 @@ def neg_ae(driver_obj,data_set='active'):
 
 def get_mstid_data(this_driver,sDate,eDate,smooth_win,smooth_kind,
         zscore=True,db_name='mstid'):
-    tunnel,mongo_port   = mongo_tools.createTunnel()
+#    tunnel,mongo_port   = mongo_tools.createTunnel()
 
     # For MSTID amplitude plotting.
     all_years           = run_helper.create_default_radar_groups_all_years()
     mstid_reduced_inx   = calendar_plot.calculate_reduced_mstid_index(all_years,
                 reduction_type='mean',daily_vals=True,zscore=zscore,
-                db_name=db_name,mongo_port=mongo_port)
+                db_name=db_name)
 
     driver_obj          = Driver(sDate,eDate,this_driver,mstid_reduced_inx=mstid_reduced_inx)
     pli                 = driver_obj.active.plot_info
@@ -1274,7 +1275,7 @@ def get_mstid_data(this_driver,sDate,eDate,smooth_win,smooth_kind,
 
     smp = driver_obj.active.sample_period(allow_mode=True)
     driver_obj.active.resample(smp)
-    driver_obj.active.interpolate()
+#    driver_obj.active.interpolate()
 
     ds  = driver_obj.active.rolling(smooth_win,kind=smooth_kind)
     smoothed_name   = ds.plot_info['data_set']
@@ -1354,7 +1355,7 @@ def get_driver_obj(var_code,sDate,eDate,
     if re.match('[0-9]{3}_',var_code):
         test_code = var_code[4:]
 
-    if 'mstid_inx' == test_code:
+    if 'mstid_inx' == test_code or 'mstid_reduced_inx' == test_code:
         driver_obj                  = get_mstid_data('mstid_reduced_inx'  ,sDate,eDate,smooth_win,smooth_kind,zscore=mstid_zscore)
         driver_obj.n_good_radars    = get_mstid_data('n_good_radars'      ,sDate,eDate,smooth_win,smooth_kind)
     elif 'mstid_inx_elbow_detrend' == test_code:

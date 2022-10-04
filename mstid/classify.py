@@ -578,6 +578,9 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
         # All spectra are interpolated here and finally converted into a dataFrame.
         f_ext   = []
         for categ_inx,categ in enumerate(categs):
+            if 'spect_df' not in data_dict[categ].keys():
+                print('No spect_df found... returning...')
+                return
             spect_df = data_dict[categ]['spect_df']
             f_ext.append(spect_df.index.min())
             f_ext.append(spect_df.index.max())

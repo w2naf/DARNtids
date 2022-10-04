@@ -27,6 +27,15 @@ mstid.prepare_output_dirs(dirs,clear_output_dirs=True)
 
 data_dict   = mstid.classify.load_data_dict(mstid_list,data_path,cache_dir=cache_dir,test_mode=False,
         db_name=db_name,mongo_port=mongo_port)
+
+if data_dict is None:
+    fout = os.path.join(output_dir,'spectrum_messages.txt')
+    with open(fout,'w') as fl:
+        msg = 'No data for given time period. Spectral classification not possible.'
+        print(msg)
+        fl.write(msg)
+        quit()
+
 data_dict   = mstid.classify.sort_by_spectrum(data_dict,sort_key)
 data_dict   = mstid.classify.classify_mstid_events(data_dict)
 

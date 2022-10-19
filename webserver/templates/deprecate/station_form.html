@@ -1,0 +1,257 @@
+{% extends "layout.html" %}
+{% block body %}
+
+  <table>
+    <tr>
+      <th>Parameter</th>
+      <th>Value</th>
+    </tr>
+    <tr>  
+    <form action="{{ url_for('db_upsert_station') }}" method=post class=add-entry>
+      <tr>
+        <td><strong>Display Station Name</strong></td>
+        <td><input type=text size=40 name=stationName value="{{ params.stationName }}"></td>
+      </tr>
+      <tr>
+        <td><strong>Short (URL) Station Name</strong></td>
+        <td><input type=text size=40 name=shortName value="{{ params.shortName }}"></td>
+      </tr>
+      <tr>
+        <td>View</td>
+        <td>
+          <select name="viewName">
+            {% for view in views %}
+              <option value="{{ view.value }}"{% if view.selected %} selected="selected"{% endif %}>
+              {{ view.value }}
+              </option>
+            {% endfor %}
+          </select>
+        </td> 
+      </tr>
+<!--
+    <tr><td colspan="2"><h2>[PLOT OPTIONS]</h2></td></tr>
+      <tr>
+        <td>fileName</td>
+        <td><input type=text size=40 name=fileName value="{{ params.fileName }}"></td>
+      </tr>
+      <tr>
+        <td>data_type</td>
+        <td><input type=text size=40 name=data_type value="{{ params.data_type }}"></td>
+      </tr>
+      <tr>
+        <td>vg_files</td>
+        <td><input type=text size=40 name=vg_files value="{{ params.vg_files }}"></td>
+      </tr>
+      <tr>
+        <td>time_zone</td>
+        <td><input type=text size=40 name=time_zone value="{{ params.time_zone }}"></td>
+      </tr>
+      <tr>
+        <td>color_map</td>
+        <td><input type=text size=40 name=color_map value="{{ params.color_map }}"></td>
+      </tr>
+      <tr>
+        <td>plot_contours</td>
+        <td><input type=text size=40 name=plot_contours value="{{ params.plot_contours }}"></td>
+      </tr>
+      <tr>
+        <td>plot_meridians</td>
+        <td><input type=text size=40 name=plot_meridians value="{{ params.plot_meridians }}"></td>
+      </tr>
+      <tr>
+        <td>plot_parallels</td>
+        <td><input type=text size=40 name=plot_parallels value="{{ params.plot_parallels }}"></td>
+      </tr>
+      <tr>
+        <td>plot_terminator</td>
+        <td><input type=text size=40 name=plot_terminator value="{{ params.plot_terminator }}"></td>
+      </tr>
+  --!>
+    <tr><td colspan="2"><h2>[DEFAULT]</h2></td></tr>
+      <tr>
+        <td>foe = 1.0</td>
+        <td><input type=text size=40 name=foe value="{{ params.foe }}"></td>
+      </tr>
+      <tr>
+        <td>fof1 = 1.0</td>
+        <td><input type=text size=40 name=fof1 value="{{ params.fof1 }}"></td>
+      </tr>
+      <tr>
+        <td>fof2 = 1.0</td>
+        <td><input type=text size=40 name=fof2 value="{{ params.fof2 }}"></td>
+      </tr>
+      <tr>
+        <td>foes = 0.0</td>
+        <td><input type=text size=40 name=foes value="{{ params.foes }}"></td>
+      </tr>
+      <tr>
+        <td>model = 0</td>
+        <td>
+          <select name="model">
+            {% for model in models %}
+              <option value="{{ model.value }}"{% if model.selected %} selected="selected"{% endif %}>
+              {{ model.text }}
+              </option>
+            {% endfor %}
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td>path = 0</td>
+        <td>
+          <select name="path">
+            {% for path in paths %}
+              <option value="{{ path.value }}"{% if path.selected %} selected="selected"{% endif %}>
+              {{ path.text }}
+              </option>
+            {% endfor %}
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <strong>Man-Made Noise [dBW/Hz]</strong><br />
+          mm_noise = -145.0
+        </td>
+        <td><input type=text size=40 name=mm_noise value="{{ params.mm_noise }}"></td>
+      </tr>
+      <tr>
+        <td>
+          <strong>Min. Take-Off Angle [deg]</strong><br />
+          min_toa = 3.0
+        </td>
+        <td><input type=text size=40 name=min_toa value="{{ params.min_toa }}"></td>
+      </tr>
+      <tr>
+        <td>
+          <strong>Required Reliability [%]</strong><br />
+          required_reliability = 90.0
+        </td>
+        <td><input type=text size=40 name=required_reliability value="{{ params.required_reliability }}"></td>
+      </tr>
+      <tr>
+        <td>
+          <strong>Required SNR [dB/Hz]</strong><br />
+          required_snr = 47.0
+        </td>
+        <td><input type=text size=40 name=required_snr value="{{ params.required_snr }}"></td>
+      </tr>
+      <tr>
+        <td>
+          <strong>Multipath Tolerance [dB]</strong><br />
+          mpath = 3.0
+        </td>
+        <td><input type=text size=40 name=mpath value="{{ params.mpath }}"></td>
+      </tr>
+      <tr>
+        <td>
+          <strong>Max. Delay [ms]</strong><br />
+          delay = 0.1
+        </td>
+        <td><input type=text size=40 name=delay value="{{ params.delay }}"></td>
+      </tr>
+
+    <tr><td colspan="2"><h2>[TX SITE]</h2></td></tr>
+      <tr>
+        <td>name = K2BSA_Summit</td>
+        <td><input type=text size=40 name=tx_name value="{{ params.tx_name }}"></td>
+      </tr>
+      <tr>
+        <td>lat = 37.9</td>
+        <td><input type=text size=40 name=tx_lat value="{{ params.tx_lat }}"></td>
+      </tr>
+      <tr>
+        <td>lon = -81.1</td>
+        <td><input type=text size=40 name=tx_lon value="{{ params.tx_lon }}"></td>
+      </tr>
+      <tr>
+        <td>antenna = default/isotrope : ISOTROPE</td>
+        <td><input type=text size=40 name=tx_antenna value="{{ params.tx_antenna }}"></td>
+      </tr>
+      <tr>
+        <td>bearing = 0.0</td>
+        <td><input type=text size=40 name=tx_bearing value="{{ params.tx_bearing }}"></td>
+      </tr>
+      <tr>
+        <td>power = 100.0</td>
+        <td><input type=text size=40 name=tx_power value="{{ params.tx_power }}"></td>
+      </tr>
+<!--
+    <tr><td colspan="2"><h2>[RX SITE]</h2></td></tr>
+      <tr>
+        <td>name = </td>
+        <td><input type=text size=40 name=rx_name value="{{ params.rx_name }}"></td>
+      </tr>
+      <tr>
+        <td>lat = 0.0</td>
+        <td><input type=text size=40 name=rx_lat value="{{ params.rx_lat }}"></td>
+      </tr>
+      <tr>
+        <td>lon = 0.0</td>
+        <td><input type=text size=40 name=rx_lon value="{{ params.rx_lon }}"></td>
+      </tr>
+      <tr>
+        <td>antenna = </td>
+        <td><input type=text size=40 name=rx_antenna value="{{ params.rx_antenna }}"></td>
+      </tr>
+      <tr>
+        <td>bearing = 0.0</td>
+        <td><input type=text size=40 name=rx_bearing value="{{ params.rx_bearing }}"></td>
+      </tr>
+      --!>
+
+    <tr><td colspan="2"><h2>[AREA]</h2></td></tr>
+      <tr>
+        <td>gridsize = 125</td>
+        <td><input type=text size=40 name=gridsize value="{{ params.gridsize }}"></td>
+      </tr>
+      <tr>
+        <td>year</td>
+        <td><input type=text size=40 name=year value="{{ params.year }}"></td>
+      </tr>
+      <tr>
+        <td>month</td>
+        <td><input type=text size=40 name=month value="{{ params.month }}"></td>
+      </tr>
+      <tr>
+        <td>utc</td>
+        <td><input type=text size=40 name=utc value="{{ params.utc }}"></td>
+      </tr>
+      <tr>
+        <td>frequency = 14.1</td>
+        <td><input type=text size=40 name=frequency value="{{ params.frequency }}"></td>
+      </tr>
+      <tr>
+        <td>sw_lat = -90.0</td>
+        <td><input type=text size=40 name=sw_lat value="{{ params.sw_lat }}"></td>
+      </tr>
+      <tr>
+        <td>sw_lon = -180.0</td>
+        <td><input type=text size=40 name=sw_lon value="{{ params.sw_lon }}"></td>
+      </tr>
+      <tr>
+        <td>ne_lat = 90.0</td>
+        <td><input type=text size=40 name=ne_lat value="{{ params.ne_lat }}"></td>
+      </tr>
+      <tr>
+        <td>ne_lon = 180.0</td>
+        <td><input type=text size=40 name=ne_lon value="{{ params.ne_lon }}"></td>
+      </tr>
+      <tr>
+        <td>templates_file = /home/w2naf/.voacapgui/area_templ.ex</td>
+        <td><input type=text size=40 name=templates_file value="{{ params.templates_file }}"></td>
+      </tr>
+    <tr>
+      {% if edit %}
+        <input type="hidden" name="ObjectId" value="{{ _oid }}">
+        <td colspan="100" class=submit-cell><input type=submit value="Update Station"></td>
+      {% else %}
+        <input type="hidden" name="ObjectId" value="">
+        <td colspan="100" class=submit-cell><input type=submit value="Add Station"></td>
+      {% endif %}
+    </tr>
+    </form>
+  </table>
+
+
+{% endblock %}

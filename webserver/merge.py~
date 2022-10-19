@@ -1,0 +1,26 @@
+import copy
+import numpy as np
+import pydarn.proc.music as music
+
+def merge_data(dataObj_0,dataObj_1,dataSet_0='active',dataSet_1='active'):
+    new_dataObj = copy.deepcopy(dataObj_0)
+
+    dataSet_0   = music.getDataSet(new_dataObj,dataSet_0)
+    dataSet_1   = music.getDataSet(dataObj_1,dataSet_1)
+    merged_data = dataSet_0.copy('merged','Merged Radars')
+
+    # Merge along beams
+    merged_data.data = np.concatenate([dataSet_0.data,dataSet_1.data],axis=1)
+
+    #Merge FOV Data
+    total_beams = dataSet_0.fov.beams.size + dataSet_1.fov.beams.size
+    merged_data.fov.beams = np.arange(total_beams)
+    merged_data.fov.latCenter = np.concatenate([dataSet_0.fov.latCenter,dataSet_1.fov.latCenter],axis=0)
+    merged_data.fov.latFull   = np.concatenate([dataSet_0.fov.latFull  ,dataSet_1.fov.latFull[1:,:]],axis=0)
+    merged_data.fov.lonCenter = np.concatenate([dataSet_0.fov.lonCenter,dataSet_1.fov.lonCenter],axis=0)
+    merged_data.fov.lonFull   = np.concatenate([dataSet_0.fov.lonFull  ,dataSet_1.fov.lonFull[1:,:]],axis=0)
+    merged_data.fov.slantRCenter = np.concatenate([dataSet_0.fov.slantRCenter,dataSet_1.fov.slantRCenter],axis=0)
+    merged_data.fov.slantRFull   = np.concatenate([dataSet_0.fov.slantRFull  ,dataSet_1.fov.slantRFull[1:,:]],axis=0)
+
+    merged_data.setActive()
+    return new_dataObj

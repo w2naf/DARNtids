@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{% block body %}
+<div class=metanav>
+{% if not session.logged_in %}
+  <a href="{{ url_for('login') }}">log in</a>
+{% else %}
+  <a href="{{ url_for('logout') }}">log out</a>
+{% endif %}
+</div>
+
+<h2>Stations</h2>
+  <table>
+    <tr>
+      <th>Station Name</th>
+      <th>Short Name</th>
+      <th></th>
+      <th></th>
+    </tr>
+  {% for station in stations %}
+    <tr>
+      <input type="hidden" name="ObjectId" value="{{ station._id }}">
+      <td><a href='/station/{{station.shortName}}'>{{ station.stationName }}</a></td>
+      <td><a href='/station/{{station.shortName}}'>{{ station.shortName }}</a></td>
+      <form action="{{ url_for('upsert_station') }}" method=post class=add-entry>
+      <input type="hidden" name="ObjectId" value="{{ station._id }}">
+        <td><input type=submit value="Edit"></td>
+      </form>
+      <form action="{{ url_for('db_delete_station') }}" method=post class=add-entry>
+      <input type="hidden" name="ObjectId" value="{{ station._id }}">
+        <td><input type=submit value="Delete"></td>
+      </form>
+      
+    </tr>
+  {% endfor %}
+  <tr>
+    <td colspan='100' class=submit-cell>
+      </form>
+      <form action="{{ url_for('upsert_station') }}" method="get" class=add-entry>
+      <input type=submit value="Add New Station">
+      </form>
+    </td>
+  </tr>
+  </table>
+
+  <br />
+  <h2>Views</h2>
+  <table>
+    <tr>
+      <th>View Name</th>
+      <th></th>
+      <th></th>
+    </tr>
+  {% for entry in entries %}
+    <tr>
+      <td>{{ entry.viewName }} </td>
+      <td>
+        <form action="{{ url_for('upsert_view') }}" method=post class=add-entry>
+          <input type="hidden" name="ObjectId" value="{{ entry._id }}">
+          <input type=submit value="Edit">
+        </form>
+      </td>
+      <td>
+        <form action="{{ url_for('db_delete_view') }}" method=post class=add-entry>
+          <input type="hidden" name="ObjectId" value="{{ entry._id }}">
+          <input type=submit value="Delete">
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  <tr>
+    <td colspan='100' class=submit-cell>
+      </form>
+      <form action="{{ url_for('upsert_view') }}" method="get" class=add-entry>
+      <input type=submit value="Add New View">
+      </form>
+    </td>
+  </tr>
+  </table>
+
+{% endblock %}

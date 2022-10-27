@@ -21,7 +21,7 @@ import multiprocessing
 import pyDARNmusic
 from pyDARNmusic import music
 
-from . import mongo_tools
+from mstid import mongo_tools
 from .general_lib import prepare_output_dirs
 
 class NumpyEncoder(json.JSONEncoder):
@@ -444,8 +444,8 @@ def zeropad_data(dataObj):
     new_sig.setActive()
 
 def window_beam_gate(dataObj,dataSet='active',window='hann'):
-
-    currentData = music.getDataSet(dataObj,dataSet)
+    
+    currentData = pyDARNmusic.getDataSet(dataObj,dataSet)
     currentData = currentData.applyLimits()
 
     nrTimes, nrBeams, nrGates = np.shape(currentData.data)
@@ -861,13 +861,13 @@ def music_plot_all(run_params,dataObj,process_level='music'):
     fig.savefig(fileName,bbox_inches='tight')
     plt.close(fig)
     plotSerial = plotSerial + 1
-
-#    fig = plt.figure(figsize=(10,10))
-#    pyDARNmusic.plotting.musicPlot.plotKarrDetected(dataObj,fig=fig)
-#    fileName = os.path.join(output_dir,'%03i_karrDetected.png' % plotSerial)
-#    fig.savefig(fileName,bbox_inches='tight')
-#    plt.close(fig)
-#    plotSerial = plotSerial + 1
+    
+    fig = plt.figure(figsize=(10,10))
+    pyDARNmusic.plotting.musicPlot.plotKarrDetected(dataObj,fig=fig)
+    fileName = os.path.join(output_dir,'%03i_karrDetected.png' % plotSerial)
+    fig.savefig(fileName,bbox_inches='tight')
+    plt.close(fig)
+    plotSerial = plotSerial + 1
 
 def plot_music_rti(dataObj
         , dataSet='active'

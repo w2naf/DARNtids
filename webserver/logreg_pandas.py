@@ -8,8 +8,8 @@ from matplotlib import pyplot as plt
 
 import os
 import shutil
-import datetime
-import pickle
+# import datetime
+# import pickle
 
 import pandas as pd
 import numpy as np
@@ -54,7 +54,7 @@ foreach (glob("*.png") as $filename) {
 ?>
 '''
 
-for value in output_dirs.itervalues():
+for value in output_dirs.values():
     if clear_output_dirs:
         try:
             shutil.rmtree(value)
@@ -255,7 +255,7 @@ def generate_param_list(dayDict,param_code_dict):
         param_dict[dt]['none']  = False
 
         # Keep track of category. ###################################################### 
-        if item.has_key('category_manu'):
+        if 'category_manu' in item:
             if item['category_manu'] == 'mstid':
                 categ = 'mstid'
                 param_dict[dt]['mstid'] = True
@@ -312,7 +312,7 @@ def generate_param_list(dayDict,param_code_dict):
             param_dict[dt]['mlt']  = np.nan
 
         # Find actual parameters of interest. ########################################## 
-        for param_code,code_dict in param_code_dict.iteritems():
+        for param_code,code_dict in param_code_dict.items():
             if 'blob_track' in param_code:
                 base,code = param_code.split('-')
                 try:
@@ -360,11 +360,11 @@ slt_max             = df_raw['slt'].max()
 if test:
     params_of_int       = ['orig_rti_cnt', 'total_spec', 'orig_rti_mean', 'orig_rti_var']
 else:
-    params_of_int       = prm_dict.keys()
+    params_of_int       = list(prm_dict.keys())
 #for param_code,param_dict in prm_dict.iteritems():
 for param_code in params_of_int:
     param_dict  = prm_dict[param_code]
-    for var in param_dict.keys():
+    for var in list(param_dict.keys()):
         locals()[var] = param_dict[var]
 
     fl_pfx      = '.'.join([radar,sTime.strftime('%Y%m%d'),eTime.strftime('%Y%m%d'),param_code])
@@ -451,12 +451,12 @@ import statsmodels.api as sm
 
 feature_list_list = []
 if not test:
-    print 'Starting combinations...'
+    print('Starting combinations...')
     import itertools
     #for L in range(len(prm_dict.keys())+1):
     for L in range(5):
         if L == 0:continue
-        for subset in itertools.combinations(prm_dict.keys(),L):
+        for subset in itertools.combinations(list(prm_dict.keys()),L):
             feature_list_list.append(subset)
 else:
     feature_list_list.append(['orig_rti_cnt', 'orig_rti_mean', 'orig_rti_var'])
@@ -475,7 +475,7 @@ feat_nr     = 0
 total_feat  = len(feature_list_list)
 for feature_list in feature_list_list:
     feat_nr += 1
-    print '(%d of %d): ' % (feat_nr,total_feat),feature_list
+    print('(%d of %d): ' % (feat_nr,total_feat),feature_list)
     #Drop all rows that have any NaNs in the feature of interest columns
     df  = df_raw.dropna(subset=feature_list,how='any')
 
@@ -494,7 +494,7 @@ for feature_list in feature_list_list:
     training_pct    = 0.60
     training_nr     = int(training_pct*len(df))
 
-    rand_inx = random.sample(range(len(df)), training_nr)
+    rand_inx = random.sample(list(range(len(df))), training_nr)
     rand_inx.sort()
 
     df_training     = df.iloc[rand_inx]

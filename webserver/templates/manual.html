@@ -25,14 +25,15 @@ Total events: {{ webData.days_total }}
           Total: {{ webData.none_days_total }} <br />
           Checked: {{ webData.none_days_manual_checked }}
       </th>
-    <th style="text-align: left;">
-        <span id="listDropDown">{{ webData.list_dropdown|safe }}</span>
-        <div id="saveAsBox" style="display: none;">
-            <input name="listSave" id="listSave"> <button id="listSaveButton">Save</button'
-        </div>
-    </th>
+      <th style="text-align: left;">
+          <span id="listDropDown">{{ webData.list_dropdown|safe }}</span>
+          <div id="saveAsBox" style="display: none;">
+              <input name="listSave" id="listSave"> <button id="listSaveButton">Save</button>
+          </div>
+      </th>
   </tr>
   <tr>
+    
     <td>
       <div class="dateList" id="mstidList">
         {{ webData.mstidDays|safe }}

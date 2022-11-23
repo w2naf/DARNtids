@@ -33,7 +33,7 @@ for mydir in dirs:
 #    try:
     if True:
         runfile_path    = runfile_path[0]
-        print 'WORKING: ', runfile_path
+        print('WORKING: ', runfile_path)
         runFile         = msc.load_runfile_path(runfile_path)
         musicParams     = runFile.runParams
         musicObj_path   = musicParams['musicObj_path']

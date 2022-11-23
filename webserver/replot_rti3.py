@@ -26,7 +26,7 @@ def main(event):
         musicParams     = runFile.runParams
         musicObj_path   = musicParams['musicObj_path']
         rtiPath         = os.path.join(musicParams['path'],'000_originalFit_RTI.png')
-        print 'http://sd-work1.ece.vt.edu/data/mstid/statistics/webserver/{0}'.format(rtiPath)
+        print('http://sd-work1.ece.vt.edu/data/mstid/statistics/webserver/{0}'.format(rtiPath))
 
         if os.path.exists(rtiPath):
             mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(rtiPath))
@@ -58,9 +58,9 @@ if __name__ == '__main__':
     event_list = []
     for event in crsr:
         if category != 'all':
-            if event.has_key('category_manu'):
+            if 'category_manu' in event:
                 if event['category_manu'] != category: continue
-            elif event.has_key('category_auto'):
+            elif 'category_auto' in event:
                 if event['category_auto'] != category: continue
 
 #        if event['sDatetime'] < datetime.datetime(2012,11,19,16): continue

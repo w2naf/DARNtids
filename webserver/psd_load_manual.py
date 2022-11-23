@@ -46,7 +46,7 @@ for fl in fileList:
   nrecs = len(data['dt'])
   for kk in range(nrecs):
     forDb = {'radar': radar, 'date': data['dt'][kk], 'intpsd': float(data['psdvec'][kk])}
-    print 'Inserting: ',radar,data['dt'][kk],float(data['psdvec'][kk])
+    print('Inserting: ',radar,data['dt'][kk],float(data['psdvec'][kk]))
     db['intpsd'].insert(forDb)
   
   currentDate = datetime.datetime(2010,11,1)
@@ -69,7 +69,7 @@ for fl in fileList:
       intpsd_sum  = 'NaN'
       intpsd_max  = 'NaN'
       intpsd_mean = 'NaN'
-    print radar,currentDate,endDate,len(oneDayList),intpsd_sum,intpsd_max
+    print(radar,currentDate,endDate,len(oneDayList),intpsd_sum,intpsd_max)
     record= {'date':currentDate, 'radar':radar, 'intpsd_sum': intpsd_sum, 'intpsd_max': intpsd_max, 'intpsd_mean': intpsd_mean}
     db[coll_name].insert(record)
 

@@ -386,7 +386,7 @@ function plotRTI(radar,day,param) {
       mstid_list        : '{{ webData.mstid_list }}',
     }, function(data) {
       $("#categoryFormDiv").css("display","block");
-      $("#rtiImg").attr("src", data.result);
+      $("#rtiImg").attr("src", data.result)
       $("#aRtiImg").attr("href", data.result);
       $("#catRadar").attr("value", data.radar);
       $("#catDate").attr("value", data.gwDay);

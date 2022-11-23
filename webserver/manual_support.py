@@ -2,19 +2,19 @@
 #From http://flask.pocoo.org/docs/tutorial/setup/#tutorial-setup
 #all the imports
 import pymongo
-from bson.objectid import ObjectId
+# from bson.objectid import ObjectId
 
 import datetime
 import os
-import sys
-
+# import sys
+import gme
 import numpy as np
-from scipy.io.idl import readsav
-from scipy import signal
+# from scipy.io.idl import readsav
+# from scipy import signal
 
-from davitpy import utils
+# from davitpy import utils
 
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 
@@ -48,7 +48,7 @@ def get_KP(timeList):
   
   dayList is a list of datetime.datetime objects.
   '''
-  import gme
+  # import gme
   kpDict = {}
   for time in timeList:
     kp_man_rec= db['kpManual'].find_one({'date':time})
@@ -184,7 +184,7 @@ def kpHistogram(gwDays,secondPop=None,title='Kp Distribution',kind='mean',outFNa
     ax.set_xlabel('Kp Index')
 #  ax.set_ylabel('(Hours of Observation) / 2')
   ax.set_ylabel('Probability Density')
-  ax.set_xticks(range(10))
+  ax.set_xticks(list(range(10)))
   ax.set_title(title)
   ax.legend()
 
@@ -198,7 +198,7 @@ def get_AE(dayList):
   
   dayList is a list of datetime.datetime objects.
   '''
-  import gme
+  # import gme
   aeDict = {}
   for day in dayList:
     record = db['aeManual'].find_one({'date':day})
@@ -332,7 +332,7 @@ def get_SYMH(dayList):
   
   dayList is a list of datetime.datetime objects.
   '''
-  import gme
+  # import gme
   symhDict = {}
 
   for day in dayList:
@@ -463,7 +463,7 @@ def get_ground_scatter(dayList,radar):
     record = db['ground_scatter_manual'].find_one({'date':day,'radar':radar})
 
     if record == None:
-      print day
+      print(day)
       sTime = day 
       eTime = day + datetime.timedelta(hours=2)
 
@@ -494,7 +494,7 @@ def get_AE(dayList):
   
   dayList is a list of datetime.datetime objects.
   '''
-  import gme
+  # import gme
   aeDict = {}
   for day in dayList:
     record = db['aeManual'].find_one({'date':day})
@@ -628,7 +628,7 @@ def get_SYMH(dayList):
   
   dayList is a list of datetime.datetime objects.
   '''
-  import gme
+  # import gme
   symhDict = {}
 
   for day in dayList:
@@ -824,7 +824,7 @@ def get_ground_scatter(dayList,radar,string_nan=False):
     record = db['ground_scatter_manual'].find_one({'date':day,'radar':radar})
 
     if record == None:
-      print day
+      print(day)
       sTime = day 
       eTime = day + datetime.timedelta(hours=2)
 
@@ -1074,7 +1074,7 @@ def get_ground_scatter_month(dayList,radar,sdt,fdt):
       for x in cursor:
         if x['date'].hour < 14 or x['date'].hour > 20: continue
         tmpList.append(x['date'])
-        print x['date'],x['gscat']
+        print(x['date'],x['gscat'])
         if x['gscat'] != 'NaN':
           mn = str(x['date'].month)
           record[mn] = record[mn] + x['gscat']

@@ -1,13 +1,13 @@
 #!/usr/bin/env python
-import sys
+# import sys
 import os
-import shutil
+# import shutil
 import datetime
 import pickle
 
 import matplotlib
 matplotlib.use('Agg')
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 
 import pandas as pd
 import numpy as np
@@ -48,7 +48,7 @@ class TimeCheck(object):
         if self.log is not None:
             log.info(txt)
         else:
-            print txt
+            print(txt)
 
 def mylogit(feature_list):
         return logreg.run_logit(logit_dict['df_raw'],feature_list,logit_dict['dv'])
@@ -103,12 +103,12 @@ if __name__ == '__main__':
     tc  = TimeCheck('Compute Feature List',log)
     feature_list_list = []
     if not glbs.test:
-        print 'Starting combinations...'
+        print('Starting combinations...')
         import itertools
         #for L in range(len(glbs.prm_dict.keys())+1):
         for L in range(4):
             if L == 0:continue
-            for subset in itertools.combinations(glbs.prm_dict.keys(),L):
+            for subset in itertools.combinations(list(glbs.prm_dict.keys()),L):
                 feature_list_list.append(tuple(subset))
     else:
         feature_list_list.append(('orig_rti_cnt', 'orig_rti_mean', 'orig_rti_var'))
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     #Keep track of total number of features
     combos  = len(feature_list_list)
     metadata['combos'] = combos #Be able to send that info to plotting routines.
-    rank        = range(1,combos+1)
+    rank        = list(range(1,combos+1))
 
     reduced_results = []
     tc_trl  = TimeCheck('Total Trial Time',log)
@@ -142,7 +142,7 @@ if __name__ == '__main__':
             if glbs.sort_by == 'r_sqrd' or glbs.sort_by == 'mean_pct_correct':
                 sorted_list = sorted_list[::-1]
 
-            res = pool.map(reduce_result,zip(rank,sorted_list))
+            res = pool.map(reduce_result,list(zip(rank,sorted_list)))
             reduced_results.append(res)
             pool.close()
             pool.join()
@@ -170,12 +170,12 @@ if __name__ == '__main__':
     mean_mean_key = 'mean_'+glbs.sort_by
     std_mean_key  = 'std_'+glbs.sort_by
     med_mean_key  = 'med_'+glbs.sort_by
-    for key,val in ranking_dict.iteritems():
+    for key,val in ranking_dict.items():
         val[mean_mean_key] = np.mean(val[glbs.sort_by])
         val[std_mean_key]  = np.std(val[glbs.sort_by])
         val[med_mean_key]  = np.median(val[glbs.sort_by])
 
-    ranking_list = [val for val in ranking_dict.itervalues()]
+    ranking_list = [val for val in ranking_dict.values()]
     sorted_ranking_list = sorted(ranking_list, key=lambda k: k[mean_mean_key])
     if glbs.sort_by == 'r_sqrd' or glbs.sort_by == 'mean_pct_correct':
         sorted_ranking_list = sorted_ranking_list[::-1]
@@ -188,7 +188,7 @@ if __name__ == '__main__':
 #        print item[mean_mean_key]
     
     max_plots = 50
-    inp     = zip(sorted_ranking_list[:max_plots],range(1,max_plots+1))
+    inp     = list(zip(sorted_ranking_list[:max_plots],list(range(1,max_plots+1))))
 
     pool    = Pool()
     pool.map(my_plot_ranking,inp)
@@ -201,7 +201,7 @@ if __name__ == '__main__':
 #        logreg.plot_ranking_single(item,metadata,output_dir=glbs.output_dirs['rank'],ser_nr=ser_nr)
 #        print item[mean_mean_key],item['feature_list']
     
-    inp     = zip(sorted_list[:max_plots],range(1,max_plots+1))
+    inp     = list(zip(sorted_list[:max_plots],list(range(1,max_plots+1))))
     tc.check()
 
 

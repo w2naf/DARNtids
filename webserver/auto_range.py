@@ -2,23 +2,20 @@
 ############################################
 # This code adds davitpy to your python path
 # Eventually, this won't be necessary
-import sys
-sys.path.append('/davitpy')
+# import sys
+# sys.path.append('/davitpy')
 ############################################
 
 import os,shutil
 import matplotlib
 matplotlib.use('Agg')
 
-import datetime
 import numpy as np
 import scipy as sp
 
-import pydarn.sdio
-import pydarn.proc.music as music
 from matplotlib import pyplot as plt
 from scipy import stats as stats
-import pickle
+
 #pickle.dump(dataObj,open('dataObj.p','wb'))
 
 def auto_range(dataObj,runParams,figsize = (20,7),outputDir = 'output',plot=False):
@@ -39,7 +36,7 @@ def auto_range(dataObj,runParams,figsize = (20,7),outputDir = 'output',plot=Fals
 
     nrPts   = 1000
     distArr = np.array([],dtype=np.int)
-    for rg in xrange(len(bins)):
+    for rg in range(len(bins)):
         gate    = bins[rg]
         nrGate  = np.floor(dist[rg]*nrPts)
         distArr = np.concatenate([distArr,np.ones(nrGate,dtype=np.int)*gate])

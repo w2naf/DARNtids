@@ -3,11 +3,11 @@
 import os
 import shutil
 import inspect
-import datetime
-import pickle
+# import datetime
+# import pickle
 import operator
 
-import numpy as np
+# import numpy as np
 from scipy import stats
 import matplotlib
 matplotlib.use('Agg')
@@ -99,24 +99,24 @@ for param_dict in param_dict_list:
             db_var      = []
 
             if blob_data is not None:
-                total_blobs = len(blob_data['blob_dict'].keys())
+                total_blobs = len(list(blob_data['blob_dict'].keys()))
                 short_list_min_hours = blob_data['short_list_min_hours']
 
-                if blob_data.has_key('short_list'):
+                if 'short_list' in blob_data:
                     sl  = blob_data['short_list']
-                    short_list_nr   = len(sl.keys())
+                    short_list_nr   = len(list(sl.keys()))
                     if not short_list_nr == 0:
                         if longest_only:
-                            sorted_x    = sorted(sl.iteritems(), key=operator.itemgetter(1))
+                            sorted_x    = sorted(iter(sl.items()), key=operator.itemgetter(1))
                             sl_keys     = [sorted_x[-1][0]]
                         else:
-                            sl_keys     = sl.keys()
+                            sl_keys     = list(sl.keys())
 
                         for sl_key in sl_keys:
                             blob    = blob_data['blob_dict'][sl_key]
                             hours_list  = [(x - sTime).total_seconds()/3600. for x in blob['dt']]
                             data_list   = blob[param_code]
-                            zp          = zip(hours_list,data_list)
+                            zp          = list(zip(hours_list,data_list))
                             zp.sort(key=lambda tup: tup[0])
 
                             hours_list  = [x[0] for x in zp]
@@ -135,7 +135,7 @@ for param_dict in param_dict_list:
             var_name    = 'short_list_var_%s' % param_code
 
             _id         = event['_id'] 
-            if _id not in blob_dict_db.keys(): 
+            if _id not in list(blob_dict_db.keys()): 
                 blob_dict_db[_id] = {}
                 blob_dict_db[_id]['short_list_nr']          = short_list_nr
                 blob_dict_db[_id]['short_list_min_hours']   = short_list_min_hours
@@ -158,6 +158,6 @@ for param_dict in param_dict_list:
 
 #            db[mstid_list].update({'_id':event['_id']},{'$set': {'blob_track':blob_dict_db}})
 
-for _id,blob_dict in blob_dict_db.iteritems():
+for _id,blob_dict in blob_dict_db.items():
     db[mstid_list].update({'_id':_id},{'$set': {'blob_track':blob_dict}})
     

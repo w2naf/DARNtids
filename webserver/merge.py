@@ -1,6 +1,6 @@
 import copy
 import numpy as np
-import pydarn.proc.music as music
+from pyDARNmusic import music
 import scipy as sp
 
 def merge_data(dataObj_0,dataObj_1,dataSet_0='active',dataSet_1='active',interp=True):

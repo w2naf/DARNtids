@@ -47,10 +47,10 @@ def linkUp(dayList):
         musicPath = get_output_path(radar,x['sDatetime'],x['fDatetime'],create=False)
         karrCheck = glob.glob(os.path.join(musicPath,'*karr.png'))
 
-        if x.has_key('category_manu'):
+        if 'category_manu' in x:
             img1 = 'check'
 
-        if x.has_key('music_analysis_status'):
+        if 'music_analysis_status' in x:
             if x['music_analysis_status']:
                 img2 = 'check'
 
@@ -82,9 +82,9 @@ def get_prev_next(mstid_list,_id,mode='list'):
     if mode == 'category':
         current = db[mstid_list].find_one({'_id':_id})
         
-        if current.has_key('category_manu'):
+        if 'category_manu' in current:
             category = current['category_manu']
-        elif current.has_key('category_auto'):
+        elif 'category_auto' in current:
             category = current['category_auto']
         else:
             category = 'None'
@@ -159,7 +159,7 @@ class Runfile(object):
         picklePath = picklePath[:-1] + 'runfile.p'
         
         self.runParams = {}
-        for key,value in runParamsDict.iteritems():
+        for key,value in runParamsDict.items():
             self.runParams[key] = value
 
         self.runParams['runfile_path'] = picklePath
@@ -416,7 +416,7 @@ def music_plot_all(runfile_path,process_level='all'):
     dataObj.DS000_originalFit.metadata.pop('timeLimits',None)
     plotSerial = plotSerial + 1
 
-    if dataObj.active.metadata.has_key('good_period'):
+    if 'good_period' in dataObj.active.metadata:
         if not dataObj.active.metadata['good_period']:
             return
 
@@ -770,7 +770,7 @@ class MultiRadarMapPlot(object):
 
         #Translate parameter information from short to long form.
         paramDict = getParamDict(md_param)
-        if paramDict.has_key('label'):
+        if 'label' in paramDict:
             param     = paramDict['param']
             cbarLabel = paramDict['label']
         else:
@@ -788,7 +788,7 @@ class MultiRadarMapPlot(object):
                 else:
                     self.scale   = scMax*np.array([0.,1.])
             else:
-                if paramDict.has_key('range'):
+                if 'range' in paramDict:
                     self.scale = paramDict['range']
                 else:
                     self.scale = [-200,200]
@@ -860,7 +860,7 @@ def merge_fan_compare(multi_radar_dict,time=None,fileName=None,full_path=None,sc
     #base_merge_type = 'direct' # We have to choose 1 type that we are going to pull times, output dirs from.
 
     # Figure out where the plots are going.
-    for radar,radar_dict in multi_radar_dict.iteritems():
+    for radar,radar_dict in multi_radar_dict.items():
         split_0 = radar.split('_')
         if len(split_0) == 2:
             split_1 = split_0[1].split('-')
@@ -931,7 +931,7 @@ def merge_fan_compare(multi_radar_dict,time=None,fileName=None,full_path=None,sc
             mm = MultiRadarMapPlot(scale=_scale,cbar_ticks=None,width=map_width,height=map_height,
                     lat_0=lat_0,lon_0=lon_0,ax=ax,time=time,
                     cbar_shrink=cbar_shrink,cbar_gstext_offset=cbar_gstext_offset,alpha=alpha)
-            for radar,radar_dict in multi_radar_dict.iteritems():
+            for radar,radar_dict in multi_radar_dict.items():
                 if len(radar.split('_')) == 1:
                     dataObj = radar_dict['dataObj']
                     mm.add_data(dataObj.DS000_originalFit,prm=dataObj.prm)
@@ -1032,7 +1032,7 @@ def get_default_gate_range(musicParams,dataObj=None,gate_buffer=10):
     min_gate = None
     max_gate = None
 
-    if musicParams.has_key('gateLimits'):
+    if 'gateLimits' in musicParams:
         if musicParams['gateLimits'] is not None:
             if musicParams['gateLimits'][0] is not None:
                 min_gate = musicParams['gateLimits'][0] - gate_buffer

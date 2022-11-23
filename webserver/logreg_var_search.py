@@ -18,14 +18,10 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
-from mpl_toolkits.basemap import Basemap
-
-import sklearn.mixture
-
 import pymongo
-from bson.objectid import ObjectId
+# from bson.objectid import ObjectId
 
-import utils
+# import utils
 
 import stats_support as ssup
 
@@ -224,7 +220,7 @@ radar       = '_'.join(list(np.unique(np.array(mstid_radar + quiet_radar + none_
 def generate_param_list(dayDict,param_code_dict):
     param_dict  = {}
 
-    for param_code,code_dict in param_code_dict.iteritems():
+    for param_code,code_dict in param_code_dict.items():
         param_dict[param_code] = {}
 
         #Keep track of why things are getting rejected.
@@ -258,7 +254,7 @@ def generate_param_list(dayDict,param_code_dict):
                 reject                              = True
 
             if 'blob_sl' in param_code:
-                if item.has_key(param_code):
+                if param_code in item:
                     if len(item[param_code]) == 0:
                         info_dict['rejected_by_tracker'] += 1
                         rejected_by_tracker         = True
@@ -273,12 +269,12 @@ def generate_param_list(dayDict,param_code_dict):
             if reject: continue
 
             if 'blob_sl' in param_code:
-                if item.has_key(param_code):
+                if param_code in item:
                     for val in item[param_code]:
                         if np.isfinite(val):
                             param_list.append(val)
             else:
-                if item.has_key('signals'):
+                if 'signals' in item:
                     if len(item['signals']) == 0: continue
                     if param_code == 'nr_sigs':
                         val = len(item['signals'])
@@ -307,8 +303,8 @@ pckl_file = os.path.join(output_dir,mstid_list+'.p')
 with open(pckl_file,'wb') as pckl_obj:
     pickle.dump(save_obj,pckl_obj)
 
-for param_code,param_dict in prm_dict.iteritems():
-    for var in param_dict.keys():
+for param_code,param_dict in prm_dict.items():
+    for var in list(param_dict.keys()):
         locals()[var] = param_dict[var]
 
     fl_pfx      = '.'.join([radar,sTime.strftime('%Y%m%d'),eTime.strftime('%Y%m%d'),param_code])
@@ -332,7 +328,7 @@ for param_code,param_dict in prm_dict.iteritems():
     cat_dict['none']    = {'title':'None' , 'color':'b'}
 
     data_dict = {}
-    for key in cat_dict.keys():
+    for key in list(cat_dict.keys()):
         data_dict[key]  = {}
 
     data_dict['mstid']['values']    = mstid_param_list
@@ -346,6 +342,7 @@ for param_code,param_dict in prm_dict.iteritems():
     info_dict['none']               = none_info_dict
 
     # Pre-calculate histograms #####################################################
+    bins_range = prm_dict[param_code]['bins_range']  
     for key in cat_dict:
         hist,bins   = np.histogram(data_dict[key]['values'],bins=bins,range=bins_range)
         data_dict[key]['hist']  = hist.astype(np.float)
@@ -355,7 +352,7 @@ for param_code,param_dict in prm_dict.iteritems():
         xlimits = (0,np.max(data_dict['all']['bins']))
 
     if normalize:
-        keys = data_dict.keys()
+        keys = list(data_dict.keys())
         keys.remove('all')
         for key in keys:
             data_dict[key]['hist'] = data_dict[key]['hist'] / data_dict['all']['hist']
@@ -364,15 +361,17 @@ for param_code,param_dict in prm_dict.iteritems():
 
     # Plot Distribution for MSTID, Quiet, and None Days ############################
     nr_xplots   = 1
-    nr_yplots   = len(cat_dict.keys()) - 1
+    nr_yplots   = len(list(cat_dict.keys())) - 1
     plot_nr     = 0
     figsize     = (10*nr_xplots,6*nr_yplots)
     fig         = plt.figure(figsize=figsize)
 
     #for key in cat_dict:
+    param_units = prm_dict[param_code]['param_units'] 
+    param_name = prm_dict[param_code]['param_name']
     for key in ['mstid','quiet','none']:
         if key == 'all': continue
-        for data_key in data_dict[key].keys():
+        for data_key in list(data_dict[key].keys()):
             vars()[data_key]    = data_dict[key][data_key]
 
         
@@ -408,8 +407,8 @@ for param_code,param_dict in prm_dict.iteritems():
             axis.set_xlim(bins_range)
 
         txt = []
-        txt.append('%d Plotted Events' % len(values))
-        for info_key,info_items in info_dict[key].iteritems():
+        txt.append('%d Plotted Events' % len(data_dict[key]['values']))
+        for info_key,info_items in info_dict[key].items():
             txt.append('%d %s' % (info_items,info_key.title()))
 
         axis.legend([patches[0]],['\n'.join(txt)],prop={'size':10,'weight':'normal'})

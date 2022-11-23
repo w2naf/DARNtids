@@ -1109,3 +1109,5 @@ def get_orig_rti_info(dataObj,sTime,eTime):
     dct['orig_rti_median']      = float(np.nanmedian(orig_fit,axis=None))
     dct['orig_rti_std']         = float(np.nanstd(orig_fit,axis=None))
     return dct
+
+

@@ -11,23 +11,24 @@ from bson.objectid import ObjectId
 import datetime
 import os
 import shutil
-import sys
+# import sys
 import pickle
 
 import numpy as np
 import glob
-from scipy.io.idl import readsav
+# from scipy.io.idl import readsav
 
-from scipy import signal
+# from scipy import signal
 
-from davitpy import utils
+# from davitpy import utils
 
-from matplotlib import pyplot as plt
-from matplotlib.backends.backend_agg import FigureCanvasAgg
+# from matplotlib import pyplot as plt
+# from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 
-from davitpy import pydarn
-
+# from davitpy import pydarn
+from pyDARNmusic import musicRTP,checkDataQuality, stringify_signal_list,add_signal,del_signal
+from mstid.more_music import *
 #Confuguration
 DEBUG = True
 SECRET_KEY = 'HJJDnaoiwer&*(@#%@sdanbiuas@HEIu'
@@ -38,6 +39,7 @@ import tempfile
 os.environ['MPLCONFIGDIR'] = tempfile.mkdtemp()
 
 app = Flask(__name__)
+app.debug = True
 app.config.from_object(__name__)
 
 #sys.path.append(os.path.join(app.root_path,'pyprop'))
@@ -49,16 +51,21 @@ app.config.from_envvar('FLASKR_SETTINGS',silent=True)
 
 from stats_support import *
 
-import manual_support as mans
+# import manual_support as mans
 import music_support as msc
-
+from mstid import mongo_tools
+from mstid import more_music as mm
+#HOMEPAGE Starts
+# Works
 @app.route('/')
 @app.route('/manual')
 def manual_search():
-    mstid_list  = get_active_list()
+    # mstid_list  = get_active_list()
+    mstid_list  = mongo_tools.get_active_list()
 
-    mstidDayDict,quietDayDict,noneDayDict,unclassifiedDayDict = loadDayLists(mstid_list=mstid_list)
-
+    mstidDayDict,quietDayDict,noneDayDict,unclassifiedDayDict = mongo_tools.loadDayLists(mstid_list=mstid_list)
+    # mstidDayDict,quietDayDict = mongo_tools.get_mstid_days()
+    
     mstidStr  = linkUp(mstidDayDict)
     quietStr  = linkUp(quietDayDict)
     noneStr   = linkUp(noneDayDict)
@@ -74,32 +81,33 @@ def manual_search():
     webData['mstid_days_total'] = len(mstidDayDict)
     mstid_days_manual_checked = 0
     for event in mstidDayDict:
-      if event.has_key('category_manu'):
+      if 'category_manu' in event:
           mstid_days_manual_checked = mstid_days_manual_checked + 1
     webData['mstid_days_manual_checked'] = mstid_days_manual_checked
 
     webData['quiet_days_total'] = len(quietDayDict)
     quiet_days_manual_checked = 0
     for event in quietDayDict:
-      if event.has_key('category_manu'):
+      if 'category_manu' in event:
           quiet_days_manual_checked = quiet_days_manual_checked + 1
     webData['quiet_days_manual_checked'] = quiet_days_manual_checked
 
     webData['none_days_total'] = len(noneDayDict)
     none_days_manual_checked = 0
     for event in noneDayDict:
-      if event.has_key('category_manu'):
+      if 'category_manu' in event:
           none_days_manual_checked = none_days_manual_checked + 1
     webData['none_days_manual_checked'] = none_days_manual_checked
 
     webData['unclassified_days_total'] = len(unclassifiedDayDict)
     unclassified_days_manual_checked = 0
     for event in unclassifiedDayDict:
-      if event.has_key('category_manu'):
+      if 'category_manu' in event:
           unclassified_days_manual_checked = unclassified_days_manual_checked + 1
     webData['unclassified_days_manual_checked'] = unclassified_days_manual_checked
 
-    webData['days_total']       = webData['mstid_days_total'] + webData['quiet_days_total'] + webData['none_days_total'] + webData['unclassified_days_total']
+    webData['days_total']       = webData['mstid_days_total'] + webData['quiet_days_total'] 
+    """+ webData['none_days_total'] + webData['unclassified_days_total']"""
     ################################################################################
 
     webData['list_dropdown']    = listDropDown()
@@ -108,7 +116,7 @@ def manual_search():
 
     timestamp=datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
     return render_template('manual.html',webData=webData,timestamp=timestamp)
-
+# Works
 @app.route('/select_source', methods=['GET'])
 def select_source():
     result = 1
@@ -120,9 +128,9 @@ def select_source():
   
         flash('Data source selected: {}'.format(new_source))
         result=0
-
+    
     return jsonify(result=result)
-
+# Works
 @app.route('/list_save_as',methods=['GET'])
 def list_save_as():
     list_name   = request.args.get('listName',None,type=str)
@@ -149,7 +157,7 @@ def list_save_as():
             set_active_list(list_name)
             result = 0
     return jsonify(result=result)
-
+# Works
 @app.route('/load_list', methods=['GET'])
 def load_list():
   listName    = request.args.get('list_dropdown',None,type=str)
@@ -160,7 +168,7 @@ def load_list():
     flash('List "'+listName+'" loaded.')
     result=0
   return jsonify(result=result)
-
+# Works
 @app.route('/list_delete', methods=['GET'])
 def list_delete():
     listName    = request.args.get('list_dropdown',None,type=str)
@@ -172,7 +180,7 @@ def list_delete():
         flash('List "'+listName+'" deleted.')
         result=0
     return jsonify(result=result)
-
+#works
 @app.route('/update_category',methods=['GET'])
 def update_category():
     '''Update the categories datebase for a particular day.'''
@@ -210,6 +218,7 @@ def update_category():
     unclassifiedStr   = linkUp(unclassifiedDayDict)
 
     return jsonify(mstidStr=mstidStr,quietStr=quietStr,noneStr=noneStr)
+#HOMEPAGE ends
 
 @app.route('/music_update_category',methods=['GET'])
 def music_update_category():
@@ -225,8 +234,9 @@ def music_update_category():
     event   = db[mstid_list].find_one({'_id':_id})
 
     status = db[mstid_list].update({'_id':_id},{'$set': {'category_manu':category_manu}})
+    # import ipdb;ipdb.set_trace()
 
-    if not status['err']:
+    if 'err' not in status:
         result=0
     else:
         result=1
@@ -257,6 +267,7 @@ def update_nav_mode():
     
     return jsonify(result=result)
 
+
 # Generate RTI Plot ############################################################
 @app.route('/rti',methods=['GET'])
 def plot_rti():
@@ -268,13 +279,15 @@ def plot_rti():
   gwDay       = request.args.get('gwDay', 0, type=str)
   param       = request.args.get('param', 0, type=str)
   mstid_list  = request.args.get('mstid_list', None, type=str)
-
+  
   stime   = datetime.datetime.strptime(gwDay,'%Y%m%d-%H%M')
+  etime   = stime + datetime.timedelta(hours=2)
   shortDt = datetime.datetime.strptime(gwDay[0:8],'%Y%m%d')
-
+  
   #Build the path of the RTI plot and call the plotting routine.
-  d = 'static/rti'
+  d = '/static/rti'
   outputFile = d+'/'+stime.strftime('%Y%m%d')+'.'+radar+'.'+param+'rti.png'
+
   try:
     os.makedirs(d)
   except:
@@ -285,18 +298,25 @@ def plot_rti():
             'weight' : 'bold',
             'size'   : 22}
     matplotlib.rc('font', **font)
-    tick_size   = 16
+    # tick_size   = 16
 
-    xticks  = []
-    hours   = np.arange(0,26,2) #Put a tick every 2 hours.
-    for hour in hours:
-        tmp = shortDt + datetime.timedelta(hours=float(hour))
-        xticks.append(tmp)
-    axvlines  = xticks[:]
+    # xticks  = []
+    # hours   = np.arange(0,26,2) #Put a tick every 2 hours.
+    # for hour in hours:
+    #     tmp = shortDt + datetime.timedelta(hours=float(hour))
+    #     xticks.append(tmp)
+    # axvlines  = xticks[:]
+    from pyDARNmusic import load_fitacf
+    from pyDARNmusic.music import musicArray
+    fitacf  = load_fitacf(radar,stime,etime)
+    dataObj = musicArray(fitacf,sTime=stime,eTime=etime,fovModel='GS')
     fig = Figure(figsize=(20,10))
-    fig = pydarn.plotting.rti.plotRti(shortDt,radar,params=['power'],show=False,retfig=True,figure=fig,xtick_size=tick_size,ytick_size=tick_size,xticks=xticks,axvlines=axvlines)
-    canvas = FigureCanvasAgg(fig)
-    fig.savefig(outputFile)
+    ax  = fig.add_subplot(111)
+    musicRTP(dataObj,axis=ax)
+    # fig = musicRTP(shortDt,radar,params=['power'],show=False,retfig=True,figure=fig,xtick_size=tick_size,ytick_size=tick_size,xticks=xticks,axvlines=axvlines)
+    # canvas = FigureCanvasAgg(fig)
+
+    fig.savefig("webserver"+outputFile)
 
   #Load in infomation about day stored in database.
   dbDict = db[mstid_list].find_one({'radar':radar,'date':stime})
@@ -306,13 +326,14 @@ def plot_rti():
   output            = {}
   #Append timestamp to force reload of image.
   output['result']  = outputFile+datetime.datetime.now().strftime('?%Y%m%d%H%M%S')
+#   output['result'] = d+"?"+ stime.strftime('%Y%m%d')+'.'+radar+'.'+param+'rti.png'
   output['radar']   = radar
   output['gwDay']   = gwDay
 
   output['categ_auto_mstid'] = False
   output['categ_auto_quiet'] = False
   output['categ_auto_none']  = False
-  if dbDict.has_key('category_auto'):
+  if 'category_auto' in dbDict:
     if dbDict['category_auto'] == 'mstid':
       output['categ_auto_mstid'] = True
     elif dbDict['category_auto'] == 'quiet':
@@ -323,7 +344,7 @@ def plot_rti():
   output['categ_manu_mstid'] = False
   output['categ_manu_quiet'] = False
   output['categ_manu_none']  = False
-  if dbDict.has_key('category_manu'):
+  if 'category_manu' in dbDict:
     if dbDict['category_manu'] == 'mstid':
       output['categ_manu_mstid'] = True
     elif dbDict['category_manu'] == 'quiet':
@@ -331,17 +352,17 @@ def plot_rti():
     elif dbDict['category_manu'] == 'None':
       output['categ_manu_none'] = True
 
-  if dbDict.has_key('checked'):
+  if 'checked' in dbDict:
     output['categ_checked'] = dbDict['checked']
   else:
     output['categ_checked'] = None
 
-  if dbDict.has_key('survey_code'):
+  if 'survey_code' in dbDict:
     output['survey_code'] = dbDict['survey_code']
   else:
     output['survey_code'] = None
 
-  if dbDict.has_key('mlt'):
+  if 'mlt' in dbDict:
     mlt = dbDict['mlt']
     hr  = int(mlt) * 100.
     mn  = (mlt%1) * 60.
@@ -350,12 +371,12 @@ def plot_rti():
   else:
     output['mlt'] = None
 
-  if dbDict.has_key('gscat'):
+  if 'gscat' in dbDict:
     output['gscat'] = dbDict['gscat']
   else:
     output['gscat'] = None
 
-  if dbDict.has_key('notes'):
+  if 'notes' in dbDict:
     output['categ_notes'] = dbDict['notes']
   else:
     output['categ_notes'] = None
@@ -363,9 +384,9 @@ def plot_rti():
 
 @app.route('/music')
 def music():
-    mstid_list  = get_active_list()
+    mstid_list  = mongo_tools.get_active_list()
 
-    mstidDayDict,quietDayDict,noneDayDict,unclassifiedDayDict = loadDayLists(mstid_list=mstid_list)
+    mstidDayDict,quietDayDict,noneDayDict,unclassifiedDayDict = mongo_tools.loadDayLists(mstid_list=mstid_list)
 
     mstidStr  = msc.linkUp(mstidDayDict)
     quietStr  = msc.linkUp(quietDayDict)
@@ -383,28 +404,28 @@ def music():
     webData['mstid_days_total'] = len(mstidDayDict)
     mstid_days_manual_checked = 0
     for event in mstidDayDict:
-      if event.has_key('category_manu'):
+      if 'category_manu' in event:
           mstid_days_manual_checked = mstid_days_manual_checked + 1
     webData['mstid_days_manual_checked'] = mstid_days_manual_checked
 
     webData['quiet_days_total'] = len(quietDayDict)
     quiet_days_manual_checked = 0
     for event in quietDayDict:
-      if event.has_key('category_manu'):
+      if 'category_manu' in event:
           quiet_days_manual_checked = quiet_days_manual_checked + 1
     webData['quiet_days_manual_checked'] = quiet_days_manual_checked
 
     webData['none_days_total'] = len(noneDayDict)
     none_days_manual_checked = 0
     for event in noneDayDict:
-      if event.has_key('category_manu'):
+      if 'category_manu' in event:
           none_days_manual_checked = none_days_manual_checked + 1
     webData['none_days_manual_checked'] = none_days_manual_checked
 
     webData['unclassified_days_total'] = len(unclassifiedDayDict)
     unclassified_days_manual_checked = 0
     for event in unclassifiedDayDict:
-      if event.has_key('category_manu'):
+      if 'category_manu' in event:
           unclassified_days_manual_checked = unclassified_days_manual_checked + 1
     webData['unclassified_days_manual_checked'] = unclassified_days_manual_checked
 
@@ -477,7 +498,7 @@ def music_edit():
     #Build up list of everything in database record to make it easy to print
     #everything out in Jinja2.
     record_list = []
-    keys = rec.keys()
+    keys = list(rec.keys())
     keys.sort()
     for key in keys:
         record_list.append({'key':key,'value':rec[key]})
@@ -489,7 +510,7 @@ def music_edit():
 
         #List for Jinja2 dump.
         musicParams_list = []
-        keys = musicParams.keys()
+        keys = list(musicParams.keys())
         keys.sort()
         for key in keys:
             musicParams_list.append({'key':key,'value':musicParams[key]})
@@ -510,7 +531,7 @@ def music_edit():
         musicParams['autodetect_threshold'] = 0.35
         musicParams['neighborhood']         = (10, 10)
 
-    if musicParams.has_key('beamLimits'):
+    if 'beamLimits' in musicParams:
         if np.size(musicParams['beamLimits']) == 2:
             musicParams['beamLimits_0'] = musicParams['beamLimits'][0]
             musicParams['beamLimits_1'] = musicParams['beamLimits'][1]
@@ -521,7 +542,7 @@ def music_edit():
         musicParams['beamLimits_0'] = None
         musicParams['beamLimits_1'] = None
 
-    if musicParams.has_key('gateLimits'):
+    if 'gateLimits' in musicParams:
         if np.size(musicParams['gateLimits']) == 2:
             musicParams['gateLimits_0'] = musicParams['gateLimits'][0]
             musicParams['gateLimits_1'] = musicParams['gateLimits'][1]
@@ -532,7 +553,7 @@ def music_edit():
         musicParams['gateLimits_0'] = None
         musicParams['gateLimits_1'] = None
 
-    if musicParams.has_key('neighborhood'):
+    if 'neighborhood' in musicParams:
         if np.size(musicParams['neighborhood']) == 2:
             musicParams['neighborhood_0'] = musicParams['neighborhood'][0]
             musicParams['neighborhood_1'] = musicParams['neighborhood'][1]
@@ -567,7 +588,7 @@ def music_edit():
             webData['good_period_warn']       = 'No data for time period. (%s)' % picklePath
 
     if webData['musicObjStatusClass'] == 'statusNormal' and not no_data:
-        dataObj     = pydarn.proc.music.checkDataQuality(dataObj,dataSet='originalFit',sTime=sDatetime,eTime=fDatetime)
+        dataObj     = checkDataQuality(dataObj,dataSet='originalFit',sTime=sDatetime,eTime=fDatetime)
         dataSets    = dataObj.get_data_sets()
         lst = []
         for dataSet in dataSets:
@@ -576,14 +597,14 @@ def music_edit():
             ds['name']    = dataSet
             
             histList = []
-            keys = currentData.history.keys()
+            keys = list(currentData.history.keys())
             keys.sort()
             for key in keys:
                 histList.append({'name':key,'value':currentData.history[key]})
             ds['history'] = histList
 
             metaList = []
-            keys = currentData.metadata.keys()
+            keys = list(currentData.metadata.keys())
             keys.sort()
             for key in keys:
                 metaList.append({'name':key,'value':currentData.metadata[key]})
@@ -599,8 +620,8 @@ def music_edit():
             webData['sigList'] = (sigs.string())
 
         #Stringify information about signals aready in the database...
-        if rec.has_key('signals'):
-            webData['sigsInDb'] = pydarn.proc.music.stringify_signal_list(rec['signals'],sort_key='serialNr')
+        if 'signals' in rec:
+            webData['sigsInDb'] = stringify_signal_list(rec['signals'],sort_key='serialNr')
 
         #Tell web if marked as a bad period.
         try:
@@ -625,14 +646,14 @@ def music_edit():
 
     try:
         with open(rtiPath):
-            webData['rtiPath']  = rtiPath
+            webData['rtiPath']  = rtiPath[10:] #save rtp url without webserver/
     except:
         pass
 
     #If kArr.png exists, show it on top!
     karrPath    = glob.glob(os.path.join(musicPath,'*karr.png'))
     if len(karrPath) > 0:
-        webData['karrPath'] = karrPath[0]
+        webData['karrPath'] = karrPath[0][10:]
     else:
         pass
 
@@ -645,7 +666,7 @@ def music_edit():
         plotDictList = []
         for plot in plots:
             plotDict = {}
-            plotDict['path'] = plot
+            plotDict['path'] = plot[10:] #removes the webserver/ in path
             plotDict['basename'] = os.path.basename(plot)
             plotDictList.append(plotDict)
         
@@ -662,7 +683,7 @@ def music_edit():
     webData['categ_manu_none']  = ''
     webData['categ_manu']       = 'Null'
 
-    if rec.has_key('category_manu'):
+    if 'category_manu' in rec:
         webData['categ_manu'] = rec['category_manu']
         if rec['category_manu'] == 'mstid': webData['categ_manu_mstid']  = 'checked'
         if rec['category_manu'] == 'quiet': webData['categ_manu_quiet']  = 'checked'
@@ -687,7 +708,7 @@ def music_edit():
     webData['event_dir_url'] = 'http://sd-work1.ece.vt.edu/data/mstid/statistics/webserver/'+musicPath
     webData['source_selector']      = msc.sourcesDropDown()
     enabled_sources = msc.get_enabled_sources()
-#    import ipdb; ipdb.set_trace()
+
     timestamp=datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
     return render_template('music_edit.html'
             ,webData=webData
@@ -701,8 +722,8 @@ def music_edit():
 @app.route('/create_music_obj', methods=['GET'])
 def create_music_obj():
     radar                   = request.args.get('radar',None,type=str)
-    sTime                   = request.args.get('sTime',None,type=str)
-    eTime                   = request.args.get('eTime',None,type=str)
+    sTime                   = request.args.get('sTime',type=str)
+    eTime                   = request.args.get('eTime',type=str)
     beamLimits_0            = request.args.get('beamLimits_0',None,type=str)
     beamLimits_1            = request.args.get('beamLimits_1',None,type=str)
     gateLimits_0            = request.args.get('gateLimits_0',None,type=str)
@@ -787,9 +808,10 @@ def create_music_obj():
         nn1 = None
     neighborhood = (nn0,nn1)
 
-
     ################################################################################ 
+
     musicPath   = msc.get_output_path(radar, sDatetime, fDatetime)
+
     try:
         shutil.rmtree(musicPath)
     except:
@@ -807,6 +829,7 @@ def create_music_obj():
         ,filterNumtaps              = numtaps 
         ,fitfilter                  = True
         )
+    
 
     picklePath  = msc.get_pickle_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
 
@@ -829,7 +852,7 @@ def create_music_obj():
     runParams['ky_max']             = ky_max
     runParams['autodetect_threshold'] = autodetect_threshold
     runParams['neighborhood']        = neighborhood
-
+  
     msc.Runfile(radar.lower(), sDatetime, fDatetime, runParams)
 
     # Generate general RTI plot for original data. #################################
@@ -837,7 +860,8 @@ def create_music_obj():
     dataObj.DS000_originalFit.metadata['timeLimits'] = [runParams['sDatetime'],runParams['fDatetime']]
 
     rti_beams   = msc.get_default_beams(runParams,dataObj)
-    rtiPath     = os.path.join(runParams['path'],'000_originalFit_RTI.png')
+    rtiPath     = os.path.join(musicPath,'000_originalFit_RTI.png')
+
     msc.plot_music_rti(dataObj,fileName=rtiPath,dataSet="originalFit",beam=rti_beams)
 
     result=0
@@ -847,8 +871,8 @@ def create_music_obj():
 def run_music():
     runfile_path    = request.args.get('runfile_path',None,type=str)
     msc.run_music(runfile_path)
-    msc.music_plot_all(runfile_path)
 
+    msc.music_plot_all(runfile_path)
     result=0
     return jsonify(result=result)
 
@@ -880,7 +904,7 @@ def music_plot_fan():
 
     result=0
     return jsonify(result=result)
-
+#WORK!!!!
 @app.route('/music_plot_rti', methods=['GET'])
 def music_plot_rti():
     runfile_path    = request.args.get('runfile_path',None,type=str)
@@ -949,7 +973,7 @@ def add_music_params_db():
     _id = ObjectId(str_id)
     event   = db[mstid_list].find_one({'_id':_id})
 
-    if event.has_key('signals'):
+    if 'signals' in event:
         sigList     = event['signals']
         try:
             serialNr    = max([x['serialNr'] for x in sigList]) + 1
@@ -1038,8 +1062,10 @@ def add_to_detected():
     new_kx          = request.args.get('new_kx',None,type=float)
     new_ky          = request.args.get('new_ky',None,type=float)
 
-    if new_kx == None: return jsonfiy(result=0)
-    if new_ky == None: return jsonfiy(result=0)
+    if new_kx == None: 
+        return jsonify(result=0)
+    if new_ky == None: 
+        return jsonify(result=0)
 
     #Load the runfile and the associated musicObj.
     runfile         = msc.load_runfile_path(runfile_path)
@@ -1047,7 +1073,7 @@ def add_to_detected():
     musicPath       = runfile.runParams['path']
 
     dataObj     = pickle.load(open(picklePath,'rb'))
-    pydarn.proc.music.add_signal(new_kx,new_ky,dataObj,dataSet='active')
+    add_signal(new_kx,new_ky,dataObj,dataSet='active')
     pickle.dump(dataObj,open(picklePath,'wb'))
 
     karrPath    = glob.glob(os.path.join(musicPath,'*karr.png'))[0]
@@ -1074,7 +1100,7 @@ def del_from_detected():
     musicPath       = runfile.runParams['path']
 
     dataObj     = pickle.load(open(picklePath,'rb'))
-    pydarn.proc.music.del_signal(signal_order_list,dataObj,dataSet='active')
+    del_signal(signal_order_list,dataObj,dataSet='active')
     pickle.dump(dataObj,open(picklePath,'wb'))
 
     karrPath    = glob.glob(os.path.join(musicPath,'*karr.png'))[0]

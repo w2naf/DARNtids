@@ -96,18 +96,23 @@
             <tr>
                 <td width="*" class="submit-cell">
                     <center> <img src={{ webData.rtiPath }} width="100%"> </center>
-                    <center><button id="music_plot_rti">Replot RTI Plot</button></center>
+                    {% if webData.musicObjStatus %}
+                        <center><button id="music_plot_rti">Replot RTI Plot</button></center>
+                    {% endif %}
                 </td>
             </tr>
         </table>
     {% endif %}
 {% else %}
 #}
+{#
     <table>
         <tr>
             <td width="50%" class="submit-cell">
                 <a href="{{webData.rtiPath}}"  target="_blank"><img src="{{ webData.rtiPath }}" width="100%"></a>
-                <button id="music_plot_rti">Replot RTI Plot</button></center>
+                {% if webData.musicObjStatus %}
+                    <button id="music_plot_rti">Replot RTI Plot</button></center>
+                {% endif %}
             </td>
             <td width="50%" class="submit-cell"><a href="{{webData.karrPath}}" target="_blank"><img src="{{ webData.karrPath }}" width="100%"></a></td>
         </tr>
@@ -117,7 +122,7 @@
             </td>
         </tr>
     </table>
-    {#
+
 {% endif %}
 #}
 

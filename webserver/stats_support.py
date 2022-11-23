@@ -3,21 +3,21 @@
 #all the imports
 from flask import Flask, request, session, redirect, url_for, abort, render_template, flash, jsonify
 import pymongo
-from bson.objectid import ObjectId
+# from bson.objectid import ObjectId
 
 import datetime
 import os
-import sys
+# import sys
 
 import numpy as np
-import glob
-from scipy.io.idl import readsav
+# import glob
+# from scipy.io.idl import readsav
 
-from scipy import signal
+# from scipy import signal
 
-from davitpy import utils
+# from davitpy import utils
 
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 
@@ -52,7 +52,7 @@ def months(selected=None):
 
 def years(selected=None):
   years = []
-  yrs = range(1993,datetime.datetime.utcnow().year+1)
+  yrs = list(range(1993,datetime.datetime.utcnow().year+1))
   for dd in yrs:
     year = str(dd)
     if dd == selected:
@@ -63,7 +63,7 @@ def years(selected=None):
   return years
 
 def db_update_mstid_list(item,mstid_list='mstid_list'):
-  if item.has_key('_id'): item.pop('_id')
+  if '_id' in item: item.pop('_id')
   entry_id = db[mstid_list].update({'date':item['date'], 'radar':item['radar']}, {"$set": item}, upsert=True)
   return entry_id
 
@@ -74,9 +74,9 @@ def linkUp(dayList):
         img1 = 'x'
         img2 = 'x'
 
-        if x.has_key('category_manu'):
+        if 'category_manu' in x:
           img1 = 'check'
-          if x.has_key('checked'):
+          if 'checked' in x:
               if x['checked']:
                 img2 = 'check'
 #          if x['category_auto'] == x['category_manu']:
@@ -196,7 +196,7 @@ def kpHistogram(gwDays,secondPop=None,title='Kp Distribution',kind='mean',outFNa
   if kind=='max':
     ax.set_xlabel('Daily Maximum AE Index')
   ax.set_ylabel('Number Days')
-  ax.set_xticks(range(10))
+  ax.set_xticks(list(range(10)))
   ax.set_title(title)
   ax.legend()
 

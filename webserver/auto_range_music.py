@@ -6,12 +6,12 @@ import os
 import datetime
 import pickle
 import shutil
-from operator import itemgetter
-import glob
+# from operator import itemgetter
+# import glob
 
 import numpy as np
 from scipy import stats as stats
-from scipy.io import readsav
+# from scipy.io import readsav
 
 import matplotlib
 matplotlib.use('Agg')
@@ -19,13 +19,12 @@ import matplotlib.pyplot as plt
 
 import traceback
 
-from davitpy import utils
-from davitpy import pydarn
+from pyDARNmusic import defineLimits
 
 import music_support as msc
 from auto_range import *
 #from ocv_edge_detect import *
-from musicRTI3 import musicRTI3
+# from musicRTI3 import musicRTI3
 
 import multiprocessing
 
@@ -48,7 +47,7 @@ def check_already_computed(q,event,quick_check=True):
                     now = datetime.datetime.now()
                     event = None
             except:
-                print 'Bad file: {0}'.format(picklePath)
+                print(f"Bad file: {picklePath}")
 #    return event
     q.put(event)
 
@@ -103,7 +102,7 @@ def events_from_mongo(mstid_list,sDate=None,eDate=None,category=None,months=None
     if not recompute:
         event_list_1 = []
         for event in event_list:
-            print event
+            print(event)
             queue = multiprocessing.Queue()
             p = multiprocessing.Process(target=check_already_computed, args=(queue, event))
             p.start()
@@ -209,23 +208,23 @@ def run_music(event_list,
             musicPath   = msc.get_output_path(radar, sDatetime, fDatetime)
             picklePath  = msc.get_pickle_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
 
-            if event.has_key('category'):
+            if 'category' in event:
                 print_cat = '(%s)' % event['category']
             else:
                 print_cat = ''
             now = datetime.datetime.now()
 
-            print now,print_cat,'(%d of %d)' % (event_nr, nr_events), 'Processing: ', radar, sDatetime
+            print(now,print_cat,'(%d of %d)' % (event_nr, nr_events), 'Processing: ', radar, sDatetime)
 
             ################################################################################ 
-            if event.has_key('beam_limits'):
+            if 'beam_limits' in event:
                 beamLimits_0            = event['beam_limits'][0]
                 beamLimits_1            = event['beam_limits'][1]
             else:
                 beamLimits_0            = default_beam_limits[0]
                 beamLimits_1            = default_beam_limits[1]
 
-            if event.has_key('gate_limits'):
+            if 'gate_limits' in event:
                 gateLimits_0            = event['gate_limits'][0]
                 gateLimits_1            = event['gate_limits'][1]
             else:
@@ -320,7 +319,7 @@ def run_music(event_list,
                 messages_filename   = os.path.join(musicPath,'messages.txt')
                 with open(messages_filename,'w') as fl:
                     fl.write(messages)
-                print messages
+                print(messages)
                 if 'No data for this time period.' in dataObj.messages:
                     continue
 
@@ -356,7 +355,7 @@ def run_music(event_list,
                     gateLimits              = auto_range(dataObj,runParams,outputDir=output_dirs['range']) 
                     runParams['gateLimits'] = gateLimits
                     runfile_obj             = msc.Runfile(radar.lower(), sDatetime, fDatetime, runParams)
-                    pydarn.proc.music.defineLimits(dataObj,gateLimits=gateLimits)
+                    defineLimits(dataObj,gateLimits=gateLimits)
                     with open(picklePath,'wb') as fl:
                         pickle.dump(dataObj,fl)
                 except:
@@ -380,7 +379,7 @@ def run_music(event_list,
                     dataSets    = dataObj.get_data_sets()
                     currentData = getattr(dataObj,dataSets[-1])
 
-                    if event.has_key('signals'):
+                    if 'signals' in event:
                         event.pop('signals',None)
 
                     sigList = []
@@ -432,11 +431,11 @@ def run_music(event_list,
 
             err   = ' '.join(['MUSIC ERROR:',now,event['radar'],str(event['sDatetime']),str(event['fDatetime'])])
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            print err
+            print(err)
 #            print '**Traceback:'
 #            traceback.print_tb(exc_traceback)
 #            print ''
-            print '**Exception:'
+            print('**Exception:')
             traceback.print_exc()
 
             with open(error_file_path,'a') as error_file:

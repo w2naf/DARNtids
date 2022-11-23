@@ -115,7 +115,7 @@ mstidDayDict,quietDayDict,noneDayDict = ssup.loadDayLists(mstid_list=mstid_list)
 allEvents = mstidDayDict
 
 for event in allEvents:
-    if event.has_key('signals'):
+    if 'signals' in event:
         _id = event['_id']
         status = db[mstid_list].update({'_id':_id},{'$unset': {'signals': 1}})
 
@@ -133,14 +133,14 @@ for event in allEvents:
 
     try:
         if sDatetime < datetime.datetime(2013,3,1):
-            print 'Skipping: ', radar, sDatetime
+            print('Skipping: ', radar, sDatetime)
             continue
     except:
         pass
 
     try:
         if sDatetime < sTime:
-            print 'Skipping: ', radar, sDatetime
+            print('Skipping: ', radar, sDatetime)
             continue
     except:
         pass
@@ -149,10 +149,10 @@ for event in allEvents:
     rtiPath     = os.path.join(musicPath,'000_originalFit_RTI.png')
     if rti_only and no_replot:
         if os.path.exists(rtiPath):
-            print 'Already plotted: ', radar, sDatetime
+            print('Already plotted: ', radar, sDatetime)
             continue
 
-    print 'Processing: ', radar, sDatetime
+    print('Processing: ', radar, sDatetime)
 
     try:
         interpolationResolution = 120.
@@ -288,7 +288,7 @@ for event in allEvents:
             #Pull up database record to see if there are already items stored.
             _id = event['_id']
 
-            if event.has_key('signals'):
+            if 'signals' in event:
                 event.pop('signals',None)
 
             sigList = []

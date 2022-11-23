@@ -302,7 +302,7 @@ class MstidTracker(object):
             res = self.track()
 
     def read_and_process(self):
-        if self.frame+1 in self.frames.keys():
+        if self.frame+1 in list(self.frames.keys()):
             self.frame += 1
             dd  = self.frames[str(self.frame)]
         else:
@@ -374,7 +374,7 @@ class MstidTracker(object):
 
         self.status_text    = []
         txt = self.t0.dt.strftime('=== TRACKING: %Y %b %m %H%M to ') + self.t1.dt.strftime('%H%M UT ===')
-        if verbose: print txt
+        if verbose: print(txt)
         self.status_text.append(txt)
 
 #        s   = self.settings
@@ -402,7 +402,7 @@ class MstidTracker(object):
                 dists   = []
                 for info_1 in mrk_1.info:
                     id_1    = info_1['id']
-                    if not info_1.has_key('corr'): info_1['corr'] = {}
+                    if 'corr' not in info_1: info_1['corr'] = {}
                     h0      = info_0['hist']
                     h1      = info_1['hist']
 
@@ -442,11 +442,11 @@ class MstidTracker(object):
                     mrk_1_new_markers[mrk_1.markers == id_1] = id_0
                     found_markers.append(id_1)   #Keep track of found markers
                     txt = 'TRACKED: mrk0.%d (%s) -- mrk1.%d (%s) (dist: %.3f) --> trk.%d (%s)' % (id_0,color_0,id_1,color_1,min_dist,id_0,color_0)
-                    if verbose: print txt
+                    if verbose: print(txt)
                     self.status_text.append(txt)
                 else:
                     txt = 'NO MATCH: mrk0.%d (%s) -- mrk1.%d (%s) (dist: %.3f)' % (id_0,color_0,id_1,color_1,min_dist)
-                    if verbose: print txt
+                    if verbose: print(txt)
                     self.status_text.append(txt)
 
         for mrk in mrk_1.ids:
@@ -573,7 +573,7 @@ class ShowData(wx.Frame):
             self.frm_height = self.bmp_height + 2*self.bmp_pad
 
             hbox = wx.BoxSizer(wx.HORIZONTAL)
-            for key in range(len(imgs.keys())):
+            for key in range(len(list(imgs.keys()))):
                 img     = imgs[key]
                 pnl1    = wx.Panel(self, -1, style=wx.SIMPLE_BORDER)
 
@@ -606,7 +606,7 @@ class ShowData(wx.Frame):
 
             self.initialize = False
         else:
-            for key in range(len(imgs.keys())):
+            for key in range(len(list(imgs.keys()))):
                 img = imgs[key]
                 img['bmp'].CopyFromBuffer(self.img_prep(img['img']))
                 self.Refresh()
@@ -672,7 +672,7 @@ class ShowData(wx.Frame):
         return box
 
     def OnPaint(self,event):
-        for key in range(len(self.imgs.keys())):
+        for key in range(len(list(self.imgs.keys()))):
             img = self.imgs[key]
             dc = wx.BufferedPaintDC(img['panel'])
             dc.Clear()
@@ -722,7 +722,7 @@ class ShowData(wx.Frame):
 
     def OnSize(self,event):
         self.Layout()
-        for key in range(len(self.imgs.keys())):
+        for key in range(len(list(self.imgs.keys()))):
             img = self.imgs[key]
             sz = img['panel'].GetSize()
             sz = locked_aspect((self.bmp_width,self.bmp_height),sz)
@@ -730,7 +730,7 @@ class ShowData(wx.Frame):
             self.bmp_width  = sz[0]
             self.bmp_height = sz[1]
 
-            if img.has_key('bmp'): img['bmp'].Destroy()
+            if 'bmp' in img: img['bmp'].Destroy()
             img['bmp']  = self.img2bmp(img['img'])
 
     def OnOpen(self,event):
@@ -774,7 +774,7 @@ class ShowData(wx.Frame):
         plt.ion()
         fig     = plt.figure()
         axis    = fig.add_subplot(111)
-        axis.plot(np.sin(range(100)))
+        axis.plot(np.sin(list(range(100))))
 
 
 class MyApp(wx.App):

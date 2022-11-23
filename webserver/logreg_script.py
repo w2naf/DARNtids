@@ -1,16 +1,16 @@
 #!/usr/bin/env python
-import sys
-import os
-import shutil
+# import sys
+# import os
+# import shutil
 import datetime
-import pickle
+# import pickle
 
 import matplotlib
 matplotlib.use('Agg')
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 
 import pandas as pd
-import numpy as np
+# import numpy as np
 
 import inspect
 curr_file = inspect.getfile(inspect.currentframe()) # script filename (usually with path)
@@ -43,7 +43,7 @@ class TimeCheck(object):
         if self.log is not None:
             log.info(txt)
         else:
-            print txt
+            print(txt)
 
 log.info('Logistic Regression Trainor for <<{mstid_list}>>.'.format(mstid_list=glbs.mstid_list))
 
@@ -84,12 +84,12 @@ tc.check()
 tc  = TimeCheck('Compute Feature List',log)
 feature_list_list = []
 if not glbs.test:
-    print 'Starting combinations...'
+    print('Starting combinations...')
     import itertools
     #for L in range(len(glbs.prm_dict.keys())+1):
     for L in range(5):
         if L == 0:continue
-        for subset in itertools.combinations(glbs.prm_dict.keys(),L):
+        for subset in itertools.combinations(list(glbs.prm_dict.keys()),L):
             feature_list_list.append(subset)
 else:
     feature_list_list.append(['orig_rti_cnt', 'orig_rti_mean', 'orig_rti_var'])

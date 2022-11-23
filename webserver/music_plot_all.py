@@ -42,14 +42,14 @@ for item in cursor:
     sDatetime   = item['sDatetime']
     fDatetime   = item['fDatetime']
 
-    print radar,sDatetime
+    print(radar,sDatetime)
     if True:
         runfile_path = msc.get_pickle_name(radar,sDatetime,fDatetime,getPath=True,createPath=False,runfile=True)
 
         karr_file = os.path.join(os.path.dirname(runfile_path),'014_karr.png')
         if os.path.exists(karr_file):
-            print 'Already plotted!'
+            print('Already plotted!')
         else:
             import ipdb; ipdb.set_trace()
             msc.music_plot_all(runfile_path)
-            print '   Success!!'
+            print('   Success!!')

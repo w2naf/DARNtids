@@ -2,8 +2,8 @@ from flask import Flask, request, session, redirect, url_for, abort, render_temp
 
 import os
 import sys
-from davitpy import utils
-import shutil
+# from davitpy import utils
+# import shutil
 import tempfile
 import pickle
 import datetime
@@ -14,15 +14,40 @@ matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
 import pymongo
-from bson.objectid import ObjectId
+# from bson.objectid import ObjectId
 
 import numpy as np
-from scipy.io.idl import readsav
-from scipy import signal
+# from scipy.io.idl import readsav
+# from scipy import signal
 
 
-from davitpy import pydarn
-import davitpy.pydarn.proc.music as music
+from pyDARNmusic import (load_fitacf,getDataSet,musicFan,musicRTP,music ,stringify_signal,stringify_signal_list     
+                               ,beamInterpolation         
+                               ,defineLimits              
+                               ,checkDataQuality          
+                               ,applyLimits               
+                               ,determineRelativePosition 
+                               ,timeInterpolation         
+                               ,filterTimes               
+                               ,detrend                   
+                               ,nan_to_num                
+                               ,windowData                
+                               ,calculateFFT              
+                               ,calculateDlm              
+                               ,calculateKarr             
+                               ,simulator                 
+                               ,scale_karr                
+                               ,detectSignals             
+                               ,add_signal                
+                               ,del_signal,
+                               timeSeriesMultiPlot
+                                 ,plotRelativeRanges
+                                 ,spectrumMultiPlot
+                                 ,plotFullSpectrum
+                                 ,plotDlm
+                                 ,plotKarr
+                                 ,plotKarrDetected,daynight_terminator)
+# import davitpy.pydarn.proc.music as music
 
 os.environ['MPLCONFIGDIR'] = tempfile.mkdtemp()
 
@@ -46,11 +71,11 @@ def linkUp(dayList):
         dataObjPath = get_pickle_name(radar,x['sDatetime'],x['fDatetime'],getPath=True)
         karrCheck   = glob.glob(os.path.join(musicPath,'*karr.png'))
 
-        if x.has_key('category_manu'):
+        if 'category_manu' in x:
             img1 = 'check'
             title1 = 'Item has been classified.'
 
-        if x.has_key('music_analysis_status'):
+        if 'music_analysis_status' in x:
             if x['music_analysis_status']:
                 img2 = 'check'
                 title2 = 'Event has been marked as complete.'
@@ -87,7 +112,7 @@ def get_prev_next(mstid_list,_id,mode='list'):
     
     if mode == 'category':
         current = db[mstid_list].find_one({'_id':_id})
-        if current.has_key('category_manu'):
+        if 'category_manu' in current:
             category = current['category_manu']
             items = db[mstid_list].find({'category_manu':category}).sort([('date',1),('_id',1)])
         else:
@@ -154,7 +179,7 @@ def sourcesDropDown(**kwargs):
     html = '\n'.join(html)
     return html
 
-def get_output_path(radar=None,sDatetime=None,fDatetime=None,data_path='static/music',create=False,real_path=False):
+def get_output_path(radar=None,sDatetime=None,fDatetime=None,data_path='webserver/static/music',create=False,real_path=False):
     if real_path:
         data_path = os.path.realpath(data_path)
 
@@ -189,10 +214,11 @@ class Runfile(object):
         picklePath = picklePath[:-1] + 'runfile.p'
         
         self.runParams = {}
-        for key,value in runParamsDict.iteritems():
+        for key,value in runParamsDict.items():
             self.runParams[key] = value
-
+  
         self.runParams['runfile_path'] = picklePath
+        
         
         pickle.dump(self,open(picklePath,'wb'))
         
@@ -222,15 +248,15 @@ def createMusicObj(radar, sDatetime, fDatetime
 
     # Calculate time limits of data needed to be loaded to make fiter work. ########
     if interpolationResolution != None and filterNumtaps != None:
-        load_sDatetime,load_fDatetime = music.filterTimes(sDatetime,fDatetime,interpolationResolution,filterNumtaps)
+        load_sDatetime,load_fDatetime = filterTimes(sDatetime,fDatetime,interpolationResolution,filterNumtaps)
     else:
         load_sDatetime,load_fDatetime = (sDatetime, fDatetime)
 
     # Load in data and create data objects. ########################################
 #    myPtr   = pydarn.sdio.radDataOpen(load_sDatetime,radar,eTime=load_fDatetime,channel=channel,cp=cp,fileType=fileType,filtered=boxCarFilter)
-    myPtr   = pydarn.sdio.radDataOpen(load_sDatetime,radar,eTime=load_fDatetime,filtered=fitfilter)
+    myPtr   = load_fitacf(radar, load_sDatetime, eTime=load_fDatetime)
     dataObj = music.musicArray(myPtr,fovModel='GS')
-    myPtr.close()
+    # myPtr.close()
 
     bad = False # Innocent until proven guilty.
     if hasattr(dataObj,'messages'):
@@ -242,35 +268,35 @@ def createMusicObj(radar, sDatetime, fDatetime
         if np.size(gateLimits) == 2:
             if gateLimits[0] != None or gateLimits[1] !=None:
                 if gateLimits[0] == None:
-                    gl0 = min(dataObj.active.fov.gates)
+                    gl0 = min(dataObj.active.fov["gates"])
                 else:
                     gl0 = gateLimits[0]
                 if gateLimits[1] == None:
-                    gl1 = max(dataObj.active.fov.gates)
+                    gl1 = max(dataObj.active.fov["gates"])
                 else:
                     gl1 = gateLimits[1]
                 gl = (gl0, gl1)
 
         if gl != None:
-            music.defineLimits(dataObj,gateLimits=gl)
+            defineLimits(dataObj,gateLimits=gl)
 
         bl = None
         if np.size(beamLimits) == 2:
             if beamLimits[0] != None or beamLimits[1] !=None:
                 if beamLimits[0] == None:
-                    bl0 = min(dataObj.active.fov.beams)
+                    bl0 = min(dataObj.active.fov["beams"])
                 else:
                     bl0 = beamLimits[0]
                 if beamLimits[1] == None:
-                    bl1 = max(dataObj.active.fov.beams)
+                    bl1 = max(dataObj.active.fov["beams"])
                 else:
                     bl1 = beamLimits[1]
                 bl = (bl0, bl1)
 
         if bl != None:
-            music.defineLimits(dataObj,beamLimits=bl)
+            defineLimits(dataObj,beamLimits=bl)
 
-        dataObj = music.checkDataQuality(dataObj,dataSet='originalFit',sTime=sDatetime,eTime=fDatetime)
+        dataObj = checkDataQuality(dataObj,dataSet='originalFit',sTime=sDatetime,eTime=fDatetime)
 
     picklePath = get_pickle_name(radar,sDatetime,fDatetime,getPath=True,createPath=True)
     with open(picklePath,'wb') as fl:
@@ -302,7 +328,7 @@ def zeropad(dataObj):
 def window_beam_gate(dataObj,dataSet='active',window='hann'):
     import scipy as sp
 
-    currentData = music.getDataSet(dataObj,dataSet)
+    currentData = getDataSet(dataObj,dataSet)
     currentData = currentData.applyLimits()
 
     nrTimes, nrBeams, nrGates = np.shape(currentData.data)
@@ -340,18 +366,18 @@ def run_music(runfile_path,process_level='all'):
     threshold   = musicParams['autodetect_threshold']
     neighborhood = musicParams['neighborhood']
 
-    dataObj = music.checkDataQuality(dataObj,dataSet='originalFit',sTime=sDatetime,eTime=fDatetime)
+    dataObj = checkDataQuality(dataObj,dataSet='originalFit',sTime=sDatetime,eTime=fDatetime)
     if not dataObj.active.metadata['good_period']:
         pickle.dump(dataObj,open(musicObj_path,'wb'))
         return
 
     dataObj.active.applyLimits()
-    music.beamInterpolation(dataObj,dataSet='limitsApplied')
+    beamInterpolation(dataObj,dataSet='limitsApplied')
 
-    music.determineRelativePosition(dataObj)
+    determineRelativePosition(dataObj)
 
-    music.timeInterpolation(dataObj,timeRes=interpRes)
-    music.nan_to_num(dataObj)
+    timeInterpolation(dataObj,timeRes=interpRes)
+    nan_to_num(dataObj)
 
     if not numtaps is None:
         filt = music.filter(dataObj, dataSet='active', numtaps=numtaps, cutoff_low=cutoff_low, cutoff_high=cutoff_high)
@@ -373,20 +399,20 @@ def run_music(runfile_path,process_level='all'):
         plt.close()
     #    plotSerial = plotSerial + 1
 
-    music.detrend(dataObj, dataSet='active')
+    detrend(dataObj, dataSet='active')
 
-    music.windowData(dataObj, dataSet='active')
+    windowData(dataObj, dataSet='active')
 #    window_beam_gate(dataObj)
     zeropad(dataObj)
 
-    music.calculateFFT(dataObj)
+    calculateFFT(dataObj)
     if process_level == 'fft':
         pickle.dump(dataObj,open(musicObj_path,'wb'))
         return
+    calculateDlm(dataObj)
+    calculateKarr(dataObj,kxMax=kx_max,kyMax=ky_max)
+    detectSignals(dataObj,threshold=threshold,neighborhood=neighborhood)
 
-    music.calculateDlm(dataObj)
-    music.calculateKarr(dataObj,kxMax=kx_max,kyMax=ky_max)
-    music.detectSignals(dataObj,threshold=threshold,neighborhood=neighborhood)
 
     with open(musicObj_path,'wb') as fl:
         pickle.dump(dataObj,fl)
@@ -431,50 +457,50 @@ def music_plot_all(runfile_path,process_level='all',rti_only=False):
     if rti_only:
         return
 
-    if dataObj.active.metadata.has_key('good_period'):
+    if 'good_period' in dataObj.active.metadata:
         if not dataObj.active.metadata['good_period']:
             return
 
     fig = plt.figure(figsize=figsize)
-    ax  = fig.add_subplot(121)
-    pydarn.plotting.musicPlot.musicFan(dataObj,plotZeros=True,dataSet='originalFit',axis=ax,time=time)
-    ax  = fig.add_subplot(122)
-    pydarn.plotting.musicPlot.musicFan(dataObj,plotZeros=True,axis=ax,dataSet='beamInterpolated',time=time)
+    # ax  = fig.add_subplot(121)
+    musicFan(dataObj,plotZeros=True,dataSet='originalFit',fig=fig,time=time,subplot_tuple=(1,2,1))
+    # ax  = fig.add_subplot(122)
+    musicFan(dataObj,plotZeros=True,dataSet='beamInterpolated',fig=fig,time=time,subplot_tuple=(1,2,2))
     fileName = os.path.join(outputDir,'%03i_beamInterp_fan.png' % plotSerial)
     fig.savefig(fileName,bbox_inches='tight')
     plt.close()
     plotSerial = plotSerial + 1
 
     fig = plt.figure(figsize=figsize)
-    pydarn.plotting.musicPlot.plotRelativeRanges(dataObj,time=time,fig=fig,dataSet='beamInterpolated')
+    plotRelativeRanges(dataObj,time=time,fig=fig,dataSet='beamInterpolated')
     fileName = os.path.join(outputDir,'%03i_ranges.png' % plotSerial)
     fig.savefig(fileName,bbox_inches='tight')
     plt.close()
     plotSerial = plotSerial + 1
 
     fig = plt.figure(figsize=figsize)
-    pydarn.plotting.musicPlot.timeSeriesMultiPlot(dataObj,dataSet="DS002_beamInterpolated",dataSet2='DS001_limitsApplied',fig=fig)
+    timeSeriesMultiPlot(dataObj,dataSet="DS002_beamInterpolated",dataSet2='DS001_limitsApplied',fig=fig)
     fileName = os.path.join(outputDir,'%03i_beamInterp.png' % plotSerial)
     fig.savefig(fileName,bbox_inches='tight')
     plt.close()
     plotSerial = plotSerial + 1
 
     fig = plt.figure(figsize=figsize)
-    pydarn.plotting.musicPlot.timeSeriesMultiPlot(dataObj,dataSet='timeInterpolated',dataSet2='beamInterpolated',fig=fig)
+    timeSeriesMultiPlot(dataObj,dataSet='timeInterpolated',dataSet2='beamInterpolated',fig=fig)
     fileName = os.path.join(outputDir,'%03i_timeInterp.png' % plotSerial)
     fig.savefig(fileName,bbox_inches='tight')
     plt.close()
     plotSerial = plotSerial + 1
 
     fig = plt.figure(figsize=figsize)
-    pydarn.plotting.musicPlot.timeSeriesMultiPlot(dataObj,fig=fig,dataSet="DS005_filtered")
+    timeSeriesMultiPlot(dataObj,fig=fig,dataSet="DS005_filtered")
     fileName = os.path.join(outputDir,'%03i_filtered.png' % plotSerial)
     fig.savefig(fileName,bbox_inches='tight')
     plt.close()
     plotSerial = plotSerial + 1
 
     fig = plt.figure(figsize=figsize)
-    pydarn.plotting.musicPlot.timeSeriesMultiPlot(dataObj,fig=fig)
+    timeSeriesMultiPlot(dataObj,fig=fig)
     fileName = os.path.join(outputDir,'%03i_detrendedData.png' % plotSerial)
     fig.savefig(fileName,bbox_inches='tight')
     plt.close()
@@ -482,7 +508,7 @@ def music_plot_all(runfile_path,process_level='all',rti_only=False):
 
     if musicParams.get('window_data'):
         fig = plt.figure(figsize=figsize)
-        pydarn.plotting.musicPlot.timeSeriesMultiPlot(dataObj,fig=fig)
+        timeSeriesMultiPlot(dataObj,fig=fig)
         fileName = os.path.join(outputDir,'%03i_windowedData.png' % plotSerial)
         fig.savefig(fileName,bbox_inches='tight')
         plt.close()
@@ -490,29 +516,29 @@ def music_plot_all(runfile_path,process_level='all',rti_only=False):
 
 
     fig = plt.figure(figsize=figsize)
-    pydarn.plotting.musicPlot.spectrumMultiPlot(dataObj,fig=fig,xlim=(-0.0025,0.0025))
+    spectrumMultiPlot(dataObj,fig=fig,xlim=(-0.0025,0.0025))
     fileName = os.path.join(outputDir,'%03i_spectrum.png' % plotSerial)
     fig.savefig(fileName,bbox_inches='tight')
     plt.close()
     plotSerial = plotSerial + 1
 
     fig = plt.figure(figsize=figsize)
-    pydarn.plotting.musicPlot.spectrumMultiPlot(dataObj,fig=fig,plotType='magnitude',xlim=(0,0.0025))
+    spectrumMultiPlot(dataObj,fig=fig,plotType='magnitude',xlim=(0,0.0025))
     fileName = os.path.join(outputDir,'%03i_magnitude.png' % plotSerial)
     fig.savefig(fileName,bbox_inches='tight')
     plt.close()
     plotSerial = plotSerial + 1
 
     fig = plt.figure(figsize=figsize)
-    pydarn.plotting.musicPlot.spectrumMultiPlot(dataObj,fig=fig,plotType='phase',xlim=(0,0.0025))
+    spectrumMultiPlot(dataObj,fig=fig,plotType='phase',xlim=(0,0.0025))
     fileName = os.path.join(outputDir,'%03i_phase.png' % plotSerial)
     fig.savefig(fileName,bbox_inches='tight')
     plt.close()
     plotSerial = plotSerial + 1
 
     fig = plt.figure(figsize=figsize)
-    ax  = fig.add_subplot(111)
-    pydarn.plotting.musicPlot.musicFan(dataObj,plotZeros=True,axis=ax,autoScale=True,time=time)
+    # ax  = fig.add_subplot(111)
+    musicFan(dataObj,plotZeros=True,fig=fig,autoScale=True,time=time,subplot_tuple=(1,1,1))
     fileName = os.path.join(outputDir,'%03i_finalDataFan.png' % plotSerial)
     fig.savefig(fileName,bbox_inches='tight')
     plt.close()
@@ -520,14 +546,14 @@ def music_plot_all(runfile_path,process_level='all',rti_only=False):
 
     fig = plt.figure(figsize=figsize)
     ax  = fig.add_subplot(111)
-    pydarn.plotting.musicPlot.musicRTI(dataObj,plotZeros=True,axis=ax,autoScale=True)
+    musicRTP(dataObj,plotZeros=True,axis=ax,autoScale=True)
     fileName = os.path.join(outputDir,'%03i_finalDataRTI.png' % plotSerial)
     fig.savefig(fileName,bbox_inches='tight')
     plt.close()
     plotSerial = plotSerial + 1
 
     fig = plt.figure(figsize=figsize)
-    pydarn.plotting.musicPlot.plotFullSpectrum(dataObj,fig=fig,xlim=(0,0.0015))
+    plotFullSpectrum(dataObj,fig=fig,xlim=(0,0.0015))
     fileName = os.path.join(outputDir,'%03i_fullSpectrum.png' % plotSerial)
     fig.savefig(fileName,bbox_inches='tight')
     plt.close()
@@ -535,7 +561,7 @@ def music_plot_all(runfile_path,process_level='all',rti_only=False):
 
     try:
         fig = plt.figure(figsize=figsize)
-        pydarn.plotting.musicPlot.plotDlm(dataObj,fig=fig)
+        plotDlm(dataObj,fig=fig)
         fileName = os.path.join(outputDir,'%03i_dlm_abs.png' % plotSerial)
         fig.savefig(fileName,bbox_inches='tight')
         plt.close()
@@ -545,7 +571,7 @@ def music_plot_all(runfile_path,process_level='all',rti_only=False):
 
     try:
         fig = plt.figure(figsize=(10,10))
-        pydarn.plotting.musicPlot.plotKarr(dataObj,fig=fig,maxSignals=25)
+        plotKarr(dataObj,fig=fig,maxSignals=25)
         fileName = os.path.join(outputDir,'%03i_karr.png' % plotSerial)
         fig.savefig(fileName,bbox_inches='tight')
         plt.close()
@@ -577,10 +603,10 @@ def music_plot_fan(runfile_path,time=None,fileName='fan.png',scale=None):
     plotSerial  = 0
 
     fig = plt.figure(figsize=figsize)
-    ax  = fig.add_subplot(121)
-    pydarn.plotting.musicPlot.musicFan(dataObj,plotZeros=True,dataSet='originalFit',axis=ax,time=time,scale=scale)
-    ax  = fig.add_subplot(122)
-    pydarn.plotting.musicPlot.musicFan(dataObj,plotZeros=True,axis=ax,dataSet='beamInterpolated',time=time,scale=scale)
+    # ax  = fig.add_subplot(121)
+    musicFan(dataObj,plotZeros=True,dataSet='originalFit',fig=fig,time=time,scale=scale,subplot_tuple=(1,2,1))
+    # ax  = fig.add_subplot(122)
+    musicFan(dataObj,plotZeros=True,fig=fig,dataSet='beamInterpolated',time=time,scale=scale,subplot_tuple=(1,2,2))
     fullPath = os.path.join(outputDir,fileName)
     fig.savefig(fullPath,bbox_inches='tight')
     plt.close()
@@ -592,7 +618,7 @@ def music_plot_karr(runfile_path,fileName='karr.png',maxSignals=25):
     dataObj         = pickle.load(open(musicObj_path,'rb'))
 
     fig = plt.figure(figsize=(10,10))
-    pydarn.plotting.musicPlot.plotKarr(dataObj,fig=fig,maxSignals=maxSignals)
+    plotKarr(dataObj,fig=fig,maxSignals=maxSignals)
     fig.savefig(fileName,bbox_inches='tight')
     plt.close()
 
@@ -612,25 +638,26 @@ def plot_music_rti(dataObj
         , figsize = (20,15)
         ):
 
-    from musicRTI3 import musicRTI3
+    # from musicRTI3 import musicRTI3
 
     fig     = plt.figure(figsize=figsize)
     axis    = fig.add_subplot(111)
-#    pydarn.plotting.musicPlot.musicRTI(dataObj
-    musicRTI3(dataObj
-        , dataSet=dataSet
-        , beams=beam
-        , xlim=xlim
-        , ylim=ylim
-        , coords=coords
-        , axis=axis
-        , scale=scale
-        , plotZeros=plotZeros
-        , xBoundaryLimits=xBoundaryLimits
-        , yBoundaryLimits=yBoundaryLimits
-        , axvlines = axvlines
-        , autoScale=autoScale
-        )
+    #    pydarn.plotting.musicPlot.musicRTI(dataObj
+    musicRTP(dataObj
+            , dataSet=dataSet
+            , beams=beam
+            , xlim=xlim
+            , ylim=ylim
+            , coords=coords
+            , axis=axis
+            , scale=scale
+            , plotZeros=plotZeros
+            , xBoundaryLimits=xBoundaryLimits
+            , yBoundaryLimits=yBoundaryLimits
+            , axvlines = axvlines
+            , autoScale=autoScale
+            )
+
     fig.savefig(fileName,bbox_inches='tight')
     plt.close(fig)
 
@@ -660,17 +687,17 @@ def get_default_gate_range(musicParams,dataObj=None,gate_buffer=10):
         if 'No data for this time period.' in dataObj.messages:
             dataObj = None
 
-    if musicParams.has_key('gateLimits'):
+    if 'gateLimits' in musicParams:
         if musicParams['gateLimits'] is not None:
             if musicParams['gateLimits'][0] is not None:
                 min_gate = musicParams['gateLimits'][0] - gate_buffer
                 if dataObj is not None:
-                    gts = dataObj.DS000_originalFit.fov.gates
+                    gts = dataObj.DS000_originalFit.fov["gates"]
                     if min_gate < min(gts): min_gate = min(gts)
             if musicParams['gateLimits'][1] is not None:
                 max_gate = musicParams['gateLimits'][1] + gate_buffer
                 if dataObj is not None:
-                    gts = dataObj.DS000_originalFit.fov.gates
+                    gts = dataObj.DS000_originalFit.fov["gates"]
                     if max_gate > max(gts): max_gate = max(gts)
 
     return min_gate,max_gate
@@ -682,7 +709,7 @@ def get_default_beams(musicParams,dataObj=None,beams=[4,7,13]):
 
     if dataObj is not None:
         new_beam_list = []
-        bms = dataObj.DS000_originalFit.fov.beams
+        bms = dataObj.DS000_originalFit.fov["beams"]
         for beam in beams:
             if beam in bms:
                 new_beam_list.append(beam)
@@ -709,7 +736,7 @@ def calculate_terminator(lats,lons,dates):
     terminator  = np.ones(shape,dtype=np.bool)
 
     for inx,date in enumerate(dates):
-        term_tup = pydarn.plotting.musicPlot.daynight_terminator(date, lons)
+        term_tup = daynight_terminator(date, lons)
         term_lats[inx,:,:]  = term_tup[0]
         term_tau[inx,:,:]   = term_tup[1]
         term_dec[inx,:,:]   = term_tup[2]
@@ -726,9 +753,9 @@ def calculate_terminator(lats,lons,dates):
     return terminator
 
 def calculate_terminator_for_dataSet(dataObj,dataSet='active'):
-    currentData = music.getDataSet(dataObj,dataSet)
+    currentData = getDataSet(dataObj,dataSet)
 
-    term_ctr    = calculate_terminator(currentData.fov.latCenter,currentData.fov.lonCenter,currentData.time)
+    term_ctr    = calculate_terminator(currentData.fov["latCenter"],currentData.fov["lonCenter"],currentData.time)
     currentData.terminator = term_ctr
 
 #    term_full    = calculate_terminator(currentData.fov.latFull,currentData.fov.lonFull,currentData.time)
@@ -737,12 +764,12 @@ def calculate_terminator_for_dataSet(dataObj,dataSet='active'):
 
 def plot_classification_variables(dataObj,dct,dataSet='active',filename='classification.png'):
     from matplotlib import dates as md
-    currentData = music.getDataSet(dataObj,dataSet)
+    currentData = getDataSet(dataObj,dataSet)
 
     fig = plt.figure(figsize=(10,8))
 
     ax  = fig.add_subplot(2,1,1)
-    y_vals = np.sum(currentData.terminator,axis=(1,2)) / np.float( currentData.fov.latCenter.size )
+    y_vals = np.sum(currentData.terminator,axis=(1,2)) / np.float( len(currentData.fov["latCenter"]) )
     ax.plot(currentData.time,y_vals,'o-')
 
     fontdict = {'size':14,'weight':'bold'}
@@ -775,7 +802,7 @@ def plot_classification_variables(dataObj,dct,dataSet='active',filename='classif
         pos_psd = [(freq,val) for freq,val in zip(currentData.freqVec[pos_bools],y_vals[pos_bools])]
         pos_psd_srt = sorted(pos_psd,key=lambda x: x[1])[::-1]
 
-        x_vals, y_vals = zip(*pos_psd_srt[:nr_top])
+        x_vals, y_vals = list(zip(*pos_psd_srt[:nr_top]))
         ax.plot(np.array(x_vals)*1000.,y_vals,'o',color='red')
 
     ax.set_xlim(xmin=0)
@@ -792,5 +819,5 @@ def plot_classification_variables(dataObj,dct,dataSet='active',filename='classif
 
     fig.tight_layout()
     fig.savefig(filename,bbox_inches='tight')
-    print filename
+    print(filename)
     plt.close(fig)

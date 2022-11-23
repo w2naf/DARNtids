@@ -30,10 +30,10 @@ import ephem # pip install pyephem (on Python 2)
 
 import pymongo
 
-import davitpy
-import davitpy.pydarn.proc.music as music
+# import davitpy
+# import davitpy.pydarn.proc.music as music
 import handling
-from . import mongo_tools
+# from . import mongo_tools
 import music_support as msc
 import rti_checker_good_bad as rcgb
 import rti_checker_spect_sort as rcss

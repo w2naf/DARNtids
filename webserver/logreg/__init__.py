@@ -1,2 +1,2 @@
-from global_vars import *
-from logreg import *
+from .global_vars import *
+from .logreg import *

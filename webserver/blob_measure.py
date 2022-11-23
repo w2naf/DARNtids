@@ -3,14 +3,14 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib import dates as md
-
+import datetime
 import music_support as msc
 
 import os
 import pickle
 from wx_pretrack import *
 from auto_range_music import run_music
-import operator
+# import operator
 
 # Connect to database. #########################################################
 mstid_list  = 'paper2_wal_2012'
@@ -78,7 +78,7 @@ for event in crsr:
             now     = str(datetime.datetime.now())+':'
             evt_str = ' '.join([now,event['radar'],str(event['sDatetime']),str(event['fDatetime'])])+'\n'
 
-            print 'BLOB_TRACK START: ',evt_str
+            print('BLOB_TRACK START: ',evt_str)
 
             obj = MstidTracker(filename=filename)
 
@@ -95,11 +95,11 @@ for event in crsr:
                 blob_dict[_id]['box_x1']    = []
                 blob_dict[_id]['box_y1']    = []
 
-            for key,frame in obj.frames.iteritems():
+            for key,frame in obj.frames.items():
                 if frame.dt < sTime or frame.dt >= eTime: continue
                 for item in frame.mrk_tracked.info:
                     blob_key    = str(item['id'])
-                    if 'color' not in blob_dict[blob_key].keys(): 
+                    if 'color' not in list(blob_dict[blob_key].keys()): 
                         blob_dict[blob_key]['color']  = item['color']
                     blob_dict[blob_key]['dt'].append(frame.dt)
                     blob_dict[blob_key]['count'].append(int(item['count']))
@@ -111,14 +111,14 @@ for event in crsr:
                     blob_dict[blob_key]['box_y1'].append(int(item['box']['y1']))
 
         # Compute blob lifetimes. ######################################################  
-        for _id in blob_dict.keys():
+        for _id in list(blob_dict.keys()):
             if len(blob_dict[_id]['dt']) == 0: continue
             blob_dict[_id]['lifetime'] = float((max(blob_dict[_id]['dt']) - min(blob_dict[_id]['dt'])).total_seconds() / 3600.) # Save to dictionary as decimal hours.
 
         lifetime = {}
         lifetime_min_hours = 0.75
-        for _id in blob_dict.keys():
-            if blob_dict[_id].has_key('lifetime'):
+        for _id in list(blob_dict.keys()):
+            if 'lifetime' in blob_dict[_id]:
                 lt = blob_dict[_id]['lifetime']
                 if lt <= lifetime_min_hours: continue
                 lifetime[_id] = lt
@@ -128,7 +128,7 @@ for event in crsr:
 
         t1      = datetime.datetime.now()
         t_tot   = t1 - t0
-        print 'Done: ',t_tot
+        print('Done: ',t_tot)
 
 #        if len(lifetime.keys()) == 0:
 #            print 'NO GOOD GS PATCHES: ' + evt_str
@@ -235,6 +235,6 @@ for event in crsr:
     except:
         now = str(datetime.datetime.now())+':'
         err =' '.join([now,event['radar'],str(event['sDatetime']),str(event['fDatetime'])])+'\n'
-        print 'BLOB_TRACK ERROR: '+err
+        print('BLOB_TRACK ERROR: '+err)
         with open(error_file_path,'a') as error_file:
             error_file.write(err)

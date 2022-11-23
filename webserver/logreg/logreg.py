@@ -15,7 +15,7 @@ import numpy as np
 import inspect
 curr_file = inspect.getfile(inspect.currentframe()) # script filename (usually with path)
 
-import global_vars as glbs
+from . import global_vars as glbs
 
 def prepare_output_dirs(output_dirs,clear_output_dirs=False):
     show_all_txt = '''
@@ -34,7 +34,7 @@ def prepare_output_dirs(output_dirs,clear_output_dirs=False):
     ?>
     '''
 
-    for value in output_dirs.itervalues():
+    for value in output_dirs.values():
         if clear_output_dirs:
             try:
                 shutil.rmtree(value)
@@ -63,7 +63,7 @@ def generate_param_list(dayDict,param_code_dict,kmin=0.):
         param_dict[dt]['none']  = False
 
         # Keep track of category. ###################################################### 
-        if item.has_key('category_manu'):
+        if 'category_manu' in item:
             if item['category_manu'] == 'mstid':
                 categ = 'mstid'
                 param_dict[dt]['mstid'] = True
@@ -120,7 +120,7 @@ def generate_param_list(dayDict,param_code_dict,kmin=0.):
             param_dict[dt]['mlt']  = np.nan
 
         # Find actual parameters of interest. ########################################## 
-        for param_code,code_dict in param_code_dict.iteritems():
+        for param_code,code_dict in param_code_dict.items():
             if 'blob_track' in param_code:
                 base,code = param_code.split('-')
                 try:
@@ -156,7 +156,7 @@ def plot_histograms(data_frame,prm_dict,metadata,test=False,output_dir='output')
     if test:
         params_of_int       = ['orig_rti_cnt', 'total_spec', 'orig_rti_mean', 'orig_rti_var']
     else:
-        params_of_int       = prm_dict.keys()
+        params_of_int       = list(prm_dict.keys())
     #for param_code,param_dict in prm_dict.iteritems():
     for param_code in params_of_int:
         param_dict  = prm_dict[param_code]
@@ -276,7 +276,7 @@ def run_logit(data_frame,feature_list,dv,verbose=False):
     training_pct    = 0.60
     training_nr     = int(training_pct*len(df))
 
-    rand_inx = random.sample(range(len(df)), training_nr)
+    rand_inx = random.sample(list(range(len(df))), training_nr)
     rand_inx.sort()
 
     df_training     = df.iloc[rand_inx]

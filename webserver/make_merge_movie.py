@@ -10,7 +10,7 @@ import matplotlib
 matplotlib.use('Agg')
 import numpy as np
 
-import handling
+# import handling
 import multi_radar_music_support as msc
 import multiprocessing
 
@@ -50,7 +50,7 @@ def main(data_path,parallel=False):
         output_dir      = os.path.split(multi_radar_dict[dict_key]['musicPath'])[0]
         output_dir      = output_dir.replace(base_merge_type,'compare_movie')
 
-        handling.prepare_output_dirs({0:output_dir},clear_output_dirs=clear_output_dirs)
+        # handling.prepare_output_dirs({0:output_dir},clear_output_dirs=clear_output_dirs)
         if clear_output_dirs: clear_output_dirs = False
 
         times   = multi_radar_dict[dict_key]['dataObj'].DS004_merged_direct.time

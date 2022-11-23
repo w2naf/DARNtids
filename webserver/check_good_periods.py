@@ -9,21 +9,20 @@ import shutil
 from operator import itemgetter
 import glob
 
-import numpy as np
+from pyDARNmusic import checkDataQuality
+# import numpy as np
 from scipy import stats as stats
-from scipy.io import readsav
+# from scipy.io import readsav
 
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
-import utils
-import pydarn
 
 import music_support as msc
 from auto_range import *
 #from ocv_edge_detect import *
-from musicRTI3 import musicRTI3
+
 
 import pymongo
 mongo   = pymongo.MongoClient()
@@ -38,14 +37,14 @@ def events_from_mongo(mstid_list,sDate,eDate,category=None):
     for item in crsr:
         if category:
             if category == 'none':
-                if item.has_key('category_manu'):
+                if 'category_manu' in item:
                     if item['category_manu'].lower() != 'none': continue
             if category == 'mstid':
-                if item.has_key('category_manu'):
+                if 'category_manu' in item:
                     if item['category_manu'].lower() != 'mstid': continue
                 else: continue
             if category == 'quiet':
-                if item.has_key('category_manu'):
+                if 'category_manu' in item:
                     if item['category_manu'].lower() != 'quiet': continue
                 else: continue
         else:
@@ -57,7 +56,7 @@ def events_from_mongo(mstid_list,sDate,eDate,category=None):
         tmp['fDatetime']    = item['fDatetime']
         tmp['category']     = category
         tmp['_id']          = item['_id']
-        if item.has_key('category_manu'):
+        if 'category_manu' in item:
             tmp['db_category'] = item['category_manu']
         else:
             tmp['db_category'] = 'None'
@@ -118,26 +117,26 @@ def run_music(event_list,
             musicPath   = msc.get_output_path(radar, sDatetime, fDatetime)
             picklePath  = msc.get_pickle_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
 
-            if event.has_key('category'):
+            if 'category' in event:
                 print_cat = '(%s)' % event['category']
             else:
                 print_cat = ''
             now = datetime.datetime.now()
 
-            print now,print_cat,'(%d of %d)' % (event_nr, nr_events), 'Processing: ', radar, sDatetime
+            print(now,print_cat,'(%d of %d)' % (event_nr, nr_events), 'Processing: ', radar, sDatetime)
             if os.path.exists(picklePath):
                 dataObj     = pickle.load(open(picklePath,'rb'))
             else:
 
                 ################################################################################ 
-                if event.has_key('beam_limits'):
+                if 'beam_limits' in event:
                     beamLimits_0            = event['beam_limits'][0]
                     beamLimits_1            = event['beam_limits'][1]
                 else:
                     beamLimits_0            = default_beam_limits[0]
                     beamLimits_1            = default_beam_limits[1]
 
-                if event.has_key('gate_limits'):
+                if 'gate_limits' in event:
                     gateLimits_0            = event['gate_limits'][0]
                     gateLimits_1            = event['gate_limits'][1]
                 else:
@@ -217,7 +216,7 @@ def run_music(event_list,
                     ,filterNumtaps              = numtaps 
                     )
 
-            dataObj = music.checkDataQuality(dataObj,dataSet='DS000_originalFit',max_off_time=10,sTime=sDatetime,eTime=fDatetime)
+            dataObj = checkDataQuality(dataObj,dataSet='DS000_originalFit',max_off_time=10,sTime=sDatetime,eTime=fDatetime)
             good    = dataObj.DS000_originalFit.metadata['good_period']
             if good: 
                 event_counter[event['db_category']]['good'] += 1
@@ -228,7 +227,7 @@ def run_music(event_list,
         except:
             now = str(datetime.datetime.now())+':'
             err =' '.join([now,event['radar'],str(event['sDatetime']),str(event['fDatetime'])])+'\n'
-            print 'CHECK_GOOD_PERIOD ERROR: '+err
+            print('CHECK_GOOD_PERIOD ERROR: '+err)
             db[mstid_list].update({'_id':event['_id']},{'$set':{'good_period':False}})
 
             error_list.append(err)

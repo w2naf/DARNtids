@@ -51,14 +51,14 @@ def events_from_mongo(mstid_list,sDate=None,eDate=None,category=None):
     for item in crsr:
         if category:
             if category == 'none':
-                if item.has_key('category_manu'):
+                if 'category_manu' in item:
                     if item['category_manu'].lower() != 'none': continue
             if category == 'mstid':
-                if item.has_key('category_manu'):
+                if 'category_manu' in item:
                     if item['category_manu'].lower() != 'mstid': continue
                 else: continue
             if category == 'quiet':
-                if item.has_key('category_manu'):
+                if 'category_manu' in item:
                     if item['category_manu'].lower() != 'quiet': continue
                 else: continue
         else:
@@ -164,7 +164,7 @@ def run_music(event_list,
 
             ################################################################################ 
 
-            if event.has_key('category'):
+            if 'category' in event:
                 print_cat = '(%s)' % event['category']
             else:
                 print_cat = ''
@@ -177,20 +177,20 @@ def run_music(event_list,
                     with open(picklePath,'rb') as fl:
                         test_obj    = pickle.load(fl)
                     if hasattr(test_obj.active,'sigDetect'):
-                        print now,print_cat,'(%d of %d)' % (event_nr, nr_events), radar,sDatetime,'MUSIC already computed.  Skipping!!'
+                        print(now,print_cat,'(%d of %d)' % (event_nr, nr_events), radar,sDatetime,'MUSIC already computed.  Skipping!!')
                         continue
 
-            print now,print_cat,'(%d of %d)' % (event_nr, nr_events), 'Processing: ', radar, sDatetime
+            print(now,print_cat,'(%d of %d)' % (event_nr, nr_events), 'Processing: ', radar, sDatetime)
 
             ################################################################################ 
-            if event.has_key('beam_limits'):
+            if 'beam_limits' in event:
                 beamLimits_0            = event['beam_limits'][0]
                 beamLimits_1            = event['beam_limits'][1]
             else:
                 beamLimits_0            = default_beam_limits[0]
                 beamLimits_1            = default_beam_limits[1]
 
-            if event.has_key('gate_limits'):
+            if 'gate_limits' in event:
                 gateLimits_0            = event['gate_limits'][0]
                 gateLimits_1            = event['gate_limits'][1]
             else:
@@ -345,7 +345,7 @@ def run_music(event_list,
                     runParams               = tmpd['runfile_obj'].runParams
                     gl.append(auto_range(tmpd['dataObj'],runParams,outputDir=output_dirs['range']))
 
-                gl_unzips   = zip(*gl)
+                gl_unzips   = list(zip(*gl))
 #                gl          = np.array(gl)
                 gateLimits  = (np.max(gl_unzips[0]),np.min(gl_unzips[1]))
 
@@ -355,7 +355,7 @@ def run_music(event_list,
                     runParams               = tmpd['runfile_obj'].runParams
                     runParams['gateLimits'] = gateLimits
                     tmpd['runfile_obj']     = msc.Runfile(rad_key.lower(), sDatetime, fDatetime, runParams)
-                    if tmpd.has_key('dataObj'):
+                    if 'dataObj' in tmpd:
                         pydarn.proc.music.defineLimits(tmpd['dataObj'],gateLimits=gateLimits)
                         pickle.dump(tmpd['dataObj'],open(tmpd['picklePath'],'wb'))
 
@@ -390,7 +390,7 @@ def run_music(event_list,
                     dataSets    = dataObj.get_data_sets()
                     currentData = getattr(dataObj,dataSets[-1])
 
-                    if event.has_key('signals'):
+                    if 'signals' in event:
                         event.pop('signals',None)
 
                     sigList = []
@@ -442,11 +442,11 @@ def run_music(event_list,
 
             err   = ' '.join(['MUSIC ERROR:',now,event['radar'],str(event['sDatetime']),str(event['fDatetime'])])
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            print err
+            print(err)
 #            print '**Traceback:'
 #            traceback.print_tb(exc_traceback)
 #            print ''
-            print '**Exception:'
+            print('**Exception:')
             traceback.print_exc()
 
             with open(error_file_path,'a') as error_file:

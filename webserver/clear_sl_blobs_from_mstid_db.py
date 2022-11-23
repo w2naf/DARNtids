@@ -16,7 +16,7 @@ mstid_list  = 'paper2_wal_2012'
 crsr    = db[mstid_list].find()
 for item in crsr:
     blob_keys = []
-    for key in item.keys():
+    for key in list(item.keys()):
         if 'blob_sl' in key:
             blob_keys.append(key)
 

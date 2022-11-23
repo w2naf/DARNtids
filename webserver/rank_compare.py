@@ -24,7 +24,7 @@ for logreg_dir in logreg_dirs:
 
         nr_combos_list.append(len(ranks[mstid_list]))
 
-if np.unique(nr_combos_list).size != 1: raise 'Lists don\'t have equal numbers of combinations!!!'
+if np.unique(nr_combos_list).size != 1: raise Exception('Lists don\'t have equal numbers of combinations!!!')
 nr_combos = nr_combos_list[0]
 
 
@@ -32,7 +32,7 @@ nr_combos = nr_combos_list[0]
 top_most_pct    = 5.
 top_most        = int(top_most_pct * 0.01 * nr_combos)
 top = {}
-for key,val in ranks.iteritems():
+for key,val in ranks.items():
     top[key] = []
 #    print key,len(val)
     for item in val[:top_most]:
@@ -45,7 +45,7 @@ for key,val in ranks.iteritems():
 #        print item
 
 #For now, we can only handle comparing 2 lists.
-key_1,key_2 = top.keys()
+key_1,key_2 = list(top.keys())
 
 #Find out which top features are shared in both mstid_lists.
 #Save useful information to a shared_items dict.
@@ -54,8 +54,8 @@ for item in top[key_1]:
     if item in top[key_2]:
         shared_items[item] = {}
 
-for key,val in shared_items.iteritems():
-    for mstid_list in top.keys():
+for key,val in shared_items.items():
+    for mstid_list in list(top.keys()):
         rnk = top[mstid_list].index(key)
         shared_items[key][mstid_list] = {}
         shared_items[key][mstid_list]['rank'] = rnk
@@ -69,9 +69,9 @@ for key,val in shared_items.iteritems():
 
 #Calculate a shared rank.
 shared_rank_list = []
-for key,val in shared_items.iteritems():
+for key,val in shared_items.items():
     val['shared_rank'] = 0
-    for mstid_list in top.keys():
+    for mstid_list in list(top.keys()):
         val['shared_rank'] += shared_items[key][mstid_list]['rank'] 
 
     shared_rank_list.append({'feature_list':key,'shared_rank':val['shared_rank']})
@@ -81,15 +81,15 @@ shared_rank_list = sorted(shared_rank_list,key=lambda k: k['shared_rank'])
 
 #Print a nice report of our findings.
 #Here we print the names of the two mstid_lists along with index keys.
-mstid_list_inxs = range(len(top.keys()))
-mstid_lists = zip(mstid_list_inxs,top.keys())
+mstid_list_inxs = list(range(len(list(top.keys()))))
+mstid_lists = list(zip(mstid_list_inxs,list(top.keys())))
 for inx,mstid_list in mstid_lists:
-    print inx, mstid_list
+    print(inx, mstid_list)
 
 #Now print the name of the lists, the rank and mean MPC associated with each feature set.
-print ''
-print 'Comparing the top {top_most_pct:.1f}% rankings ({top_most:d} of {nr_combos:d})'.format(top_most_pct=float(top_most_pct),top_most=top_most,nr_combos=nr_combos)
-print '\t\t'.join(['List {inx}'.format(inx=str(x)) for x in mstid_list_inxs])
+print('')
+print('Comparing the top {top_most_pct:.1f}% rankings ({top_most:d} of {nr_combos:d})'.format(top_most_pct=float(top_most_pct),top_most=top_most,nr_combos=nr_combos))
+print('\t\t'.join(['List {inx}'.format(inx=str(x)) for x in mstid_list_inxs]))
 for item in shared_rank_list:
     key = item['feature_list']
     val = shared_items[key]
@@ -98,4 +98,4 @@ for item in shared_rank_list:
         txt_1 = '{rank:d} ({mmpc:.2f}%)'.format(rank=val[mstid_list]['rank'],mmpc=val[mstid_list]['mmpc'])
         txt.append(txt_1)
     txt.append(str(key))
-    print '\t'.join(txt)
+    print('\t'.join(txt))

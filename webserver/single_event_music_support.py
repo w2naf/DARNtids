@@ -48,7 +48,7 @@ class Runfile(object):
         picklePath = picklePath[:-1] + 'runfile.p'
         
         self.runParams = {}
-        for key,value in runParamsDict.iteritems():
+        for key,value in runParamsDict.items():
             self.runParams[key] = value
 
         self.runParams['runfile_path'] = picklePath

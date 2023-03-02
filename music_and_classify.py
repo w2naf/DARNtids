@@ -25,7 +25,7 @@ radars.append('bks')
 # radars.append('pgr')
 # radars.append('kap')
 # radars.append('gbr')
-
+# import ipdb; ipdb.set_trace()
 db_name                     = 'mstid'
 # Used for creating an SSH tunnel when running the MSTID database on a remote machine.
 #tunnel,mongo_port           = mstid.createTunnel() 
@@ -35,7 +35,7 @@ dct['radars']               = radars
 # dct['list_sDate']           = datetime.datetime(2017,11,1)
 # dct['list_eDate']           = datetime.datetime(2018,5,1)
 dct['list_sDate']           = datetime.datetime(2012,12,1)
-dct['list_eDate']           = datetime.datetime(2012,12,20)
+dct['list_eDate']           = datetime.datetime(2012,12,2)
 dct['hanning_window_space'] = False # Set to False for MSTID Index Calculation
 dct['bad_range_km']         = None  # Set to None for MSTID Index Calculation
 #dct['mongo_port']           = mongo_port
@@ -53,7 +53,7 @@ music_new_list      = True
 music_reupdate_db   = True
 
 nprocs              = 8
-multiproc           = True
+multiproc           = False
 
 # Classification parameters go here. ###########################################
 classification_path = 'mstid_data/classification'
@@ -62,6 +62,7 @@ classification_path = 'mstid_data/classification'
 # No User Input Below This Line ***********************************************#
 #******************************************************************************#
 if mstid_index:
+    # import ipdb;ipdb.set_trace()
     # Generate MSTID List and do rti_interp level processing.
     run_helper.get_events_and_run(dct_list,process_level='rti_interp',new_list=new_list,
             recompute=recompute,multiproc=multiproc,nprocs=nprocs)

@@ -49,10 +49,10 @@ db            = mongo.mstid
 
 app.config.from_envvar('FLASKR_SETTINGS',silent=True)
 
-from stats_support import *
+from mstid.stats_support import *
 
 # import manual_support as mans
-import music_support as msc
+import mstid.music_support as msc
 from mstid import mongo_tools
 from mstid import more_music as mm
 #HOMEPAGE Starts
@@ -209,6 +209,7 @@ def update_category():
 #    item['notes']         = request.args.get('categ_notes', 0, type=str)
 
     tmp = db_update_mstid_list(item,mstid_list=mstid_list)
+    # tmp = updateDb_mstid_list()
     radar = item['radar']
     mstidDayDict,quietDayDict,noneDayDict,unclassifiedDayDict = loadDayLists(mstid_list=mstid_list)
 

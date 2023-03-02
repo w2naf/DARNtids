@@ -124,8 +124,9 @@ def generate_mongo_list_from_list(mstid_list,db_name,mongo_port,
 
     #### Keep the listTracker up-to-date for the web tool.
     crsr        = db.listTracker.find({'name': mstid_list})
-    if not crsr.count():
-        db.listTracker.insert({'name': mstid_list})
+    
+    if not len(list(crsr)):
+        db.listTracker.insert_one({'name': mstid_list})
 
     #### Clean out the output database.
     db[mstid_list].drop()
@@ -155,7 +156,7 @@ def generate_mongo_list_from_list(mstid_list,db_name,mongo_port,
             category.shape = (1,)
         category = category.tolist()
 
-    # Insert new entry into db.
+    # Insert_one new entry into db.
     for item in crsr:
         if category is not None:
             # Allow for a list of categories.
@@ -184,7 +185,7 @@ def generate_mongo_list_from_list(mstid_list,db_name,mongo_port,
         record['intpsd_max']    = 'NaN'
         record['intpsd_mean']   = 'NaN'
 
-        db[mstid_list].insert(record)
+        db[mstid_list].insert_one(record)
 
     mongo.close()
 
@@ -242,9 +243,10 @@ def generate_mongo_list(mstid_list,radar,list_sDate,list_eDate,
     mongo   = pymongo.MongoClient(port=mongo_port)
     db      = mongo[db_name]
     crsr    = db.listTracker.find({'name': mstid_list})
+    count = db.listTracker.count_documents({'name': mstid_list})
 
-    if not crsr.count():
-        db.listTracker.insert({'name': mstid_list})
+    if not count:
+        db.listTracker.insert_one({'name': mstid_list})
 
     # WARNING!  Double check the next line before running this script! #############
     db[mstid_list].drop()
@@ -286,9 +288,10 @@ def generate_mongo_list(mstid_list,radar,list_sDate,list_eDate,
                      'intpsd_sum': intpsd_sum, 'intpsd_max': intpsd_max, 'intpsd_mean': intpsd_mean,
                      'lat': lat, 'lon': lon, 'slt': slt, 'mlt': mlt,'gscat': 1, 'category_auto':'None',
                      'height_km': height}
-            db[mstid_list].insert(record)
+            db[mstid_list].insert_one(record)
 
         currentDate = nextDate
+        # import ipdb;ipdb.set_trace()
     mongo.close()
 
 def dataObj_update_mongoDb(radar,sTime,eTime,dataObj,
@@ -309,7 +312,7 @@ def dataObj_update_mongoDb(radar,sTime,eTime,dataObj,
 
     for del_key in delete_list:
         if del_key in item:
-            status = db[mstid_list].update({'_id':_id},{'$unset': {del_key: 1}})
+            status = db[mstid_list].update_one({'_id':_id},{'$unset': {del_key: 1}})
 
     # Set missing data flag. #######################################################
     if dataObj is None:
@@ -319,14 +322,14 @@ def dataObj_update_mongoDb(radar,sTime,eTime,dataObj,
 
     if hasattr(dataObj,'messages'):
         if 'No data for this time period.' in dataObj.messages:
-            status      = db[mstid_list].update({'_id':_id},{'$set': {'no_data':True} })
+            status      = db[mstid_list].update_one({'_id':_id},{'$set': {'no_data':True} })
             good_period = False
 
     # Check the data quailty with basic check. #####################################
     if good_period:
         good_period = dataObj.DS000_originalFit.metadata.get('good_period')
 
-    status  = db[mstid_list].update({'_id':_id},{'$set': {'good_period':good_period} })
+    status  = db[mstid_list].update_one({'_id':_id},{'$set': {'good_period':good_period} })
     if not good_period:
         mongo.close()
         return
@@ -373,7 +376,7 @@ def dataObj_update_mongoDb(radar,sTime,eTime,dataObj,
         tmp = {'signals':sigList}
         dct.update(tmp)
 
-    status  = db[mstid_list].update({'_id':_id},{'$set': dct})
+    status  = db[mstid_list].update_one({'_id':_id},{'$set': dct})
     mongo.close()
     return status
 
@@ -497,7 +500,7 @@ def events_from_mongo(mstid_list,list_sDate=None,list_eDate=None,months=None,
 
         tmp                 = dict(tmp,**kwargs)
         event_list.append(tmp)
-
+    # import ipdb;ipdb.set_trace()
     event_list  = sorted(event_list,key=lambda k: k['sTime'])
     
     if not recompute:
@@ -568,19 +571,21 @@ def get_mstid_scores(sDate=None,eDate=None,
     #     mst.append(st[6:])
     mstid_lists = ['active_list']
     
-    import ipdb;ipdb.set_trace()
+    # import ipdb;ipdb.set_trace()
     score_dict  = {}
      
     for mstid_list in mstid_lists:
         crsr = db[mstid_list].find()
+        count = len(list(crsr))
         
-        if(crsr.count() == 0):
+        if(count == 0):
             print("crsr is empty")
         else:
-            import ipdb;ipdb.set_trace()
+            pass
+            # import ipdb;ipdb.set_trace()
         for item in crsr:
             dt      = item.get('date')
-            import ipdb;ipdb.set_trace()
+            # import ipdb;ipdb.set_trace()
             date    = datetime.datetime(dt.year,dt.month,dt.day)
             score   = score_dict.get(date,0)
 
@@ -592,7 +597,7 @@ def get_mstid_scores(sDate=None,eDate=None,
                 score += -1
 
             score_dict[date] = score
-    import ipdb;ipdb.set_trace()
+    # import ipdb;ipdb.set_trace()
     dates,scores    = list(zip(*[(key,val) for key,val in score_dict.items()]))
 
     df_score        = pd.DataFrame(np.array(scores),index=np.array(dates),
@@ -631,7 +636,7 @@ def set_active_list(name,db,mongo_port=27017):
     '''Set a mongodb _id to the actively active list.'''
     
     # db.active_list.remove()
-    tmp = db.active_list.insert({'name':name})
+    tmp = db.active_list.insert_one({'name':name})
 
 def get_active_list(db_name='mstid',mongo_port=27017):
     '''Get the active list and create new ones if there are none.'''
@@ -643,7 +648,8 @@ def get_active_list(db_name='mstid',mongo_port=27017):
     else:
         list_name     = 'default_list'
 
-    test = list_name in db.collection_names()
+    # test = list_name in db.collection_names()
+    test = db[list_name]
     if test == None:
         active_list = db['listTracker'].find_one()
         list_name   = active_list['name']

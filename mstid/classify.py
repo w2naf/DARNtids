@@ -47,7 +47,7 @@ def mstid_classification(radar,list_sDate,list_eDate,mstid_list,
 
     date_fmt    = '%Y%m%d%H%M'
     cmd         = []
-    cmd.append('./classify_mstid_list.py')
+    cmd.append('./DARNtids/classify_mstid_list.py')
     cmd.append(radar)
     cmd.append(list_sDate.strftime(date_fmt))
     cmd.append(list_eDate.strftime(date_fmt))
@@ -139,16 +139,21 @@ def rcgb(mstid_list,db_name='mstid',mongo_port=27017,
             fl.write('<html>\n')
 
     for categ in categs:
+        count       = 0
         if categ == 'Unclassified':
             crsr        = db[mstid_list].find({'category_manu':{'$exists':False}})
+            count       =  db[mstid_list].count_documents({'category_manu':{'$exists':False}})
 #            crsr        = crsr.sort('sDatetime',1)
         else:
             crsr        = db[mstid_list].find({'category_manu':categ})
-        crsr        = crsr.sort('orig_rti_fraction',1)
+            count       = db[mstid_list].count_documents({'category_manu':categ})
 
+        crsr        = crsr.sort('orig_rti_fraction',1)
+        # count = len(list(crsr))
 
         output_dir  = output_dirs[categ] 
-        nr_events   = crsr.count()
+        # import ipdb;ipdb.set_trace()
+        nr_events   = count
 
         with open(html_files[categ],'a') as fl:
             fl.write('<h1>{1} ({0}): {2:d} Events</h1>\n'.format(mstid_list,categ.upper(),nr_events))
@@ -398,7 +403,7 @@ def classify_none_events(mstid_list,db_name='mstid',mongo_port=27017,
         delete_list = ['category_auto','category_manu']
         for item in delete_list:
             if item in event:
-                status = db[mstid_list].update({'_id':_id},{'$unset': {item: 1}})
+                status = db[mstid_list].update_one({'_id':_id},{'$unset': {item: 1}})
 
     # Run the classifier.
     crsr                = db[mstid_list].find()
@@ -448,7 +453,7 @@ def classify_none_events(mstid_list,db_name='mstid',mongo_port=27017,
 
         if not good:
             bad_counter += 1
-            entry_id = db[mstid_list].update({'_id':item['_id']}, {'$set':{'category_manu': 'None', 'reject_message':reject_message}})
+            entry_id = db[mstid_list].update_one({'_id':item['_id']}, {'$set':{'category_manu': 'None', 'reject_message':reject_message}})
 
     print(('{bc:d} events marked as None.'.format(bc=bad_counter)))
     print(('no_data: {!s}'.format(no_data)))
@@ -509,11 +514,14 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
         data_dict['data_path']      = data_path
 
         for categ in categs:
+            count = 0
             if categ == 'unclassified':
                 crsr        = db[mstid_list].find({'category_manu':{'$exists':False}},no_cursor_timeout=True)
+                count       =  db[mstid_list].count_documents({'category_manu':{'$exists':False}})
             else:
                 crsr        = db[mstid_list].find({'category_manu':categ},no_cursor_timeout=True)
-
+                count       = db[mstid_list].count_documents({'category_manu':categ})
+            # count = len(list(crsr))
             orig_rti_inx    = []
             orig_rti_list   = []
 
@@ -524,7 +532,7 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
                 sDatetime   = item['sDatetime']
                 fDatetime   = item['fDatetime']
 
-                print(("MSTID Classification: Loading dataObj ({!s}/{!s}): {!s} {!s}-{!s}".format(item_inx,crsr.count(),radar,sDatetime,fDatetime)))
+                print(("MSTID Classification: Loading dataObj ({!s}/{!s}): {!s} {!s}-{!s}".format(item_inx,count,radar,sDatetime,fDatetime)))
                 dataObj = more_music.get_dataObj(radar,sDatetime,fDatetime,data_path=data_path)
 
                 if dataObj is None:
@@ -1023,16 +1031,16 @@ def classify_mstid_events(data_dict,threshold=0.,read_only=False):
             unset_keys = ['intpsd_mean', 'intpsd_max', 'intpsd_sum']
             for unset_key in unset_keys:
                 if unset_key in item:
-                    status = db[mstid_list].update({'_id':_id},{'$unset':{unset_key:1}})
+                    status = db[mstid_list].update_one({'_id':_id},{'$unset':{unset_key:1}})
 
             sort_df = data_dict[categ]['sort_df']
             info        = sort_df[sort_df.index == event_inx]
             info_keys   = ['intSpect','meanSubIntSpect','intSpect_by_rtiCnt','meanSubIntSpect_by_rtiCnt']
             for info_key in info_keys:
                 val     = np.float(info[info_key])
-                status  = db[mstid_list].update({'_id':_id},{'$set':{info_key:val}})
+                status  = db[mstid_list].update_one({'_id':_id},{'$set':{info_key:val}})
 
-            status  = db[mstid_list].update({'_id':item['_id']},{'$set': {'category_manu':categ}})
+            status  = db[mstid_list].update_one({'_id':item['_id']},{'$set': {'category_manu':categ}})
 
     if not read_only: mongo.close()
 

@@ -48,7 +48,7 @@ def get_custom_cmap(name='blue_red'):
     return new_cmap
 
 def get_iterable(x):
-    if isinstance(x, collections.Iterable) and not isinstance(x,str):
+    if isinstance(x, collections.abc.Iterable) and not isinstance(x,str):
         return x
     else:
         return [x]

@@ -100,9 +100,9 @@ def linkUp(dayList):
 
         anc1_tag  = '<a href="/music_edit/?radar='+radar+'&sDate='+sDate+'&fDate='+fDate+'&id='+_id+'" class="btn btn-primary mt-2">'
         # anc1_tag  = '<a href="'+url+'">'
-        img1_tag  = '<img width="'+sz+'px" height="'+sz+'px" src="/static/images/'+img1+'.png" title="'+title1+'">'
-        img2_tag  = '<img width="'+sz+'px" height="'+sz+'px" src="/static/images/'+img2+'.png" title="'+title2+'">'
-        img3_tag  = '<img width="'+sz+'px" height="'+sz+'px" src="/static/images/'+img3+'.png" title="'+title3+'">'
+        img1_tag  = '<img width="'+sz+'px" height="'+sz+'px" src="/staticfiles/images/'+img1+'.png" title="'+title1+'">'
+        img2_tag  = '<img width="'+sz+'px" height="'+sz+'px" src="/staticfiles/images/'+img2+'.png" title="'+title2+'">'
+        img3_tag  = '<img width="'+sz+'px" height="'+sz+'px" src="/staticfiles/images/'+img3+'.png" title="'+title3+'">'
         anc2_tag  = '</a>'
 
         fstr      = ''.join([anc1_tag,img1_tag,img2_tag,img3_tag,xstr,anc2_tag])
@@ -160,7 +160,7 @@ def get_prev_next(mstid_list,_id,mode='list'):
     next_url = "/music_edit/?radar="+radar+"&sDate="+sDate+"&fDate="+fDate+"&id="+_id
     return (prev_url,next_url)
 
-def get_enabled_sources(path='static/music_sources_enabled'):
+def get_enabled_sources(path='staticfiles/music_sources_enabled'):
     files = glob.glob(os.path.join(path,'*'))
 
     result_list = []
@@ -188,7 +188,7 @@ def sourcesDropDown(**kwargs):
     html = '\n'.join(html)
     return html
 
-def get_output_path(radar=None,sDatetime=None,fDatetime=None,data_path='webserver/static/music',create=False,real_path=False):
+def get_output_path(radar=None,sDatetime=None,fDatetime=None,data_path='staticfiles/music',create=False,real_path=False):
     if real_path:
         data_path = os.path.realpath(data_path)
 

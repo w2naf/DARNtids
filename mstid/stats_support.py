@@ -89,8 +89,8 @@ def linkUp(dayList):
         disp_str  = x['radar']+x['date'].strftime('.%Y%m%d-%H%M') 
         anc1_tag  = '<a class="btn btn-primary mt-2" onclick="plotRTI(\''+x['radar']+'\',\''+xstr+'\',\'power\');">'
         # <img src="{% static 'images/rad1.png' %}" class="d-block h-50 w-100 " alt="...">
-        img1_tag  = '<img width="'+sz+'px" height="'+sz+'px" src="/static/images/'+img1+'.png">'
-        img2_tag  = '<img width="'+sz+'px" height="'+sz+'px" src="/static/images/'+img2+'.png">'
+        img1_tag  = '<img width="'+sz+'px" height="'+sz+'px" src="/staticfiles/images/'+img1+'.png">'
+        img2_tag  = '<img width="'+sz+'px" height="'+sz+'px" src="/staticfiles/images/'+img2+'.png">'
         anc2_tag  = '</a>'
 
         fstr      = ''.join([anc1_tag,img1_tag,img2_tag,disp_str,anc2_tag])
@@ -136,7 +136,7 @@ def get_KP_day(dayList):
     kpDict[day] = {'ap_mean':record['ap_mean'], 'ap_max':record['ap_max'],'kp_mean':record['kp_mean'], 'kp_max':record['kp_max']}
   return kpDict
 
-def kpHistogram(gwDays,secondPop=None,title='Kp Distribution',kind='mean',outFName='static/output/kp.png'):
+def kpHistogram(gwDays,secondPop=None,title='Kp Distribution',kind='mean',outFName='staticfiles/output/kp.png'):
   import matplotlib.path as path
   import matplotlib.patches as patches
 
@@ -228,7 +228,7 @@ def get_AE_day(dayList):
     aeDict[day] = {'mean':record['mean'], 'max':record['max']}
   return aeDict
     
-def aeHistogram(gwDays,secondPop=None,title='AE Distribution',kind='mean',outFName='static/output/ae.png'):
+def aeHistogram(gwDays,secondPop=None,title='AE Distribution',kind='mean',outFName='staticfiles/output/ae.png'):
   import matplotlib.path as path
   import matplotlib.patches as patches
 
@@ -357,7 +357,7 @@ def get_SYMH_day(dayList):
     symhDict[day] = {'mean':record['mean'], 'max':record['max']}
   return symhDict
     
-def symhHistogram(gwDays,secondPop=None,title='SYM-H Distribution',kind='mean',outFName='static/output/symh.png'):
+def symhHistogram(gwDays,secondPop=None,title='SYM-H Distribution',kind='mean',outFName='staticfiles/output/symh.png'):
   import matplotlib.path as path
   import matplotlib.patches as patches
 
@@ -520,7 +520,7 @@ def listDropDown():
     items   = []
     for x in db['listTracker'].find().sort('name',1):
         if x['name'] not in db.list_collection_names():
-            entry = db['listTracker'].find_and_modify({"_id":x['_id']},remove=True)
+            entry = db['listTracker'].find_one_and_delete({"_id":x['_id']})
         else:
             items.append(x)
 
@@ -580,7 +580,7 @@ def get_nav_mode():
     item = db['settings'].find_one({'nav_mode': {'$exists': True}})
     if item is None:
         nav_mode = 'list'
-        db['settings'].insert({'nav_mode':nav_mode})
+        db['settings'].insert_one({'nav_mode':nav_mode})
     else:
         nav_mode = str(item['nav_mode'])
 

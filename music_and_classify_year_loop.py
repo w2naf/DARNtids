@@ -16,17 +16,17 @@ from mstid import run_helper
 years = list(range(2012,2013))
 
 radars = []
-#radars.append('cvw')
-#radars.append('cve')
-#radars.append('fhw')
-#radars.append('fhe')
+radars.append('cvw')
+radars.append('cve')
+radars.append('fhw')
+radars.append('fhe')
 radars.append('bks')
-#radars.append('wal')
-#
-#radars.append('sas')
-#radars.append('pgr')
-#radars.append('kap')
-#radars.append('gbr')
+radars.append('wal')
+
+radars.append('sas')
+radars.append('pgr')
+radars.append('kap')
+radars.append('gbr')
 
 
 #    radars.append('sto')
@@ -41,10 +41,10 @@ db_name                     = 'despeck_boxcar'
 for year in years:
     dct                         = {}
     dct['radars']               = radars
-#    dct['list_sDate']           = datetime.datetime(year,  11,1)
-#    dct['list_eDate']           = datetime.datetime(year+1, 5,1)
-    dct['list_sDate']           = datetime.datetime(2012,12,1)
-    dct['list_eDate']           = datetime.datetime(2012,12,15)
+    dct['list_sDate']           = datetime.datetime(year,  11,1)
+    dct['list_eDate']           = datetime.datetime(year+1, 5,1)
+#    dct['list_sDate']           = datetime.datetime(2012,12,1)
+#    dct['list_eDate']           = datetime.datetime(2012,12,15)
     dct['hanning_window_space'] = False # Set to False for MSTID Index Calculation
     dct['bad_range_km']         = None  # Set to None for MSTID Index Calculation
     #dct['mongo_port']           = mongo_port
@@ -63,7 +63,7 @@ for year in years:
     music_reupdate_db   = True
 
     nprocs              = 60
-    multiproc           = False  
+    multiproc           = True  
 
     # Classification parameters go here. ###########################################
     classification_path = 'mstid_data/classification'

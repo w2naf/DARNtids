@@ -13,7 +13,7 @@ import mstid
 from mstid import run_helper
 
 #years = list(range(2019,2023))
-years = list(range(2012,2012))
+years = list(range(2012,2013))
 
 radars = []
 #radars.append('cvw')
@@ -50,6 +50,7 @@ for year in years:
     #dct['mongo_port']           = mongo_port
     dct['db_name']              = db_name
     dct['data_path']            = 'mstid_data/mstid_index'
+    dct['fitacf_dir']           = '/data/sd-data_despeck'
     dct_list                    = run_helper.create_music_run_list(**dct)
 
     mstid_index         = True

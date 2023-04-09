@@ -123,9 +123,9 @@ def generate_mongo_list_from_list(mstid_list,db_name,mongo_port,
     input_db    = input_mongo[input_db_name]
 
     #### Keep the listTracker up-to-date for the web tool.
-    crsr        = db.listTracker.find({'name': mstid_list})
-    if not crsr.count():
-        db.listTracker.insert({'name': mstid_list})
+    count   = db.listTracker.count_documents({'name': mstid_list})
+    if count == 0:
+        db.listTracker.insert_one({'name': mstid_list})
 
     #### Clean out the output database.
     db[mstid_list].drop()
@@ -184,7 +184,7 @@ def generate_mongo_list_from_list(mstid_list,db_name,mongo_port,
         record['intpsd_max']    = 'NaN'
         record['intpsd_mean']   = 'NaN'
 
-        db[mstid_list].insert(record)
+        db[mstid_list].insert_one(record)
 
     mongo.close()
 
@@ -241,10 +241,10 @@ def generate_mongo_list(mstid_list,radar,list_sDate,list_eDate,
 
     mongo   = pymongo.MongoClient(port=mongo_port)
     db      = mongo[db_name]
-    crsr    = db.listTracker.find({'name': mstid_list})
+    count   = db.listTracker.count_documents({'name': mstid_list})
 
-    if not crsr.count():
-        db.listTracker.insert({'name': mstid_list})
+    if count == 0:
+        db.listTracker.insert_one({'name': mstid_list})
 
     # WARNING!  Double check the next line before running this script! #############
     db[mstid_list].drop()
@@ -286,7 +286,7 @@ def generate_mongo_list(mstid_list,radar,list_sDate,list_eDate,
                      'intpsd_sum': intpsd_sum, 'intpsd_max': intpsd_max, 'intpsd_mean': intpsd_mean,
                      'lat': lat, 'lon': lon, 'slt': slt, 'mlt': mlt,'gscat': 1, 'category_auto':'None',
                      'height_km': height}
-            db[mstid_list].insert(record)
+            db[mstid_list].insert_one(record)
 
         currentDate = nextDate
     mongo.close()
@@ -309,7 +309,7 @@ def dataObj_update_mongoDb(radar,sTime,eTime,dataObj,
 
     for del_key in delete_list:
         if del_key in item:
-            status = db[mstid_list].update({'_id':_id},{'$unset': {del_key: 1}})
+            status = db[mstid_list].update_one({'_id':_id},{'$unset': {del_key: 1}})
 
     # Set missing data flag. #######################################################
     if dataObj is None:
@@ -319,14 +319,14 @@ def dataObj_update_mongoDb(radar,sTime,eTime,dataObj,
 
     if hasattr(dataObj,'messages'):
         if 'No data for this time period.' in dataObj.messages:
-            status      = db[mstid_list].update({'_id':_id},{'$set': {'no_data':True} })
+            status      = db[mstid_list].update_one({'_id':_id},{'$set': {'no_data':True} })
             good_period = False
 
     # Check the data quailty with basic check. #####################################
     if good_period:
         good_period = dataObj.DS000_originalFit.metadata.get('good_period')
 
-    status  = db[mstid_list].update({'_id':_id},{'$set': {'good_period':good_period} })
+    status  = db[mstid_list].update_one({'_id':_id},{'$set': {'good_period':good_period} })
     if not good_period:
         mongo.close()
         return
@@ -373,7 +373,7 @@ def dataObj_update_mongoDb(radar,sTime,eTime,dataObj,
         tmp = {'signals':sigList}
         dct.update(tmp)
 
-    status  = db[mstid_list].update({'_id':_id},{'$set': dct})
+    status  = db[mstid_list].update_one({'_id':_id},{'$set': dct})
     mongo.close()
     return status
 

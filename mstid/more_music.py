@@ -210,14 +210,14 @@ def create_music_obj(radar, sTime, eTime
         ,interp_resolution  = None
         ,filterNumtaps      = None
         ,srcPath            = None
-        ,data_dir           = '/sd-data'
+        ,fitacf_dir         = '/sd-data'
         ,fit_sfx            = 'fitacf'
         ,fovModel           = 'GS'
         ,gscat              = 1
         ):
     """
     srcPath:    Path to Saved Pickle Files
-    data_dir:   Path to fitacf files
+    fitacf_dir: Path to fitacf files
 
     * [**gscat**] (int): Ground scatter flag.
                     0: all backscatter data 
@@ -239,7 +239,7 @@ def create_music_obj(radar, sTime, eTime
 #    myPtr   = pydarn.sdio.radDataOpen(load_sTime,radar,eTime=load_eTime,channel=channel,cp=cp,fileType=fileType,filtered=boxCarFilter)
     if srcPath is None:
 #        myPtr   = pydarn.sdio.radDataOpen(load_sTime,radar,eTime=load_eTime,filtered=fitfilter)
-        fitacf  = pyDARNmusic.load_fitacf(radar,load_sTime,load_eTime,data_dir=data_dir)
+        fitacf  = pyDARNmusic.load_fitacf(radar,load_sTime,load_eTime,data_dir=fitacf_dir)
     else:
         with open(srcPath,'rb') as fl:
             myPtr   = pickle.load(fl)
@@ -518,6 +518,7 @@ def run_music(radar,sTime,eTime,
     db_name                 = 'mstid',
     mongo_port              = 27017,
     srcPath                 = None,
+    fitacf_dir              = '/sd-data',
     **kwargs):
 
     """
@@ -546,6 +547,7 @@ def run_music(radar,sTime,eTime,
             ,srcPath                    = srcPath
             ,fovModel                   = fovModel
             ,gscat                      = gscat
+            ,fitacf_dir                 = fitacf_dir
             )
 #    except:
 #        dataObj = None

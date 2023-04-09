@@ -209,7 +209,6 @@ def create_music_obj(radar, sTime, eTime
         ,gate_limits        = None
         ,interp_resolution  = None
         ,filterNumtaps      = None
-        ,boxcar_filter      = False
         ,srcPath            = None
         ,data_dir           = '/sd-data'
         ,fit_sfx            = 'fitacf'
@@ -240,7 +239,7 @@ def create_music_obj(radar, sTime, eTime
 #    myPtr   = pydarn.sdio.radDataOpen(load_sTime,radar,eTime=load_eTime,channel=channel,cp=cp,fileType=fileType,filtered=boxCarFilter)
     if srcPath is None:
 #        myPtr   = pydarn.sdio.radDataOpen(load_sTime,radar,eTime=load_eTime,filtered=fitfilter)
-        fitacf  = pyDARNmusic.load_fitacf(radar,load_sTime,load_eTime,data_dir=data_dir,boxcar_filter=boxcar_filter)
+        fitacf  = pyDARNmusic.load_fitacf(radar,load_sTime,load_eTime,data_dir=data_dir)
     else:
         with open(srcPath,'rb') as fl:
             myPtr   = pickle.load(fl)
@@ -493,12 +492,12 @@ def get_process_level(radar,sTime,eTime,data_path='music_data/music',
     return ProcessLevel(completed_process_level)
 
 def run_music(radar,sTime,eTime,
-    fitfilter               = True,
     process_level           = 'music',
     make_plots              = True,
     data_path               = 'music_data/music',
     fovModel                = 'GS',
     gscat                   = 1,
+    boxcar_filter           = True,
     auto_range_on           = True,
     bad_range_km            = None,
     beam_limits             = (None, None),
@@ -544,7 +543,6 @@ def run_music(radar,sTime,eTime,
             ,gate_limits                = gate_limits
             ,interp_resolution          = interp_resolution
             ,filterNumtaps              = filter_numtaps 
-            ,fitfilter                  = fitfilter
             ,srcPath                    = srcPath
             ,fovModel                   = fovModel
             ,gscat                      = gscat
@@ -578,6 +576,9 @@ def run_music(radar,sTime,eTime,
         if dataObj.active.fov['gates'].size != dataObj.active.data.shape[2]:
             reject_messages.append('Number of FOV gates != number of gates in data array.  Radar probably running a non-standard mode that this code is not equipped to handle.')
             good = False
+
+    if boxcar_filter:
+        pyDARNmusic.boxcarFilter(dataObj)
 
     # Determine auto-range if called for. ########################################## 
     if auto_range_on and good:

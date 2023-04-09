@@ -53,7 +53,7 @@ music_new_list      = True
 music_reupdate_db   = True
 
 nprocs              = 60
-multiproc           = True  
+multiproc           = False  
 
 # Classification parameters go here. ###########################################
 classification_path = 'mstid_data/classification'

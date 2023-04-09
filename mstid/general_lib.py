@@ -66,6 +66,10 @@ def generate_radar_dict():
     rad_list.append(('sas', 56.1, -103.8))
     rad_list.append(('pgr', 58.0, -123.5))
 
+    rad_list.append(('sto', 63.86, -21.031))
+    rad_list.append(('pyk', 63.77, -20.54))
+    rad_list.append(('han', 62.32,  26.61))
+
     radar_dict = {}
     for radar,lat,lon in rad_list:
         tmp                 = {}

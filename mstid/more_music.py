@@ -209,7 +209,7 @@ def create_music_obj(radar, sTime, eTime
         ,gate_limits        = None
         ,interp_resolution  = None
         ,filterNumtaps      = None
-        ,fitfilter          = False
+        ,boxcar_filter      = False
         ,srcPath            = None
         ,data_dir           = '/sd-data'
         ,fit_sfx            = 'fitacf'
@@ -240,7 +240,7 @@ def create_music_obj(radar, sTime, eTime
 #    myPtr   = pydarn.sdio.radDataOpen(load_sTime,radar,eTime=load_eTime,channel=channel,cp=cp,fileType=fileType,filtered=boxCarFilter)
     if srcPath is None:
 #        myPtr   = pydarn.sdio.radDataOpen(load_sTime,radar,eTime=load_eTime,filtered=fitfilter)
-        fitacf  = pyDARNmusic.load_fitacf(radar,load_sTime,load_eTime,data_dir=data_dir)
+        fitacf  = pyDARNmusic.load_fitacf(radar,load_sTime,load_eTime,data_dir=data_dir,boxcar_filter=boxcar_filter)
     else:
         with open(srcPath,'rb') as fl:
             myPtr   = pickle.load(fl)

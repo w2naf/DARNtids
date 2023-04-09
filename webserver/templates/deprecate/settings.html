@@ -1,0 +1,103 @@
+<a href="javascript:fold('settingsForm');">Setting Controls</a><br />
+<form action="{{ url_for('update_settings') }}" method=post class=add-entry id="settingsForm" style="display: none;">
+<input type="hidden" name="settings_collection_name" value="{{ params.settings_collection_name }}">
+<table>
+  <tr>
+    <td>Settings</td>
+    <td>
+      {{ params.settings_dropdown|safe }}
+    </td>
+  </tr>
+  <tr>
+    <td>Delete</td>
+    <td>
+      <input type="checkbox" name="settings_delete">
+    </td>
+  </tr>
+  <tr>
+    <td>Data Set</td>
+    <td>
+      <select name="dataSet">
+        {% for item in params.fileList %}
+          <option value="{{ item.value }}"{% if item.selected %} selected="selected"{% endif %}>
+          {{ item.text }}
+          </option>
+        {% endfor %}
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Date Range
+    </td>
+    <td>
+      <select name="start_daydropdown">
+        {% for day in params.start.days %}
+          <option value="{{ day.value }}"{% if day.selected %} selected="selected"{% endif %}>
+          {{ day.text }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <select name="start_monthdropdown">
+        {% for month in params.start.months %}
+          <option value="{{ month.value }}"{% if month.selected %} selected="selected"{% endif %}>
+          {{ month.text }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <select name="start_yeardropdown">
+        {% for year in params.start.years %}
+          <option value="{{ year.value }}"{% if year.selected %} selected="selected"{% endif %}>
+          {{ year.text }}
+          </option>
+        {% endfor %}
+      </select>
+    -
+      <select name="end_daydropdown">
+        {% for day in params.end.days %}
+          <option value="{{ day.value }}"{% if day.selected %} selected="selected"{% endif %}>
+          {{ day.text }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <select name="end_monthdropdown">
+        {% for month in params.end.months %}
+          <option value="{{ month.value }}"{% if month.selected %} selected="selected"{% endif %}>
+          {{ month.text }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <select name="end_yeardropdown">
+        {% for year in params.end.years %}
+          <option value="{{ year.value }}"{% if year.selected %} selected="selected"{% endif %}>
+          {{ year.text }}
+          </option>
+        {% endfor %}
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td>PSD Y-Range</td>
+    <td>
+      <input type="checkbox" id="psd_yrange_enabled" name="psd_yrange_enabled"{% if params.psd_yrange_enabled %}checked{% endif %} >
+      <input type="text" id="psd_yrange0" name="psd_yrange0" value="{{ params.psd_yrange0 }}" {% if not params.psd_yrange_enabled %}disabled{% endif %} >
+      <input type="text" id="psd_yrange1" name="psd_yrange1" value="{{ params.psd_yrange1 }}" {% if not params.psd_yrange_enabled %}disabled{% endif %} >
+    </td>
+  </tr>
+  <tr>
+    <td>GScat Y-Range</td>
+    <td>
+      <input type="checkbox" id="gscat_yrange_enabled" name="gscat_yrange_enabled" {% if params.gscat_yrange_enabled %}checked{% endif %}>
+      <input type="text" id="gscat_yrange0" name="gscat_yrange0" value="{{ params.gscat_yrange0 }}" {% if not params.gscat_yrange_enabled %}disabled{% endif %}>
+      <input type="text" id="gscat_yrange1" name="gscat_yrange1" value="{{ params.gscat_yrange1 }}" {% if not params.gscat_yrange_enabled %}disabled{% endif %}>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="100" class=submit-cell><button>Update Settings</button></td>
+  </tr>
+</table>
+</form>

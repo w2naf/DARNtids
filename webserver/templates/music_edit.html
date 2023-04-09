@@ -1,0 +1,180 @@
+{% extends "layout.html" %}
+{% block body %}
+<script type=text/javascript>
+    var categ_manu="{{webData.categ_manu}}"
+</script>
+
+<table width="100%">
+    <tr>
+        <td>
+            <a id="nav_prev_url" href='{{webData.prev_url}}'><button class="button1" id="music_previous">Previous</button></a>
+            <input type="radio" name="music_categ_manu" value="mstid" id="categ_manu_mstid" {{webData.categ_manu_mstid}}> MSTID
+            <input type="radio" name="music_categ_manu" value="quiet" id="categ_manu_quiet" {{webData.categ_manu_quiet}}>Quiet
+            <input type="radio" name="music_categ_manu" value="None"  id="categ_manu_none"  {{webData.categ_manu_none}}> None
+            <button class="button1" id="music_update_categ">Update Category</button>
+            <a id="nav_next_url" href='{{webData.next_url}}'><button class="button1" id="music_next">Next</button></a>
+
+            {% if record.music_analysis_status %}
+                <button id="music_mark_incomplete">Mark Event as Incomplete</button>
+            {% else %}
+                <button id="music_mark_complete">Mark Event as Complete</button>
+            {% endif %}
+
+        </td>
+        <td>
+            Nav Mode: 
+            <input type="radio" name="prev_next_mode" value="list" id="prev_next_list" {{webData.nav_mode_list}}> List
+            <input type="radio" name="prev_next_mode" value="category" id="prev_next_categ" {{webData.nav_mode_categ}}> Category
+        </td>
+    </tr>
+    <tr>
+        <td colspan=100>Data Source: {{ webData.source_selector|safe }}</td>
+    </tr>
+    <tr>
+        {% if record.music_analysis_status %}
+            <td class="submit-cell statusNormal" colspan="100">
+                <strong>Event is Complete!</strong>
+            </td>
+        {% else %}
+            <td class="submit-cell warning" colspan="100">
+                <strong>Event is Incomplete</strong>
+            </td>
+        {% endif %}
+    </tr>
+    <tr id="music_categ_info" style="display: none;">
+        <td colspan=100 id="music_categ_info_cell" class="submit-cell"></td>
+    </tr>
+</table>
+
+<input type="hidden" id="runfile_path"  value="{{ musicParams.runfile_path }}">
+<input type="hidden" id="mstid_list"    value="{{ webData.mstid_list}}">
+<input type="hidden" id="_id"           value="{{ record._id}}">
+
+<div class="{{ webData.musicObjStatusClass }}" id="musicObjStatus">{{ webData.musicObjStatus }}</div>
+{% if webData.good_period_warn %}
+<div class="warning" id="musicObjStatus">{{ webData.good_period_warn }}</div>
+{% endif %}
+
+<a href="javascript:fold('recordOutput');">Full Record Output</a><br />
+<div id='recordOutput' style='display: none;'>
+    <table>
+        <tr>
+            <th>Key</th>
+            <th>Value</th>
+        </tr>
+    {% for item in record_list %}
+        <tr>
+            <td>{{ item.key }}</td>
+            <td>{{ item.value }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+</div>
+
+{% if musicParams_list %}
+    <a href="javascript:fold('runFileList');">Run File Contents</a><br />
+    <div id='runFileList' style='display: none;'>
+        <table>
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+            </tr>
+        {% for item in musicParams_list %}
+            <tr>
+                <td>{{ item.key }}</td>
+                <td>{{ item.value }}</td>
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
+{% endif %}
+<a href="{{ webData.event_dir_url }}">Event Directory</a><br />
+{#
+{% if not webData.karrPath %}
+    {% if webData.rtiPath %} 
+        <table>
+            <tr>
+                <td width="*" class="submit-cell">
+                    <center> <img src={{ webData.rtiPath }} width="100%"> </center>
+                    <center><button id="music_plot_rti">Replot RTI Plot</button></center>
+                </td>
+            </tr>
+        </table>
+    {% endif %}
+{% else %}
+#}
+    <table>
+        <tr>
+            <td width="50%" class="submit-cell">
+                <a href="{{webData.rtiPath}}"  target="_blank"><img src="{{ webData.rtiPath }}" width="100%"></a>
+                <button id="music_plot_rti">Replot RTI Plot</button></center>
+            </td>
+            <td width="50%" class="submit-cell"><a href="{{webData.karrPath}}" target="_blank"><img src="{{ webData.karrPath }}" width="100%"></a></td>
+        </tr>
+        <tr>
+            <td colspan="100">
+                <center>{% include "music_sig_control.html" %}</center>
+            </td>
+        </tr>
+    </table>
+    {#
+{% endif %}
+#}
+
+{% include "music_edit_control.html" %}
+
+{% if webData.musicObjStatusClass == "statusNormal" %}
+    {% if webData.plots %}
+        <table>
+            {% for plot in webData.plots %}
+            <tr>
+                <td>
+                    <a name="{{ plot.basename }}">{{ plot.basename }}</a>
+                    <a href="{{ plot.path }}"><img src="{{ plot.path }}" width="100%"></a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+
+
+    <table>
+        <tr>
+            <th>Data Set</th>
+            <th>History</th>
+            <th>Metadata</th>
+        </tr>
+    <a name="dataset_info">
+    {% for dataSet in webData.dataSets %}
+        <tr>
+            <td><a href="javascript:fold('{{ dataSet.name }}_history');javascript:fold('{{ dataSet.name }}_metadata');">{{ dataSet.name }}</a></td>
+            <td>
+                <div id='{{ dataSet.name }}_history' style='display: none;'>
+                    <table>
+                    {% for item in dataSet.history %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.value }}</td>
+                        </tr>
+                    {% endfor %}
+                    </table>
+                </div>
+            </td>
+            <td>
+                <div id='{{ dataSet.name }}_metadata' style='display: none;'>
+                    <table>
+                    {% for item in dataSet.metadata %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.value }}</td>
+                        </tr>
+                    {% endfor %}
+                    </table>
+                </div>
+            </td>
+        </tr>
+    {% endfor %}
+    </table>
+{% endif %}
+
+{% endblock %}

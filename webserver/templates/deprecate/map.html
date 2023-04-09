@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block body %}
+<h1>{{ params.stationName }} - {{ dateStr }}</h1>
+  <img src="/{{ fName }}" width="100%">
+  <center>
+    <a href="http://www.hamqsl.com/solar.html" title="Click to add Solar-Terrestrial Data to your website!"><img src="http://www.hamqsl.com/solar101pic.php"></a>
+  </center>
+  <br />
+  <center><table>
+    <tr>
+      <th colspan="3">Backward</th>
+      <th colspan="3">Forward</th>
+    </tr>
+    <tr>
+      <td><a href='/station/{{params.shortName}}{{nav.backYear}}'>Year</a></td>
+      <td><a href='/station/{{params.shortName}}{{nav.backMonth}}'>Month</a></td>
+      <td><a href='/station/{{params.shortName}}{{nav.backHr}}'>Hour</a></td>
+      <td><a href='/station/{{params.shortName}}{{nav.forwardHr}}'>Hour</a></td>
+      <td><a href='/station/{{params.shortName}}{{nav.forwardMonth}}'>Month</a></td>
+      <td><a href='/station/{{params.shortName}}{{nav.forwardYear}}'>Year</a></td>
+    </tr>
+    <tr>
+      <td colspan="6"><center><a href='/station/{{params.shortName}}'>Now</a></center></td>
+    </tr>
+</table></center>
+{% endblock %}

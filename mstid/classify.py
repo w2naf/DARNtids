@@ -398,7 +398,7 @@ def classify_none_events(mstid_list,db_name='mstid',mongo_port=27017,
         delete_list = ['category_auto','category_manu']
         for item in delete_list:
             if item in event:
-                status = db[mstid_list].update({'_id':_id},{'$unset': {item: 1}})
+                status = db[mstid_list].update_one({'_id':_id},{'$unset': {item: 1}})
 
     # Run the classifier.
     crsr                = db[mstid_list].find()
@@ -448,7 +448,7 @@ def classify_none_events(mstid_list,db_name='mstid',mongo_port=27017,
 
         if not good:
             bad_counter += 1
-            entry_id = db[mstid_list].update({'_id':item['_id']}, {'$set':{'category_manu': 'None', 'reject_message':reject_message}})
+            entry_id = db[mstid_list].update_one({'_id':item['_id']}, {'$set':{'category_manu': 'None', 'reject_message':reject_message}})
 
     print(('{bc:d} events marked as None.'.format(bc=bad_counter)))
     print(('no_data: {!s}'.format(no_data)))
@@ -1023,16 +1023,16 @@ def classify_mstid_events(data_dict,threshold=0.,read_only=False):
             unset_keys = ['intpsd_mean', 'intpsd_max', 'intpsd_sum']
             for unset_key in unset_keys:
                 if unset_key in item:
-                    status = db[mstid_list].update({'_id':_id},{'$unset':{unset_key:1}})
+                    status = db[mstid_list].update_one({'_id':_id},{'$unset':{unset_key:1}})
 
             sort_df = data_dict[categ]['sort_df']
             info        = sort_df[sort_df.index == event_inx]
             info_keys   = ['intSpect','meanSubIntSpect','intSpect_by_rtiCnt','meanSubIntSpect_by_rtiCnt']
             for info_key in info_keys:
                 val     = np.float(info[info_key])
-                status  = db[mstid_list].update({'_id':_id},{'$set':{info_key:val}})
+                status  = db[mstid_list].update_one({'_id':_id},{'$set':{info_key:val}})
 
-            status  = db[mstid_list].update({'_id':item['_id']},{'$set': {'category_manu':categ}})
+            status  = db[mstid_list].update_one({'_id':item['_id']},{'$set': {'category_manu':categ}})
 
     if not read_only: mongo.close()
 

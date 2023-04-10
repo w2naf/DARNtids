@@ -141,14 +141,14 @@ def rcgb(mstid_list,db_name='mstid',mongo_port=27017,
     for categ in categs:
         if categ == 'Unclassified':
             crsr        = db[mstid_list].find({'category_manu':{'$exists':False}})
+            nr_events   = db[mstid_list].count_documents({'category_manu':{'$exists':False}})
 #            crsr        = crsr.sort('sDatetime',1)
         else:
             crsr        = db[mstid_list].find({'category_manu':categ})
+            nr_events   = db[mstid_list].count_documents({'category_manu':categ})
+
         crsr        = crsr.sort('orig_rti_fraction',1)
-
-
         output_dir  = output_dirs[categ] 
-        nr_events   = crsr.count()
 
         with open(html_files[categ],'a') as fl:
             fl.write('<h1>{1} ({0}): {2:d} Events</h1>\n'.format(mstid_list,categ.upper(),nr_events))

@@ -335,6 +335,7 @@ def auto_range(radar,sTime,eTime,dataObj,bad_range_km=500,
     hist                = sp.signal.medfilt(hist,kernel_size=11)
 
     arg_max = np.argmax(hist)
+
     max_val = hist[arg_max]
     thresh  = 0.18
 
@@ -584,8 +585,12 @@ def run_music(radar,sTime,eTime,
 
     # Determine auto-range if called for. ########################################## 
     if auto_range_on and good:
-        gate_limits = auto_range(radar,sTime,eTime,dataObj,bad_range_km=bad_range_km)
-        pyDARNmusic.defineLimits(dataObj,gateLimits=gate_limits)
+        try:
+            gate_limits = auto_range(radar,sTime,eTime,dataObj,bad_range_km=bad_range_km)
+            pyDARNmusic.defineLimits(dataObj,gateLimits=gate_limits)
+        except:
+            reject_messages.append('auto_range() computation error.')
+            good = False
 
         if (gate_limits[1] - gate_limits[0]) <= 5:
             reject_messages.append('auto_range() too small.')

@@ -579,7 +579,7 @@ def run_music(radar,sTime,eTime,
             reject_messages.append('Number of FOV gates != number of gates in data array.  Radar probably running a non-standard mode that this code is not equipped to handle.')
             good = False
 
-    if boxcar_filter:
+    if boxcar_filter and good:
         pyDARNmusic.boxcarFilter(dataObj)
 
     # Determine auto-range if called for. ########################################## 

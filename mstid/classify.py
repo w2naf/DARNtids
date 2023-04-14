@@ -511,8 +511,10 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
         for categ in categs:
             if categ == 'unclassified':
                 crsr        = db[mstid_list].find({'category_manu':{'$exists':False}},no_cursor_timeout=True)
+                count       = db[mstid_list].count_documents({'category_manu':{'$exists':False}})
             else:
                 crsr        = db[mstid_list].find({'category_manu':categ},no_cursor_timeout=True)
+                count       = db[mstid_list].count_documents({'category_manu':categ})
 
             orig_rti_inx    = []
             orig_rti_list   = []
@@ -524,7 +526,7 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
                 sDatetime   = item['sDatetime']
                 fDatetime   = item['fDatetime']
 
-                print(("MSTID Classification: Loading dataObj ({!s}/{!s}): {!s} {!s}-{!s}".format(item_inx,crsr.count(),radar,sDatetime,fDatetime)))
+                print(("MSTID Classification: Loading dataObj ({!s}/{!s}): {!s} {!s}-{!s}".format(item_inx,count,radar,sDatetime,fDatetime)))
                 dataObj = more_music.get_dataObj(radar,sDatetime,fDatetime,data_path=data_path)
 
                 if dataObj is None:

@@ -299,8 +299,15 @@ def dataObj_update_mongoDb(radar,sTime,eTime,dataObj,
     mongo   = pymongo.MongoClient(port=mongo_port)
     db      = mongo[db_name]
 
-    item    = db[mstid_list].find_one({'radar':radar,'sDatetime':sTime,'fDatetime':eTime})
-    _id     = item['_id']
+    srch_dct    = {'radar':radar,'sDatetime':sTime,'fDatetime':eTime}
+    item        = db[mstid_list].find_one(srch_dct)
+    
+    # Add record if not present.
+    if item is None:
+        db[mstid_list].insert_one(srch_dct)
+        item    = db[mstid_list].find_one(srch_dct)
+
+    _id = item['_id']
 
     # Delete certain loaded information so we can start fresh.
     delete_list  = ['no_data','good_period','signals','total_spec','dom_spec','prm']

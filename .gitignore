@@ -133,3 +133,7 @@ dmypy.json
 init_params/
 mstid_data.old/
 mstid_data/
+
+*~
+output/
+mstid_data

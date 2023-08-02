@@ -407,7 +407,8 @@ def updateDb_mstid_list_event(event_tuple):
 #    subprocess.check_call(cmd)
     
     dataObj     = more_music.get_dataObj(radar,sTime,eTime,data_path)
-    status      = dataObj_update_mongoDb(radar,sTime,eTime,dataObj,mstid_list)
+    status      = dataObj_update_mongoDb(radar,sTime,eTime,dataObj,mstid_list,
+                    db_name,mongo_port)
 
 def updateDb_mstid_list(mstid_list,
         db_name='mstid',mongo_port=27017,data_path='music_data/music',

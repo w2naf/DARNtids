@@ -14,28 +14,28 @@ from mstid import run_helper
 
 # User-Defined Run Parameters Go Here. #########################################
 radars = []
-#radars.append('cvw')
-#radars.append('cve')
-#radars.append('fhw')
-#radars.append('fhe')
+radars.append('cvw')
+radars.append('cve')
+radars.append('fhw')
+radars.append('fhe')
 radars.append('bks')
-#radars.append('wal')
-#
-#radars.append('sas')
-#radars.append('pgr')
-#radars.append('kap')
-#radars.append('gbr')
+radars.append('wal')
+
+radars.append('sas')
+radars.append('pgr')
+radars.append('kap')
+radars.append('gbr')
 
 db_name                     = 'mstid_MUSIC'
-base_dir                    = 'mstid_test'
+base_dir                    = 'mstid_data'
 # Used for creating an SSH tunnel when running the MSTID database on a remote machine.
 #tunnel,mongo_port           = mstid.createTunnel() 
 
 dct                         = {}
 dct['radars']               = radars
 dct['list_sDate']           = datetime.datetime(2018,11,1)
-dct['list_eDate']           = datetime.datetime(2018,11,3)
-#dct['list_eDate']           = datetime.datetime(2019,5,1)
+#dct['list_eDate']           = datetime.datetime(2018,11,3)
+dct['list_eDate']           = datetime.datetime(2019,5,1)
 #dct['list_sDate']           = datetime.datetime(2012,12,1)
 #dct['list_eDate']           = datetime.datetime(2012,12,15)
 dct['hanning_window_space'] = False # Set to False for MSTID Index Calculation
@@ -47,7 +47,7 @@ dct_list                    = run_helper.create_music_run_list(**dct)
 
 mstid_index         = True
 new_list            = True      # Create a completely fresh list of events in MongoDB. Delete an old list if it exists.
-recompute           = True      # Recalculate all events from raw data. If False, use existing cached pickle files.
+recompute           = False     # Recalculate all events from raw data. If False, use existing cached pickle files.
 reupdate_db         = True 
 
 music_process       = True
@@ -55,7 +55,7 @@ music_new_list      = True
 music_reupdate_db   = True
 
 nprocs              = 60
-multiproc           = False
+multiproc           = True 
 
 # Classification parameters go here. ###########################################
 classification_path = os.path.join(base_dir,'classification')

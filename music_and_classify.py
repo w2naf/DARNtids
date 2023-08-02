@@ -14,19 +14,19 @@ from mstid import run_helper
 
 # User-Defined Run Parameters Go Here. #########################################
 radars = []
-radars.append('cvw')
-radars.append('cve')
-radars.append('fhw')
-radars.append('fhe')
+#radars.append('cvw')
+#radars.append('cve')
+#radars.append('fhw')
+#radars.append('fhe')
 radars.append('bks')
-radars.append('wal')
+#radars.append('wal')
+#
+#radars.append('sas')
+#radars.append('pgr')
+#radars.append('kap')
+#radars.append('gbr')
 
-radars.append('sas')
-radars.append('pgr')
-radars.append('kap')
-radars.append('gbr')
-
-db_name                     = 'mstid'
+db_name                     = 'mstid_test'
 # Used for creating an SSH tunnel when running the MSTID database on a remote machine.
 #tunnel,mongo_port           = mstid.createTunnel() 
 
@@ -40,20 +40,20 @@ dct['hanning_window_space'] = False # Set to False for MSTID Index Calculation
 dct['bad_range_km']         = None  # Set to None for MSTID Index Calculation
 #dct['mongo_port']           = mongo_port
 dct['db_name']              = db_name
-dct['data_path']            = 'mstid_data/mstid_index'
+dct['data_path']            = '/data/mstid_data/mstid_index'
 dct_list                    = run_helper.create_music_run_list(**dct)
 
-mstid_index         = True
+mstid_index         = False
 new_list            = True      # Create a completely fresh list of events in MongoDB. Delete an old list if it exists.
 recompute           = False     # Recalculate all events from raw data. If False, use existing cached pickle files.
 reupdate_db         = True 
 
-music_process       = False
+music_process       = True
 music_new_list      = True
 music_reupdate_db   = True
 
 nprocs              = 60
-multiproc           = False  
+multiproc           = False
 
 # Classification parameters go here. ###########################################
 classification_path = 'mstid_data/classification'

@@ -34,7 +34,7 @@ radars.append('gbr')
 #    radars.append('han')
 
 #db_name                     = 'mstid'
-db_name                     = 'despeck_boxcar'
+db_name                     = 'fitexfilter'
 # Used for creating an SSH tunnel when running the MSTID database on a remote machine.
 #tunnel,mongo_port           = mstid.createTunnel() 
 
@@ -50,7 +50,9 @@ for year in years:
     #dct['mongo_port']           = mongo_port
     dct['db_name']              = db_name
     dct['data_path']            = 'mstid_data/mstid_index'
-    dct['fitacf_dir']           = '/data/sd-data_despeck'
+    dct['boxcar_filter']        = False
+#    dct['fitacf_dir']           = '/data/sd-data_despeck'
+    dct['fitacf_dir']           = '/data/sd-data_fitexfilter'
     dct_list                    = run_helper.create_music_run_list(**dct)
 
     mstid_index         = True
@@ -63,7 +65,7 @@ for year in years:
     music_reupdate_db   = True
 
     nprocs              = 60
-    multiproc           = True  
+    multiproc           = True
 
     # Classification parameters go here. ###########################################
     classification_path = 'mstid_data/classification'

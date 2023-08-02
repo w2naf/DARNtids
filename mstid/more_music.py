@@ -209,16 +209,15 @@ def create_music_obj(radar, sTime, eTime
         ,gate_limits        = None
         ,interp_resolution  = None
         ,filterNumtaps      = None
-        ,fitfilter          = False
         ,srcPath            = None
-        ,data_dir           = '/sd-data'
+        ,fitacf_dir         = '/sd-data'
         ,fit_sfx            = 'fitacf'
         ,fovModel           = 'GS'
         ,gscat              = 1
         ):
     """
     srcPath:    Path to Saved Pickle Files
-    data_dir:   Path to fitacf files
+    fitacf_dir: Path to fitacf files
 
     * [**gscat**] (int): Ground scatter flag.
                     0: all backscatter data 
@@ -240,7 +239,7 @@ def create_music_obj(radar, sTime, eTime
 #    myPtr   = pydarn.sdio.radDataOpen(load_sTime,radar,eTime=load_eTime,channel=channel,cp=cp,fileType=fileType,filtered=boxCarFilter)
     if srcPath is None:
 #        myPtr   = pydarn.sdio.radDataOpen(load_sTime,radar,eTime=load_eTime,filtered=fitfilter)
-        fitacf  = pyDARNmusic.load_fitacf(radar,load_sTime,load_eTime,data_dir=data_dir)
+        fitacf  = pyDARNmusic.load_fitacf(radar,load_sTime,load_eTime,data_dir=fitacf_dir)
     else:
         with open(srcPath,'rb') as fl:
             myPtr   = pickle.load(fl)
@@ -336,6 +335,7 @@ def auto_range(radar,sTime,eTime,dataObj,bad_range_km=500,
     hist                = sp.signal.medfilt(hist,kernel_size=11)
 
     arg_max = np.argmax(hist)
+
     max_val = hist[arg_max]
     thresh  = 0.18
 
@@ -493,12 +493,12 @@ def get_process_level(radar,sTime,eTime,data_path='music_data/music',
     return ProcessLevel(completed_process_level)
 
 def run_music(radar,sTime,eTime,
-    fitfilter               = True,
     process_level           = 'music',
     make_plots              = True,
     data_path               = 'music_data/music',
     fovModel                = 'GS',
     gscat                   = 1,
+    boxcar_filter           = True,
     auto_range_on           = True,
     bad_range_km            = None,
     beam_limits             = (None, None),
@@ -519,6 +519,7 @@ def run_music(radar,sTime,eTime,
     db_name                 = 'mstid',
     mongo_port              = 27017,
     srcPath                 = None,
+    fitacf_dir              = '/sd-data',
     **kwargs):
 
     """
@@ -544,10 +545,10 @@ def run_music(radar,sTime,eTime,
             ,gate_limits                = gate_limits
             ,interp_resolution          = interp_resolution
             ,filterNumtaps              = filter_numtaps 
-            ,fitfilter                  = fitfilter
             ,srcPath                    = srcPath
             ,fovModel                   = fovModel
             ,gscat                      = gscat
+            ,fitacf_dir                 = fitacf_dir
             )
 #    except:
 #        dataObj = None
@@ -579,10 +580,17 @@ def run_music(radar,sTime,eTime,
             reject_messages.append('Number of FOV gates != number of gates in data array.  Radar probably running a non-standard mode that this code is not equipped to handle.')
             good = False
 
+    if boxcar_filter and good:
+        pyDARNmusic.boxcarFilter(dataObj)
+
     # Determine auto-range if called for. ########################################## 
     if auto_range_on and good:
-        gate_limits = auto_range(radar,sTime,eTime,dataObj,bad_range_km=bad_range_km)
-        pyDARNmusic.defineLimits(dataObj,gateLimits=gate_limits)
+        try:
+            gate_limits = auto_range(radar,sTime,eTime,dataObj,bad_range_km=bad_range_km)
+            pyDARNmusic.defineLimits(dataObj,gateLimits=gate_limits)
+        except:
+            reject_messages.append('auto_range() computation error.')
+            good = False
 
         if (gate_limits[1] - gate_limits[0]) <= 5:
             reject_messages.append('auto_range() too small.')

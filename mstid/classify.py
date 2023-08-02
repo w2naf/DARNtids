@@ -47,7 +47,7 @@ def mstid_classification(radar,list_sDate,list_eDate,mstid_list,
 
     date_fmt    = '%Y%m%d%H%M'
     cmd         = []
-    cmd.append('./DARNtids/classify_mstid_list.py')
+    cmd.append('./classify_mstid_list.py')
     cmd.append(radar)
     cmd.append(list_sDate.strftime(date_fmt))
     cmd.append(list_eDate.strftime(date_fmt))
@@ -139,21 +139,16 @@ def rcgb(mstid_list,db_name='mstid',mongo_port=27017,
             fl.write('<html>\n')
 
     for categ in categs:
-        count       = 0
         if categ == 'Unclassified':
             crsr        = db[mstid_list].find({'category_manu':{'$exists':False}})
-            count       =  db[mstid_list].count_documents({'category_manu':{'$exists':False}})
+            nr_events   = db[mstid_list].count_documents({'category_manu':{'$exists':False}})
 #            crsr        = crsr.sort('sDatetime',1)
         else:
             crsr        = db[mstid_list].find({'category_manu':categ})
-            count       = db[mstid_list].count_documents({'category_manu':categ})
+            nr_events   = db[mstid_list].count_documents({'category_manu':categ})
 
         crsr        = crsr.sort('orig_rti_fraction',1)
-        # count = len(list(crsr))
-
         output_dir  = output_dirs[categ] 
-        # import ipdb;ipdb.set_trace()
-        nr_events   = count
 
         with open(html_files[categ],'a') as fl:
             fl.write('<h1>{1} ({0}): {2:d} Events</h1>\n'.format(mstid_list,categ.upper(),nr_events))
@@ -514,14 +509,13 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
         data_dict['data_path']      = data_path
 
         for categ in categs:
-            count = 0
             if categ == 'unclassified':
                 crsr        = db[mstid_list].find({'category_manu':{'$exists':False}},no_cursor_timeout=True)
-                count       =  db[mstid_list].count_documents({'category_manu':{'$exists':False}})
+                count       = db[mstid_list].count_documents({'category_manu':{'$exists':False}})
             else:
                 crsr        = db[mstid_list].find({'category_manu':categ},no_cursor_timeout=True)
                 count       = db[mstid_list].count_documents({'category_manu':categ})
-            # count = len(list(crsr))
+
             orig_rti_inx    = []
             orig_rti_list   = []
 

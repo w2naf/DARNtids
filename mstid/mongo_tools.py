@@ -1,6 +1,6 @@
 import os
 import datetime
-import sshtunnel
+
 import inspect
 import subprocess
 import multiprocessing
@@ -123,9 +123,8 @@ def generate_mongo_list_from_list(mstid_list,db_name,mongo_port,
     input_db    = input_mongo[input_db_name]
 
     #### Keep the listTracker up-to-date for the web tool.
-    crsr        = db.listTracker.find({'name': mstid_list})
-    
-    if not len(list(crsr)):
+    count   = db.listTracker.count_documents({'name': mstid_list})
+    if count == 0:
         db.listTracker.insert_one({'name': mstid_list})
 
     #### Clean out the output database.
@@ -156,7 +155,7 @@ def generate_mongo_list_from_list(mstid_list,db_name,mongo_port,
             category.shape = (1,)
         category = category.tolist()
 
-    # Insert_one new entry into db.
+    # Insert new entry into db.
     for item in crsr:
         if category is not None:
             # Allow for a list of categories.
@@ -242,10 +241,9 @@ def generate_mongo_list(mstid_list,radar,list_sDate,list_eDate,
 
     mongo   = pymongo.MongoClient(port=mongo_port)
     db      = mongo[db_name]
-    crsr    = db.listTracker.find({'name': mstid_list})
-    count = db.listTracker.count_documents({'name': mstid_list})
+    count   = db.listTracker.count_documents({'name': mstid_list})
 
-    if not count:
+    if count == 0:
         db.listTracker.insert_one({'name': mstid_list})
 
     # WARNING!  Double check the next line before running this script! #############
@@ -291,7 +289,6 @@ def generate_mongo_list(mstid_list,radar,list_sDate,list_eDate,
             db[mstid_list].insert_one(record)
 
         currentDate = nextDate
-        # import ipdb;ipdb.set_trace()
     mongo.close()
 
 def dataObj_update_mongoDb(radar,sTime,eTime,dataObj,
@@ -500,7 +497,7 @@ def events_from_mongo(mstid_list,list_sDate=None,list_eDate=None,months=None,
 
         tmp                 = dict(tmp,**kwargs)
         event_list.append(tmp)
-    # import ipdb;ipdb.set_trace()
+
     event_list  = sorted(event_list,key=lambda k: k['sTime'])
     
     if not recompute:
@@ -563,41 +560,26 @@ def get_mstid_scores(sDate=None,eDate=None,
 
     mongo   = pymongo.MongoClient(port=mongo_port)
     db      = mongo[db_name]
-    
-    
+
     mstid_lists         = run_helper.get_all_default_mstid_lists(mstid_format=mstid_list_format)
-    mst = []
-    # for st in mstid_lists:
-    #     mst.append(st[6:])
-    mstid_lists = ['active_list']
-    
-    # import ipdb;ipdb.set_trace()
+
     score_dict  = {}
-     
+
     for mstid_list in mstid_lists:
         crsr = db[mstid_list].find()
-        count = len(list(crsr))
-        
-        if(count == 0):
-            print("crsr is empty")
-        else:
-            pass
-            # import ipdb;ipdb.set_trace()
         for item in crsr:
             dt      = item.get('date')
-            # import ipdb;ipdb.set_trace()
             date    = datetime.datetime(dt.year,dt.month,dt.day)
             score   = score_dict.get(date,0)
 
             categ = item.get('category_manu')
-            
+
             if categ == 'mstid':
                 score +=  1
             elif categ == 'quiet':
                 score += -1
 
             score_dict[date] = score
-    # import ipdb;ipdb.set_trace()
     dates,scores    = list(zip(*[(key,val) for key,val in score_dict.items()]))
 
     df_score        = pd.DataFrame(np.array(scores),index=np.array(dates),
@@ -618,8 +600,7 @@ def get_mstid_days(sDate=None,eDate=None,
     Returns lists of MSTID and quiet days, based on the daily MSTID score
     and a threshold.
     """
-    # import ipdb;ipdb.set_trace()
-    # print("F")
+
     df_score    = get_mstid_scores(sDate=None,eDate=None,
         mstid_list_format='music_guc_{radar}_{sDate}_{eDate}',
         db_name='mstid',mongo_port=27017,**kwargs)
@@ -631,64 +612,3 @@ def get_mstid_days(sDate=None,eDate=None,
     mstid_list  = [x.to_datetime() for x in df_score.index[tf]]
 
     return mstid_list, quiet_list
-
-def set_active_list(name,db,mongo_port=27017):
-    '''Set a mongodb _id to the actively active list.'''
-    
-    # db.active_list.remove()
-    tmp = db.active_list.insert_one({'name':name})
-
-def get_active_list(db_name='mstid',mongo_port=27017):
-    '''Get the active list and create new ones if there are none.'''
-    mongo   = pymongo.MongoClient(port=mongo_port)
-    db      = mongo[db_name]
-    active_list = db['active_list'].find_one()
-    if active_list != None:
-        list_name     = active_list['name']
-    else:
-        list_name     = 'default_list'
-
-    # test = list_name in db.collection_names()
-    test = db[list_name]
-    if test == None:
-        active_list = db['listTracker'].find_one()
-        list_name   = active_list['name']
-        set_active_list(list_name,db)
-
-    return list_name
-
-
-def loadDayLists(mstid_list='mstid_list',gs_sort=False,db_name='mstid',mongo_port=27017):
-    '''Load the MSTID, Quiet, and None day lists from the database.'''
-    ################################################################################
-    #Load from database
-    mongo   = pymongo.MongoClient(port=mongo_port)
-    db      = mongo[db_name]
-    if gs_sort == False:
-        sort_term  = 'date'
-        sort_order = 1
-    else:
-        sort_term  = 'gscat'
-        sort_order = -1
-
-    def getDB(category):
-        
-        if category == 'unclassified':
-            cursor = db[mstid_list].find({'category_manu':{'$exists':False}}).sort(sort_term,sort_order)
-        else:
-            cursor = db[mstid_list].find({'category_manu':category}).sort(sort_term,sort_order)
-#    cursor = db[mstid_list].find(
-#      {'$or': [
-#        {'category_manu': {'$exists': True},  'category_manu':category},
-#        {'category_manu': {'$exists': False}, 'category_auto':category}]
-#        }).sort(sort_term,sort_order)
-        dbDict = [x for x in cursor]
-        return dbDict
-    # import ipdb;ipdb.set_trace()
-    mstidDays  = getDB('mstid')
-    quietDays  = getDB('quiet')
-    noneDays   = getDB('None')
-    unclassifiedDays   = getDB('unclassified')
-      
-    return (mstidDays,quietDays,noneDays,unclassifiedDays)
-

@@ -1,58 +1,58 @@
 #!/usr/bin/env python3
-# import sys
-# import os
+import sys
+import os
 import datetime
-# import subprocess
+import subprocess
 
 import matplotlib
 matplotlib.use('Agg')
 
-# import multiprocessing
+import multiprocessing
 
 import mstid
 from mstid import run_helper
 
 # User-Defined Run Parameters Go Here. #########################################
 radars = []
-# radars.append('cvw')
-# radars.append('cve')
-# radars.append('fhw')
-# radars.append('fhe')
+#radars.append('cvw')
+#radars.append('cve')
+#radars.append('fhw')
+#radars.append('fhe')
 radars.append('bks')
-# radars.append('wal')
+#radars.append('wal')
+#
+#radars.append('sas')
+#radars.append('pgr')
+#radars.append('kap')
+#radars.append('gbr')
 
-# radars.append('sas')
-# radars.append('pgr')
-# radars.append('kap')
-# radars.append('gbr')
-# import ipdb; ipdb.set_trace()
-db_name                     = 'mstid'
+db_name                     = 'mstid_test'
 # Used for creating an SSH tunnel when running the MSTID database on a remote machine.
 #tunnel,mongo_port           = mstid.createTunnel() 
 
 dct                         = {}
 dct['radars']               = radars
-# dct['list_sDate']           = datetime.datetime(2017,11,1)
-# dct['list_eDate']           = datetime.datetime(2018,5,1)
-dct['list_sDate']           = datetime.datetime(2012,12,1)
-dct['list_eDate']           = datetime.datetime(2012,12,2)
+dct['list_sDate']           = datetime.datetime(2017,11,1)
+dct['list_eDate']           = datetime.datetime(2018,5,1)
+#dct['list_sDate']           = datetime.datetime(2012,12,1)
+#dct['list_eDate']           = datetime.datetime(2012,12,15)
 dct['hanning_window_space'] = False # Set to False for MSTID Index Calculation
 dct['bad_range_km']         = None  # Set to None for MSTID Index Calculation
 #dct['mongo_port']           = mongo_port
 dct['db_name']              = db_name
-dct['data_path']            = 'mstid_data/mstid_index'
+dct['data_path']            = '/data/mstid_data/mstid_index'
 dct_list                    = run_helper.create_music_run_list(**dct)
 
-mstid_index         = True
+mstid_index         = False
 new_list            = True      # Create a completely fresh list of events in MongoDB. Delete an old list if it exists.
-recompute           = True     # Recalculate all events from raw data. If False, use existing cached pickle files.
+recompute           = False     # Recalculate all events from raw data. If False, use existing cached pickle files.
 reupdate_db         = True 
 
 music_process       = True
 music_new_list      = True
 music_reupdate_db   = True
 
-nprocs              = 8
+nprocs              = 60
 multiproc           = False
 
 # Classification parameters go here. ###########################################
@@ -62,7 +62,6 @@ classification_path = 'mstid_data/classification'
 # No User Input Below This Line ***********************************************#
 #******************************************************************************#
 if mstid_index:
-    # import ipdb;ipdb.set_trace()
     # Generate MSTID List and do rti_interp level processing.
     run_helper.get_events_and_run(dct_list,process_level='rti_interp',new_list=new_list,
             recompute=recompute,multiproc=multiproc,nprocs=nprocs)
@@ -100,7 +99,7 @@ if mstid_index:
     print('Plotting calendar plot...')
     mstid.calendar_plot(dct_list,db_name=db_name)
 
-
+import ipdb; ipdb.set_trace()
 # Run actual MUSIC Processing ##################################################
 if music_process:
     for dct in dct_list:
@@ -112,7 +111,7 @@ if music_process:
         dct['hanning_window_space'] = True
 #        dct['bad_range_km']         = 500 # Set to 500 for MUSIC Calculation
         dct['bad_range_km']         = None # Set to None to match original calculations
-    
+
     run_helper.get_events_and_run(dct_list,process_level='music',
             new_list=music_new_list,category=['mstid','quiet'],
             multiproc=multiproc,nprocs=nprocs)

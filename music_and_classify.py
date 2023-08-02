@@ -26,26 +26,28 @@ radars.append('bks')
 #radars.append('kap')
 #radars.append('gbr')
 
-db_name                     = 'mstid_test'
+db_name                     = 'mstid_MUSIC'
+base_dir                    = 'mstid_test'
 # Used for creating an SSH tunnel when running the MSTID database on a remote machine.
 #tunnel,mongo_port           = mstid.createTunnel() 
 
 dct                         = {}
 dct['radars']               = radars
-dct['list_sDate']           = datetime.datetime(2017,11,1)
-dct['list_eDate']           = datetime.datetime(2018,5,1)
+dct['list_sDate']           = datetime.datetime(2018,11,1)
+dct['list_eDate']           = datetime.datetime(2018,11,3)
+#dct['list_eDate']           = datetime.datetime(2019,5,1)
 #dct['list_sDate']           = datetime.datetime(2012,12,1)
 #dct['list_eDate']           = datetime.datetime(2012,12,15)
 dct['hanning_window_space'] = False # Set to False for MSTID Index Calculation
 dct['bad_range_km']         = None  # Set to None for MSTID Index Calculation
 #dct['mongo_port']           = mongo_port
 dct['db_name']              = db_name
-dct['data_path']            = '/data/mstid_data/mstid_index'
+dct['data_path']            = os.path.join(base_dir,'mstid_index')
 dct_list                    = run_helper.create_music_run_list(**dct)
 
-mstid_index         = False
+mstid_index         = True
 new_list            = True      # Create a completely fresh list of events in MongoDB. Delete an old list if it exists.
-recompute           = False     # Recalculate all events from raw data. If False, use existing cached pickle files.
+recompute           = True      # Recalculate all events from raw data. If False, use existing cached pickle files.
 reupdate_db         = True 
 
 music_process       = True
@@ -56,7 +58,7 @@ nprocs              = 60
 multiproc           = False
 
 # Classification parameters go here. ###########################################
-classification_path = 'mstid_data/classification'
+classification_path = os.path.join(base_dir,'classification')
 
 #******************************************************************************#
 # No User Input Below This Line ***********************************************#
@@ -97,7 +99,8 @@ if mstid_index:
             multiproc=multiproc,nprocs=5)
 
     print('Plotting calendar plot...')
-    mstid.calendar_plot(dct_list,db_name=db_name)
+    calendar_output_dir = os.path.join(base_dir,'calendar')
+    mstid.calendar_plot(dct_list,db_name=db_name,output_dir=calendar_output_dir)
 
 import ipdb; ipdb.set_trace()
 # Run actual MUSIC Processing ##################################################
@@ -107,7 +110,7 @@ if music_process:
         dct['input_db_name']        = dct['db_name']
         dct['input_mongo_port']     = dct['mongo_port']
         dct['mstid_list']           = 'music_'+dct['mstid_list']
-        dct['data_path']            = 'mstid_data/music_data'
+        dct['data_path']            = os.path.join(base_dir,'music_data')
         dct['hanning_window_space'] = True
 #        dct['bad_range_km']         = 500 # Set to 500 for MUSIC Calculation
         dct['bad_range_km']         = None # Set to None to match original calculations

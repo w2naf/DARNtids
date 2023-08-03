@@ -34,7 +34,8 @@ radars.append('gbr')
 #    radars.append('han')
 
 #db_name                     = 'mstid'
-db_name                     = 'fitexfilter'
+db_name                     = 'mstid_MUSIC'
+base_dir                    = 'mstid_data'
 # Used for creating an SSH tunnel when running the MSTID database on a remote machine.
 #tunnel,mongo_port           = mstid.createTunnel() 
 
@@ -49,10 +50,11 @@ for year in years:
     dct['bad_range_km']         = None  # Set to None for MSTID Index Calculation
     #dct['mongo_port']           = mongo_port
     dct['db_name']              = db_name
-    dct['data_path']            = 'mstid_data/mstid_index'
+    dct['data_path']            = os.path.join(base_dir,'mstid_index')
     dct['boxcar_filter']        = False
+    dct['fitacf_dir']           = '/data/sd-data'
 #    dct['fitacf_dir']           = '/data/sd-data_despeck'
-    dct['fitacf_dir']           = '/data/sd-data_fitexfilter'
+#    dct['fitacf_dir']           = '/data/sd-data_fitexfilter'
     dct_list                    = run_helper.create_music_run_list(**dct)
 
     mstid_index         = True
@@ -60,7 +62,7 @@ for year in years:
     recompute           = False     # Recalculate all events from raw data. If False, use existing cached pickle files.
     reupdate_db         = True 
 
-    music_process       = False
+    music_process       = True
     music_new_list      = True
     music_reupdate_db   = True
 
@@ -68,7 +70,7 @@ for year in years:
     multiproc           = True
 
     # Classification parameters go here. ###########################################
-    classification_path = 'mstid_data/classification'
+    classification_path = os.path.join(base_dir,'classification')
 
     #******************************************************************************#
     # No User Input Below This Line ***********************************************#
@@ -108,4 +110,28 @@ for year in years:
             multiproc=multiproc,nprocs=5)
 
     print('Plotting calendar plot...')
-    mstid.calendar_plot(dct_list,db_name=db_name)
+    calendar_output_dir = os.path.join(base_dir,'calendar')
+    mstid.calendar_plot(dct_list,db_name=db_name,output_dir=calendar_output_dir)
+
+    # Run actual MUSIC Processing ##################################################
+    if music_process:
+        for dct in dct_list:
+            dct['input_mstid_list']     = dct['mstid_list']
+            dct['input_db_name']        = dct['db_name']
+            dct['input_mongo_port']     = dct['mongo_port']
+            dct['mstid_list']           = 'music_'+dct['mstid_list']
+            dct['data_path']            = os.path.join(base_dir,'music_data')
+            dct['hanning_window_space'] = True
+    #        dct['bad_range_km']         = 500 # Set to 500 for MUSIC Calculation
+            dct['bad_range_km']         = None # Set to None to match original calculations
+
+        run_helper.get_events_and_run(dct_list,process_level='music',
+                new_list=music_new_list,category=['mstid','quiet'],
+                multiproc=multiproc,nprocs=nprocs)
+
+        if music_reupdate_db:
+            for dct in dct_list:
+                mstid.updateDb_mstid_list(multiproc=multiproc,nprocs=nprocs,**dct)
+
+#tunnel.kill()
+print("I'm done!")

@@ -927,6 +927,58 @@ def mstid_quiet_legend(update_leg_dict=None,fig=None,
     return legend
 
 def this_actually_does_the_sorting(spect_df,orig_rti_info,all_spect_mean,sort_key):
+    """
+    Sorts all data windows in a season by a particular spectrum parameter.
+
+    Input Arguments:
+        spect_df [shape: (number of spectral bins, number of data windows)]:
+            Spectrum of each data window integrated over all radar cells, but still a function
+            of spectral bin. spect_df contains only the spectral curvers from a single category
+            (mstid or quiet)
+
+        orig_rti_info [shape: (number of data windows, 6 columns)]:
+            Information about the original RTI array.
+                Columns:
+                orig_rti_cnt: Number of radar cells in window with a backscatter measurement.
+                orig_rti_fraction: orig_rti_cnt/orig_rti_possible
+                orig_rti_mean:   Mean of all measured values in the data window.
+                orig_rti_median: Median of all measured values in the data window.
+                orig_rti_possible: Total number of possible radar cells in the data window.
+                orig_rti_std: Standard deviation of all measured values in the data window.
+
+            all_spect_mean [shape: (number of spectral bins]:
+                Average seasonal power spectral density curve calculated from all data windows in
+                both the mstid and quiet categories of a given radar in a given season.
+
+            sort_key: Type of spectrum to sort by. Options are:
+                intSpect_by_rtiCnt (You probably want this one. It is the one
+                                    Frissell et al. (2016, https://doi.org/10.1002/2015JA022168) 
+                                    sorted on and called the `MSTID Index`. See his Section 2.2.)
+                meanSubIntSpect
+                meanSub_spect_df
+                intSpect
+
+    meanSubIntSpect_by_rtiCnt [shape: (# data windows)]:
+                
+
+    Computed Parameters:
+    intSpect [shape: (# data windows)]:
+        Power Spectral Density integrated over all radar cells and spectral bins in a data window.
+
+    meanSub_spect_df [shape: (number of spectral bins, number of data windows)]: 
+        spect_df - all_spect_mean
+
+    meanSubIntSpect [shape: (# data windows)]:
+        Data window PSD curve minus radar seasonal mean PSD curve integrated over
+        all spectral bins in a data window.
+        
+    intSpect_by_rtiCnt [shape: (# data windows)]:
+       intSpect normalized by number of radar cells observing backscatter in the data window 
+
+    meanSubIntSpect_by_rtiCnt [shape: (# data windows)]:
+       meanSubIntSpect normalized by number of radar cells observing backscatter in the data window 
+    """
+
     intSpect                = np.sum(spect_df[spect_df.index >= 0], axis=0)
 
     meanSub_spect_df        = spect_df.subtract(all_spect_mean,axis='index')

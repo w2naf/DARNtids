@@ -6,6 +6,8 @@ import collections
 import numpy as np
 import matplotlib
 
+import pydarn
+
 def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=None,name=None):
     if n is None:
         n = cmap.N
@@ -54,28 +56,49 @@ def get_iterable(x):
         return [x]
 
 def generate_radar_dict():
-    rad_list = []
-    rad_list.append(('bks', 39.6, -81.1))
-    rad_list.append(('wal', 41.8, -72.2))
-    rad_list.append(('fhe', 42.5, -95.0))
-    rad_list.append(('fhw', 43.3, -102.7))
-    rad_list.append(('cve', 46.4, -114.6))
-    rad_list.append(('cvw', 47.9, -123.4))
-    rad_list.append(('gbr', 58.4, -59.9))
-    rad_list.append(('kap', 55.5, -85.0))
-    rad_list.append(('sas', 56.1, -103.8))
-    rad_list.append(('pgr', 58.0, -123.5))
+    """
+    Returns a dictiony of radar latitudes and longitudes.
 
-    rad_list.append(('sto', 63.86, -21.031))
-    rad_list.append(('pyk', 63.77, -20.54))
-    rad_list.append(('han', 62.32,  26.61))
+    Originally, this returned the center of the MSTID FOV viewing area.
+    However, that was manually calculated. In order to run the MUSIC
+    processing easily for all of the radars, this is now pulling 
+    the lat/lon of the SuperDARN transmitter location from the pyDARN
+    hardware.dat files.
+    """
+
+    rads = pydarn.utils.superdarn_radars.SuperDARNRadars.radars
 
     radar_dict = {}
-    for radar,lat,lon in rad_list:
+    for rad_id,rad in rads.items():
+        radar   = rad.hardware_info.abbrev
+        lat     = rad.hardware_info.geographic.lat
+        lon     = rad.hardware_info.geographic.lon
+
         tmp                 = {}
         tmp['lat']          = lat
         tmp['lon']          = lon
         radar_dict[radar]   = tmp
+
+#    # Below is the original MSTID FOV center points and code for
+#    # generating the radar_dict.
+#    rad_list = []
+#    rad_list.append(('bks', 39.6, -81.1))
+#    rad_list.append(('wal', 41.8, -72.2))
+#    rad_list.append(('fhe', 42.5, -95.0))
+#    rad_list.append(('fhw', 43.3, -102.7))
+#    rad_list.append(('cve', 46.4, -114.6))
+#    rad_list.append(('cvw', 47.9, -123.4))
+#    rad_list.append(('gbr', 58.4, -59.9))
+#    rad_list.append(('kap', 55.5, -85.0))
+#    rad_list.append(('sas', 56.1, -103.8))
+#    rad_list.append(('pgr', 58.0, -123.5))
+#
+#    radar_dict = {}
+#    for radar,lat,lon in rad_list:
+#        tmp                 = {}
+#        tmp['lat']          = lat
+#        tmp['lon']          = lon
+#        radar_dict[radar]   = tmp
 
     return radar_dict
 

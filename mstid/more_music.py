@@ -578,7 +578,7 @@ def run_music(radar,sTime,eTime,
     
     # Make sure FOV object and data array have the same number of rangegates.
     if good:
-        if dataObj.active.fov['beams'].size != dataObj.active.data.shape[0]:
+        if dataObj.active.fov['beams'].size != dataObj.active.data.shape[1]:
             reject_messages.append('Number of FOV beams != number of beams in data array. Rejecting observation window.')
             good = False
 

@@ -62,6 +62,8 @@ base_dir                    = 'mstid_data'
 
 for year in years:
     dct                         = {}
+    dct['fovModel']             = 'HALF_SLANT'
+#    dct['fovModel']             = 'GS'
     dct['radars']               = radars
     dct['list_sDate']           = datetime.datetime(year,  11,1)
     dct['list_eDate']           = datetime.datetime(year+1, 5,1)

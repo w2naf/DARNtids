@@ -263,7 +263,7 @@ def create_music_obj(radar, sTime, eTime
     if hasattr(dataObj,'messages'):
         if 'No data for this time period.' in dataObj.messages:
             bad = True # At this point, proven guilty.
-    
+
     if not bad:
         gl = None
         if np.size(gate_limits) == 2:
@@ -563,10 +563,12 @@ def run_music(radar,sTime,eTime,
             with open(messages_filename,'w') as fl:
                 fl.write(messages)
             print(messages)
-            txt = 'No data for this time period.' 
-            if txt in dataObj.messages:
-                reject_messages.append(txt)
-                good = False
+            error_text = []
+            error_text.append('No data for this time period.')
+            for txt in error_text:
+                if txt in dataObj.messages:
+                    reject_messages.append(txt)
+                    good = False
 
     if good:
         if hasattr(dataObj,'active'):
@@ -575,6 +577,11 @@ def run_music(radar,sTime,eTime,
                 good = False
     
     # Make sure FOV object and data array have the same number of rangegates.
+    if good:
+        if dataObj.active.fov['beams'].size != dataObj.active.data.shape[0]:
+            reject_messages.append('Number of FOV beams != number of beams in data array. Rejecting observation window.')
+            good = False
+
     if good:
         if dataObj.active.fov['gates'].size != dataObj.active.data.shape[2]:
             reject_messages.append('Number of FOV gates != number of gates in data array.  Radar probably running a non-standard mode that this code is not equipped to handle.')

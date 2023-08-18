@@ -15,48 +15,48 @@ from mstid import run_helper
 years = list(range(2010,2022))
 
 radars = []
-radars.append('ade')
-radars.append('adw')
-radars.append('bks')
-radars.append('cve')
-radars.append('cvw')
-radars.append('cly')
-radars.append('fhe')
-radars.append('fhw')
-radars.append('gbr')
-radars.append('han')
-radars.append('hok')
-radars.append('hkw')
-radars.append('inv')
-radars.append('jme')
-radars.append('ksr')
-radars.append('kod')
-radars.append('lyr')
-radars.append('pyk')
-radars.append('pgr')
-radars.append('rkn')
-radars.append('sas')
-radars.append('sch')
-radars.append('sto')
-radars.append('wal')
+#radars.append('ade')
+#radars.append('adw')
+#radars.append('bks')
+#radars.append('cve')
+#radars.append('cvw')
+#radars.append('cly')
+#radars.append('fhe')
+#radars.append('fhw')
+#radars.append('gbr')
+#radars.append('han')
+#radars.append('hok')
+#radars.append('hkw')
+#radars.append('inv')
+#radars.append('jme')
+#radars.append('ksr')
+#radars.append('kod')
+#radars.append('lyr')
+#radars.append('pyk')
+#radars.append('pgr')
+#radars.append('rkn')
+#radars.append('sas')
+#radars.append('sch')
+#radars.append('sto')
+#radars.append('wal')
 
 ## Standard North American Radars
-#radars.append('cvw')
-#radars.append('cve')
-#radars.append('fhw')
-#radars.append('fhe')
-#radars.append('bks')
-#radars.append('wal')
-#
-#radars.append('sas')
-#radars.append('pgr')
-#radars.append('kap')
-#radars.append('gbr')
+radars.append('cvw')
+radars.append('cve')
+radars.append('fhw')
+radars.append('fhe')
+radars.append('bks')
+radars.append('wal')
+
+radars.append('sas')
+radars.append('pgr')
+radars.append('kap')
+radars.append('gbr')
 
 
-#db_name                     = 'mstid'
-db_name                     = 'mstid_MUSIC_all_NH'
-base_dir                    = 'mstid_data'
+db_name                     = 'mstid_HALF_SLANT'
+#db_name                     = 'mstid_MUSIC_all_NH'
+base_dir                    = 'mstid_data_HALF_SLANT'
 # Used for creating an SSH tunnel when running the MSTID database on a remote machine.
 #tunnel,mongo_port           = mstid.createTunnel() 
 

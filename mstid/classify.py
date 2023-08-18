@@ -59,7 +59,10 @@ def mstid_classification(radar,list_sDate,list_eDate,mstid_list,
     cmd.append(str(mongo_port))
     print(('MSTID Classifying: {} {} {!s} {!s}'.format(mstid_list,radar,list_sDate,list_eDate)))
     print((' '.join(cmd)))
-    subprocess.check_call(cmd)
+    try:
+        subprocess.check_call(cmd)
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError("command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output))
 
 def mstid_classification_dct(dct):
     mstid_classification(**dct)
@@ -354,9 +357,21 @@ def thresh_box(yvals,ax,thresh=0.):
     nr_good = np.count_nonzero(yvals >= 0)
     nr_bad  = yvals.size - nr_good
     text = []
-    txt     = '{:0.0f}% >= {!s}'.format(nr_good/np.float(yvals.size)*100.,np.float(thresh))
+
+    if yvals.size != 0:
+        pct = nr_good/np.float(yvals.size)*100.
+        pct = '{:0.0f}'.format(pct)
+    else:
+        pct = 'undef'
+    txt     = '{!s}% >= {!s}'.format(pct,np.float(thresh))
     text.append(txt)
-    txt     = '{:0.0f}% < {!s}'.format(nr_bad/np.float(yvals.size)*100.,np.float(thresh))
+
+    if yvals.size != 0:
+        pct = nr_bad/np.float(yvals.size)*100.
+        pct = '{:0.0f}'.format(pct)
+    else:
+        pct = 'undef'
+    txt     = '{!s}% < {!s}'.format(pct,np.float(thresh))
     text.append(txt)
     props = dict(boxstyle='round', facecolor='white', alpha=0.75)
     ax.text(0.0275,0.800,'\n'.join(text),transform=ax.transAxes,bbox=props,fontsize='small')

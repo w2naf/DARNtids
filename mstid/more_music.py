@@ -596,7 +596,6 @@ def run_music(radar,sTime,eTime,
             gate_limits = auto_range(radar,sTime,eTime,dataObj,bad_range_km=bad_range_km)
             pyDARNmusic.defineLimits(dataObj,gateLimits=gate_limits)
         except:
-            import ipdb; ipdb.set_trace()
             reject_messages.append('auto_range() computation error.')
             good = False
 

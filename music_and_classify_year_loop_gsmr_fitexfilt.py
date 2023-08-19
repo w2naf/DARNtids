@@ -12,7 +12,8 @@ import multiprocessing
 import mstid
 from mstid import run_helper
 
-years = list(range(2010,2022))
+#years = list(range(2010,2022))
+years   = [2012]
 
 radars = []
 #radars.append('ade')
@@ -41,17 +42,17 @@ radars = []
 #radars.append('wal')
 
 ## Standard North American Radars
-radars.append('cvw')
-radars.append('cve')
-radars.append('fhw')
-radars.append('fhe')
+#radars.append('cvw')
+#radars.append('cve')
+#radars.append('fhw')
+#radars.append('fhe')
 radars.append('bks')
-radars.append('wal')
-
-radars.append('sas')
-radars.append('pgr')
-radars.append('kap')
-radars.append('gbr')
+#radars.append('wal')
+#
+#radars.append('sas')
+#radars.append('pgr')
+#radars.append('kap')
+#radars.append('gbr')
 
 
 db_name                     = 'mstid_GSMR_fitexfilt'
@@ -65,10 +66,10 @@ for year in years:
 #    dct['fovModel']             = 'HALF_SLANT'
     dct['fovModel']             = 'GS'
     dct['radars']               = radars
-    dct['list_sDate']           = datetime.datetime(year,  11,1)
-    dct['list_eDate']           = datetime.datetime(year+1, 5,1)
-#    dct['list_sDate']           = datetime.datetime(2012,12,1)
-#    dct['list_eDate']           = datetime.datetime(2012,12,15)
+#    dct['list_sDate']           = datetime.datetime(year,  11,1)
+#    dct['list_eDate']           = datetime.datetime(year+1, 5,1)
+    dct['list_sDate']           = datetime.datetime(2012,12,1)
+    dct['list_eDate']           = datetime.datetime(2012,12,15)
     dct['hanning_window_space'] = False # Set to False for MSTID Index Calculation
     dct['bad_range_km']         = None  # Set to None for MSTID Index Calculation
     #dct['mongo_port']           = mongo_port
@@ -82,7 +83,7 @@ for year in years:
 
     mstid_index         = True
     new_list            = True      # Create a completely fresh list of events in MongoDB. Delete an old list if it exists.
-    recompute           = False     # Recalculate all events from raw data. If False, use existing cached pickle files.
+    recompute           = True      # Recalculate all events from raw data. If False, use existing cached pickle files.
     reupdate_db         = True 
 
     music_process       = True
@@ -90,7 +91,7 @@ for year in years:
     music_reupdate_db   = True
 
     nprocs              = 60
-    multiproc           = True
+    multiproc           = False
 
     # Classification parameters go here. ###########################################
     classification_path = os.path.join(base_dir,'classification')

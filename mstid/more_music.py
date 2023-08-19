@@ -990,7 +990,7 @@ def calculate_terminator(lats,lons,dates):
     term_tau    = np.zeros(shape,dtype=float)
     term_dec    = np.zeros(shape,dtype=float)
 
-    terminator  = np.ones(shape,dtype=np.bool)
+    terminator  = np.ones(shape,dtype=bool)
 
     for inx,date in enumerate(dates):
         term_tup = pyDARNmusic.utils.timeUtils.daynight_terminator(date, lons)

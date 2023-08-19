@@ -738,11 +738,11 @@ def calculate_terminator(lats,lons,dates):
 
     shape       = (len(dates),lats.shape[0],lats.shape[1])
 
-    term_lats   = np.zeros(shape,dtype=np.float)
-    term_tau    = np.zeros(shape,dtype=np.float)
-    term_dec    = np.zeros(shape,dtype=np.float)
+    term_lats   = np.zeros(shape,dtype=float)
+    term_tau    = np.zeros(shape,dtype=float)
+    term_dec    = np.zeros(shape,dtype=float)
 
-    terminator  = np.ones(shape,dtype=np.bool)
+    terminator  = np.ones(shape,dtype=bool)
 
     for inx,date in enumerate(dates):
         term_tup = daynight_terminator(date, lons)
@@ -778,7 +778,7 @@ def plot_classification_variables(dataObj,dct,dataSet='active',filename='classif
     fig = plt.figure(figsize=(10,8))
 
     ax  = fig.add_subplot(2,1,1)
-    y_vals = np.sum(currentData.terminator,axis=(1,2)) / np.float( len(currentData.fov["latCenter"]) )
+    y_vals = np.sum(currentData.terminator,axis=(1,2)) / float( len(currentData.fov["latCenter"]) )
     ax.plot(currentData.time,y_vals,'o-')
 
     fontdict = {'size':14,'weight':'bold'}
@@ -789,7 +789,7 @@ def plot_classification_variables(dataObj,dct,dataSet='active',filename='classif
     ax.set_ylabel('Terminator Cells',fontdict=fontdict)
     ax.set_ylim(0,1.1)
     
-#    pct_term = 100.*np.sum(currentData.terminator)/np.float(currentData.terminator.size)
+#    pct_term = 100.*np.sum(currentData.terminator)/float(currentData.terminator.size)
     text = []
     text.append('Term Frac: {0:0.3f}'.format(dct['terminator_fraction']))
     text.append('RTI Frac : {0:0.3f}'.format(dct['orig_rti_fraction']))

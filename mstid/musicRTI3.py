@@ -496,7 +496,7 @@ class musicRTI3(object):
 
             # Calculate terminator. ########################################################
             if plotTerminator:
-                daylight = np.ones([nrTimes,nrGates],np.bool)
+                daylight = np.ones([nrTimes,nrGates],bool)
                 for tm_inx in range(nrTimes):
                     tm                  = time[tm_inx]
                     term_lons           = lonCenter[beamInx,:]
@@ -1469,7 +1469,7 @@ def plotFullSpectrum(dataObj,dataSet='active',
     axis.add_patch(poly)
 
     #X-Labels
-    modX      = np.ceil(npf / np.float(maxXTicks))
+    modX      = np.ceil(npf / float(maxXTicks))
 
     xlabels = []
     xpos    = []

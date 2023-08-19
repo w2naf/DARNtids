@@ -322,14 +322,14 @@ def auto_range(radar,sTime,eTime,dataObj,bad_range_km=500,
     dist    = np.nan_to_num(dist / np.nanmax(dist))
 
     nrPts   = 1000
-    distArr = np.array([],dtype=np.int)
+    distArr = np.array([],dtype=int)
     for rg in range(len(bins)):
         gate    = bins[rg]
         nrGate  = int(np.floor(dist[rg]*nrPts))
         if nrGate < 0:
             nrGate = 0
 
-        distArr = np.concatenate([distArr,np.ones(nrGate,dtype=np.int)*gate])
+        distArr = np.concatenate([distArr,np.ones(nrGate,dtype=int)*gate])
 
     hist,bins           = np.histogram(distArr,bins=bins,density=True)
     hist                = sp.signal.medfilt(hist,kernel_size=11)
@@ -985,11 +985,11 @@ def calculate_terminator(lats,lons,dates):
 
     shape       = (len(dates),lats.shape[0],lats.shape[1])
 
-    term_lats   = np.zeros(shape,dtype=np.float)
-    term_tau    = np.zeros(shape,dtype=np.float)
-    term_dec    = np.zeros(shape,dtype=np.float)
+    term_lats   = np.zeros(shape,dtype=float)
+    term_tau    = np.zeros(shape,dtype=float)
+    term_dec    = np.zeros(shape,dtype=float)
 
-    terminator  = np.ones(shape,dtype=np.bool)
+    terminator  = np.ones(shape,dtype=bool)
 
     for inx,date in enumerate(dates):
         term_tup = pyDARNmusic.utils.timeUtils.daynight_terminator(date, lons)

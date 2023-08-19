@@ -359,19 +359,19 @@ def thresh_box(yvals,ax,thresh=0.):
     text = []
 
     if yvals.size != 0:
-        pct = nr_good/np.float(yvals.size)*100.
+        pct = nr_good/float(yvals.size)*100.
         pct = '{:0.0f}'.format(pct)
     else:
         pct = 'undef'
-    txt     = '{!s}% >= {!s}'.format(pct,np.float(thresh))
+    txt     = '{!s}% >= {!s}'.format(pct,float(thresh))
     text.append(txt)
 
     if yvals.size != 0:
-        pct = nr_bad/np.float(yvals.size)*100.
+        pct = nr_bad/float(yvals.size)*100.
         pct = '{:0.0f}'.format(pct)
     else:
         pct = 'undef'
-    txt     = '{!s}% < {!s}'.format(pct,np.float(thresh))
+    txt     = '{!s}% < {!s}'.format(pct,float(thresh))
     text.append(txt)
     props = dict(boxstyle='round', facecolor='white', alpha=0.75)
     ax.text(0.0275,0.800,'\n'.join(text),transform=ax.transAxes,bbox=props,fontsize='small')
@@ -1098,7 +1098,7 @@ def classify_mstid_events(data_dict,threshold=0.,read_only=False):
             info        = sort_df[sort_df.index == event_inx]
             info_keys   = ['intSpect','meanSubIntSpect','intSpect_by_rtiCnt','meanSubIntSpect_by_rtiCnt']
             for info_key in info_keys:
-                val     = np.float(info[info_key])
+                val     = float(info[info_key])
                 status  = db[mstid_list].update_one({'_id':_id},{'$set':{info_key:val}})
 
             status  = db[mstid_list].update_one({'_id':item['_id']},{'$set': {'category_manu':categ}})

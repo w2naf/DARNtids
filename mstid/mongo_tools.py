@@ -347,7 +347,7 @@ def dataObj_update_mongoDb(radar,sTime,eTime,dataObj,
         bools               = np.logical_and(currentData.time > sTime,
                                              currentData.time < eTime)
         real_terminator     = currentData.terminator[bools,:,:] #Account for the fact that the active data array may have been zeropadded. 
-        terminator_fraction = np.sum(real_terminator)/np.float(real_terminator.size)
+        terminator_fraction = np.sum(real_terminator)/float(real_terminator.size)
 
         tmp = {'terminator_fraction':terminator_fraction}
         dct.update(tmp)

@@ -603,6 +603,12 @@ def run_music(radar,sTime,eTime,
             reject_messages.append('auto_range() too small.')
             good = False
 
+        gates_tf    = np.logical_and(dataObj.active.fov['gates'] >= gate_limits[0], dataObj.active.fov['gates'] < gate_limits[1])
+        ranges      = dataObj.active.fov['slantRCenter'][:,gates_tf]
+        if np.count_nonzero(np.isfinite(ranges)) == 0:
+            reject_messages.append('auto_range() returned only NaN ranges.')
+            good = False
+
 #        try:
 #            gate_limits = auto_range(radar,sTime,eTime,dataObj,bad_range_km=bad_range_km)
 #            pyDARNmusic.defineLimits(dataObj,gateLimits=gate_limits)

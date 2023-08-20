@@ -605,8 +605,8 @@ def run_music(radar,sTime,eTime,
 
         gates_tf    = np.logical_and(dataObj.active.fov['gates'] >= gate_limits[0], dataObj.active.fov['gates'] < gate_limits[1])
         ranges      = dataObj.active.fov['slantRCenter'][:,gates_tf]
-        if np.count_nonzero(np.isfinite(ranges)) == 0:
-            reject_messages.append('auto_range() returned only NaN ranges.')
+        if np.any(~np.isfinite(ranges)):
+            reject_messages.append('auto_range() returned NaN ranges.')
             good = False
 
 #        try:

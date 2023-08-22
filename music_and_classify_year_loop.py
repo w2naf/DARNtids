@@ -12,7 +12,8 @@ import multiprocessing
 import mstid
 from mstid import run_helper
 
-years = list(range(2010,2022))
+#years = list(range(2010,2022))
+years   = [2012]
 
 radars = []
 #radars.append('ade')
@@ -54,16 +55,16 @@ radars.append('kap')
 radars.append('gbr')
 
 
-db_name                     = 'mstid_HALF_SLANT'
+db_name                     = 'mstid_GSMR_fitexfilter'
 #db_name                     = 'mstid_MUSIC_all_NH'
-base_dir                    = 'mstid_data_HALF_SLANT'
+base_dir                    = db_name
 # Used for creating an SSH tunnel when running the MSTID database on a remote machine.
 #tunnel,mongo_port           = mstid.createTunnel() 
 
 for year in years:
     dct                         = {}
-    dct['fovModel']             = 'HALF_SLANT'
-#    dct['fovModel']             = 'GS'
+#    dct['fovModel']             = 'HALF_SLANT'
+    dct['fovModel']             = 'GS'
     dct['radars']               = radars
     dct['list_sDate']           = datetime.datetime(year,  11,1)
     dct['list_eDate']           = datetime.datetime(year+1, 5,1)
@@ -75,9 +76,8 @@ for year in years:
     dct['db_name']              = db_name
     dct['data_path']            = os.path.join(base_dir,'mstid_index')
     dct['boxcar_filter']        = False
-    dct['fitacf_dir']           = '/data/sd-data'
-#    dct['fitacf_dir']           = '/data/sd-data_despeck'
-#    dct['fitacf_dir']           = '/data/sd-data_fitexfilter'
+#    dct['fitacf_dir']           = '/data/sd-data'
+    dct['fitacf_dir']           = '/data/sd-data_fitexfilter'
     dct_list                    = run_helper.create_music_run_list(**dct)
 
     mstid_index         = True

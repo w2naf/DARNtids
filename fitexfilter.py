@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 """
-despeck.py
-
-This routine will batch-despeckle fitacf files using
-https://radar-software-toolkit-rst.readthedocs.io/en/latest/user_guide/despecking/
+fitexfilter.py
 """
 
 import os
@@ -86,7 +83,7 @@ def despeckle(tbp):
     cmd = 'bzcat {!s} > {!s}'.format(file_in,raw_uncmp)
     subprocess.run(cmd,shell=True)
 
-    cmd = 'fit_speck_removal -quiet {!s} | bzip2 -c > {!s}'.format(raw_uncmp,file_out)
+    cmd = 'fitexfilter {!s} | bzip2 -c > {!s}'.format(raw_uncmp,file_out)
     subprocess.run(cmd,shell=True)
     
     os.remove(raw_uncmp)
@@ -95,9 +92,11 @@ if __name__ == "__main__":
 
     N_proc      = 60
     sDate       = datetime.datetime(2012,1,1)
-    eDate       = datetime.datetime(2024,1,1)
+    eDate       = datetime.datetime(2013,5,1)
+#    eDate       = datetime.datetime(2024,1,1)
 
     radars      = ['pgr','sas','kap','gbr','cvw','cve','fhw','fhe','bks','wal']
+#    radars      = ['bks']
 
     to_be_processed = find_to_be_processed(sDate,eDate,radars=radars)
     generate_directories(to_be_processed)

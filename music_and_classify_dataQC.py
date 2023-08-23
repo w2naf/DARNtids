@@ -81,7 +81,7 @@ for year in years:
 
     mstid_index         = True
     new_list            = True      # Create a completely fresh list of events in MongoDB. Delete an old list if it exists.
-    recompute           = False     # Recalculate all events from raw data. If False, use existing cached pickle files.
+    recompute           = True     # Recalculate all events from raw data. If False, use existing cached pickle files.
     reupdate_db         = True 
 
     music_process       = True

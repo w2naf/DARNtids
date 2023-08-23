@@ -13,9 +13,10 @@ import multiprocessing
 import subprocess
 
 # BEGIN REMOVE AFTER DEBUG #####################################################
-from .more_music import read_init_param_file
 import pandas as pd
 import os
+from .more_music import read_init_param_file
+import pymongo
 class Check2016(object):
     def __init__(self):
         """
@@ -43,25 +44,75 @@ class Check2016(object):
 
         df      = df_0[keys].copy()
         self.df = df
-    def query_2016(self,init_file):
+#    def query_2016(self,init_file):
+#        """
+#        Return the item record with the 2016 processing information
+#        for a given init file.
+#        init_file: filename of DARNtids initialization file.
+#        """
+#        df  = self.df
+#        ip  = read_init_param_file(init_file)
+#
+#        srch    = []
+#        srch.append(df['sDatetime']             == ip['sTime'])
+#        srch.append(df['fDatetime']             == ip['eTime'])
+#        srch.append(df['radar']                 == ip['radar'])
+#        srch.append(df['mstid_2016:collection'] == ip['mstid_list'])
+#        tf      = np.logical_and.reduce(srch)
+#        assert np.count_nonzero(tf) < 2, "More than one matching record found."
+#        
+#        item    = df[tf].iloc[0]
+#        return item
+
+    def query_2016(self,init_file,db_name='mstid_2016'):
         """
         Return the item record with the 2016 processing information
         for a given init file.
         init_file: filename of DARNtids initialization file.
         """
-        df  = self.df
+
+        item    = self.query(init_file,db_name=db_name)
+        return item
+
+    def query(self,init_file,db_name=None):
+        """
+        Return the item record from the current database record
+        for a given init file.
+        init_file: filename of DARNtids initialization file.
+        """
         ip  = read_init_param_file(init_file)
 
-        srch    = []
-        srch.append(df['sDatetime']             == ip['sTime'])
-        srch.append(df['fDatetime']             == ip['eTime'])
-        srch.append(df['radar']                 == ip['radar'])
-        srch.append(df['mstid_2016:collection'] == ip['mstid_list'])
-        tf      = np.logical_and.reduce(srch)
-        assert np.count_nonzero(tf) < 2, "More than one matching record found."
-        
-        item    = df[tf].iloc[0]
+        if db_name is None:
+            db_name     = ip['db_name']
+
+        collection  = ip['mstid_list']
+        mongo_port  = ip['mongo_port']
+
+        mongo   = pymongo.MongoClient(port=mongo_port)
+        db      = mongo[db_name]
+
+        dbc     = db[collection]
+        mqry    = {}
+        mqry['radar']       = ip['radar']
+        mqry['sDatetime']   = ip['sTime']
+        mqry['fDatetime']   = ip['eTime']
+
+        count   = dbc.count_documents(mqry)
+        assert count < 2, "More than one matching record found."
+        item    = dbc.find_one(mqry)
+
         return item
+
+    def check(self,init_file):
+        """
+        Check the current results of an init file against the 2016 database
+        and store results to self.results.
+        """
+
+        qry_2016    = self.query_2016(init_file)
+        qry_current = self.query(init_file)
+
+        import ipdb; ipdb.set_trace()
 # END REMOVE AFTER DEBUG #######################################################
 
 def create_music_run_list(radars,list_sDate,list_eDate,
@@ -251,10 +302,10 @@ def get_events_and_run(dct_list,process_level=None,new_list=False,
         for init_file in init_files:
             cmd = ['./run_single_event.py',init_file]
             print(' '.join(cmd))
-            qry = qc.query_2016(init_file)
-            import ipdb; ipdb.set_trace()
             run_music_init_param_file(init_file)
 
+            qc.check(init_file)
+            import ipdb; ipdb.set_trace()
 
 def get_seDates_from_groups(radar_groups,date_fmt='%d %b %Y',sep='_'):
     dates = []

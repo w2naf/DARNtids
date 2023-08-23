@@ -12,6 +12,58 @@ import numpy as np
 import multiprocessing
 import subprocess
 
+# BEGIN REMOVE AFTER DEBUG #####################################################
+from .more_music import read_init_param_file
+import pandas as pd
+import os
+class Check2016(object):
+    def __init__(self):
+        """
+        Class to check and keep track of how well the current processing
+        is accepting or rejecting observational windows compared to the 
+        Frissell et al. (2016) paper database.
+        """
+
+        # Load in CSV and convert to dataframe.
+        csv_in  = os.path.join('data','db_compare','mstid_2016-mstid_GSMR_fitexfilter','mstid_2016-mstid_GSMR_fitexfilter.csv')
+        df_0    = pd.read_csv(csv_in,comment='#',index_col=0,parse_dates=[1,2])
+
+        keys    = []
+        keys.append('sDatetime')
+        keys.append('fDatetime')
+        keys.append('radar')
+        keys.append('mstid_2016:category_manu')
+        keys.append('mstid_2016:meanSubIntSpect_by_rtiCnt')
+        keys.append('mstid_2016:reject_code')
+        keys.append('mstid_2016:collection')
+#        keys.append('mstid_GSMR_fitexfilter:category_manu')
+#        keys.append('mstid_GSMR_fitexfilter:meanSubIntSpect_by_rtiCnt')
+#        keys.append('mstid_GSMR_fitexfilter:reject_code')
+#        keys.append('mstid_GSMR_fitexfilter:collection')
+
+        df      = df_0[keys].copy()
+        self.df = df
+    def query_2016(self,init_file):
+        """
+        Return the item record with the 2016 processing information
+        for a given init file.
+        init_file: filename of DARNtids initialization file.
+        """
+        df  = self.df
+        ip  = read_init_param_file(init_file)
+
+        srch    = []
+        srch.append(df['sDatetime']             == ip['sTime'])
+        srch.append(df['fDatetime']             == ip['eTime'])
+        srch.append(df['radar']                 == ip['radar'])
+        srch.append(df['mstid_2016:collection'] == ip['mstid_list'])
+        tf      = np.logical_and.reduce(srch)
+        assert np.count_nonzero(tf) < 2, "More than one matching record found."
+        
+        item    = df[tf].iloc[0]
+        return item
+# END REMOVE AFTER DEBUG #######################################################
+
 def create_music_run_list(radars,list_sDate,list_eDate,
         db_name='mstid',mongo_port=27017,
         mstid_format='guc_{radar}_{sDate}_{eDate}',
@@ -188,6 +240,7 @@ def get_events_and_run(dct_list,process_level=None,new_list=False,
     init_files  = [generate_initial_param_file(event) for event in events]
 
     # Send events off to MUSIC for rti_interp level processing. ####################
+    qc  = Check2016()
     if multiproc:
         if len(init_files) > 0:
             pool = multiprocessing.Pool(nprocs)
@@ -198,7 +251,10 @@ def get_events_and_run(dct_list,process_level=None,new_list=False,
         for init_file in init_files:
             cmd = ['./run_single_event.py',init_file]
             print(' '.join(cmd))
+            qry = qc.query_2016(init_file)
+            import ipdb; ipdb.set_trace()
             run_music_init_param_file(init_file)
+
 
 def get_seDates_from_groups(radar_groups,date_fmt='%d %b %Y',sep='_'):
     dates = []

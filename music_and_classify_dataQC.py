@@ -89,7 +89,7 @@ for year in years:
     music_reupdate_db   = True
 
     nprocs              = 60
-    multiproc           = True
+    multiproc           = False
 
     # Classification parameters go here. ###########################################
     classification_path = os.path.join(base_dir,'classification')

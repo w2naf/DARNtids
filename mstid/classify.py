@@ -378,7 +378,7 @@ def thresh_box(yvals,ax,thresh=0.):
     ax.axhline(0,ls='--',color='r',lw=2.0)
 
 def classify_none_events(mstid_list,db_name='mstid',mongo_port=27017,
-        rti_fraction_threshold=0.25,terminator_fraction_threshold=0.,**kwargs):
+        rti_fraction_threshold=0.675,terminator_fraction_threshold=0.,**kwargs):
     """
     Classify an event period as good or bad based on:
         1. Whether or not data is available.

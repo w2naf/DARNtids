@@ -12,8 +12,7 @@ import multiprocessing
 import mstid
 from mstid import run_helper
 
-#years = list(range(2010,2022))
-years   = [2012]
+years = list(range(2018,2022))
 
 radars = []
 #radars.append('ade')
@@ -56,7 +55,6 @@ radars.append('gbr')
 
 
 db_name                     = 'mstid_GSMR_fitexfilter'
-#db_name                     = 'mstid_MUSIC_all_NH'
 base_dir                    = db_name
 # Used for creating an SSH tunnel when running the MSTID database on a remote machine.
 #tunnel,mongo_port           = mstid.createTunnel() 

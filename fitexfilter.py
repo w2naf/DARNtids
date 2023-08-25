@@ -97,10 +97,10 @@ if __name__ == "__main__":
 #    radars      = ['pgr','sas','kap','gbr','cvw','cve','fhw','fhe','bks','wal']
     radars      = None # Set to None to process all radars.
 
+    print('Finding files to filter...')
     to_be_processed = find_to_be_processed(sDate,eDate,radars=radars)
     print('Total files to filter: {!s}\n'.format(len(to_be_processed)))
 
-    import ipdb; ipdb.set_trace()
     generate_directories(to_be_processed)
 
     print('Filtering files...')

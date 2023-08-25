@@ -25,11 +25,11 @@ def find_to_be_processed(sDate,eDate,radars=None,
     years       = sDate.year + np.arange((eDate.year - sDate.year)+1)
 
     to_be_processed = []
-    for year in years:
+    for year in tqdm.tqdm(years,desc='Years',dynamic_ncols=True):
         year_path   = os.path.join(base_in,str(year),in_type)
         radar_paths = glob.glob(os.path.join(year_path,'*'))
 
-        for radar_path in radar_paths:
+        for radar_path in tqdm.tqdm(radar_paths,desc='Radars',dynamic_ncols=True,leave=False):
             radar = os.path.basename(radar_path)
 
             # Only include specific radars if asked.
@@ -38,7 +38,7 @@ def find_to_be_processed(sDate,eDate,radars=None,
 
             files_in = glob.glob(os.path.join(radar_path,'*.{!s}.bz2'.format(in_type)))
 
-            for file_in in files_in:
+            for file_in in tqdm.tqdm(files_in,desc='Files',dynamic_ncols=True,leave=False):
                 bname_in = os.path.basename(file_in)
                 time_in  = datetime.datetime.strptime(bname_in[:13],'%Y%m%d.%H%M')
 
@@ -91,16 +91,19 @@ def despeckle(tbp):
 if __name__ == "__main__":
 
     N_proc      = 60
-    sDate       = datetime.datetime(2012,1,1)
-    eDate       = datetime.datetime(2013,5,1)
-#    eDate       = datetime.datetime(2024,1,1)
+    sDate       = datetime.datetime(2010,1,1)
+    eDate       = datetime.datetime(2023,1,1)
 
-    radars      = ['pgr','sas','kap','gbr','cvw','cve','fhw','fhe','bks','wal']
-#    radars      = ['bks']
+#    radars      = ['pgr','sas','kap','gbr','cvw','cve','fhw','fhe','bks','wal']
+    radars      = None # Set to None to process all radars.
 
     to_be_processed = find_to_be_processed(sDate,eDate,radars=radars)
+    print('Total files to filter: {!s}\n'.format(len(to_be_processed)))
+
+    import ipdb; ipdb.set_trace()
     generate_directories(to_be_processed)
 
+    print('Filtering files...')
     if N_proc == 1:
         for tbp in tqdm.tqdm(to_be_processed,dynamic_ncols=True):
             despeckle(tbp)

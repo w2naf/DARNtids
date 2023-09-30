@@ -12,7 +12,7 @@ import multiprocessing
 import mstid
 from mstid import run_helper
 
-years = list(range(2018,2022))
+years = list(range(2010,2022))
 
 radars = []
 #radars.append('ade')
@@ -53,30 +53,30 @@ radars.append('pgr')
 radars.append('kap')
 radars.append('gbr')
 
-
 db_name                     = 'mstid_GSMR_fitexfilter'
 base_dir                    = db_name
 # Used for creating an SSH tunnel when running the MSTID database on a remote machine.
 #tunnel,mongo_port           = mstid.createTunnel() 
 
 for year in years:
-    dct                         = {}
-#    dct['fovModel']             = 'HALF_SLANT'
-    dct['fovModel']             = 'GS'
-    dct['radars']               = radars
-    dct['list_sDate']           = datetime.datetime(year,  11,1)
-    dct['list_eDate']           = datetime.datetime(year+1, 5,1)
-#    dct['list_sDate']           = datetime.datetime(2012,12,1)
-#    dct['list_eDate']           = datetime.datetime(2012,12,15)
-    dct['hanning_window_space'] = False # Set to False for MSTID Index Calculation
-    dct['bad_range_km']         = None  # Set to None for MSTID Index Calculation
-    #dct['mongo_port']           = mongo_port
-    dct['db_name']              = db_name
-    dct['data_path']            = os.path.join(base_dir,'mstid_index')
-    dct['boxcar_filter']        = False
-#    dct['fitacf_dir']           = '/data/sd-data'
-    dct['fitacf_dir']           = '/data/sd-data_fitexfilter'
-    dct_list                    = run_helper.create_music_run_list(**dct)
+    dct                             = {}
+#    dct['fovModel']                 = 'HALF_SLANT'
+    dct['fovModel']                 = 'GS'
+    dct['radars']                   = radars
+    dct['list_sDate']               = datetime.datetime(year,  11,1)
+    dct['list_eDate']               = datetime.datetime(year+1, 5,1)
+#    dct['list_sDate']               = datetime.datetime(2012,12,1)
+#    dct['list_eDate']               = datetime.datetime(2012,12,15)
+    dct['hanning_window_space']     = False # Set to False for MSTID Index Calculation
+    dct['bad_range_km']             = None  # Set to None for MSTID Index Calculation
+    #dct['mongo_port']              = mongo_port
+    dct['db_name']                  = db_name
+    dct['data_path']                = os.path.join(base_dir,'mstid_index')
+    dct['boxcar_filter']            = False
+#    dct['fitacf_dir']               = '/data/sd-data'
+    dct['fitacf_dir']               = '/data/sd-data_fitexfilter'
+    dct['rti_fraction_threshold']   = 0.5
+    dct_list                        = run_helper.create_music_run_list(**dct)
 
     mstid_index         = True
     new_list            = True      # Create a completely fresh list of events in MongoDB. Delete an old list if it exists.

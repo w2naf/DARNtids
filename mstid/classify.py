@@ -463,7 +463,7 @@ def classify_none_events(mstid_list,db_name='mstid',mongo_port=27017,
 
         if not good:
             bad_counter += 1
-            entry_id = db[mstid_list].update_one({'_id':item['_id']}, {'$set':{'category_manu': 'None', 'reject_message':reject_message}})
+            entry_id = db[mstid_list].update_one({'_id':item['_id']}, {'$set':{'good_period':good,'category_manu': 'None', 'reject_message':reject_message}})
 
     print(('{bc:d} events marked as None.'.format(bc=bad_counter)))
     print(('no_data: {!s}'.format(no_data)))

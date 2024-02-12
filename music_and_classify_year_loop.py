@@ -1,4 +1,20 @@
 #!/usr/bin/env python3
+"""
+music_and_classify_year_loop.py
+Nathaniel A. Frissell
+nathaniel.frissell@scranton.edu
+5 February 2024
+
+This script will calculate the level of Medium Scale Traveling Ionospheric Disturbance (MSTID)
+activity observed by SuperDARN radars via the MSTID Index described by Frissell et al. (2016)
+(https://doi.org/10.1002/2015JA022168). It will also run the SuperDARN MSTID MUSIC algorithm
+(https://github.com/HamSCI/pyDARNmusic) to estimate the speed, propagation direction, and 
+horizontal wavelength of the observed MSTIDs.
+
+This script will take in a directory of SuperDARN FITACF files as input data and will store
+the summary output in a MongoDB. Detailed numerical output is stored in pickle files in the 
+specified output directory. PNG graphical output is stored there, too.
+"""
 import sys
 import os
 import datetime
@@ -12,34 +28,9 @@ import multiprocessing
 import mstid
 from mstid import run_helper
 
-years = list(range(2010,2022))
+years = list(range(2018,2019))
 
 radars = []
-#radars.append('ade')
-#radars.append('adw')
-#radars.append('bks')
-#radars.append('cve')
-#radars.append('cvw')
-#radars.append('cly')
-#radars.append('fhe')
-#radars.append('fhw')
-#radars.append('gbr')
-#radars.append('han')
-#radars.append('hok')
-#radars.append('hkw')
-#radars.append('inv')
-#radars.append('jme')
-#radars.append('ksr')
-#radars.append('kod')
-#radars.append('lyr')
-#radars.append('pyk')
-#radars.append('pgr')
-#radars.append('rkn')
-#radars.append('sas')
-#radars.append('sch')
-#radars.append('sto')
-#radars.append('wal')
-
 ## Standard North American Radars
 radars.append('cvw')
 radars.append('cve')
@@ -53,42 +44,42 @@ radars.append('pgr')
 radars.append('kap')
 radars.append('gbr')
 
-db_name                     = 'mstid_GSMR_fitexfilter'
+db_name                     = 'mstid_GSMR_fitexfilter' # Name of output MongoDB to store results.
 base_dir                    = db_name
-# Used for creating an SSH tunnel when running the MSTID database on a remote machine.
-#tunnel,mongo_port           = mstid.createTunnel() 
 
 for year in years:
     dct                             = {}
-#    dct['fovModel']                 = 'HALF_SLANT'
-    dct['fovModel']                 = 'GS'
+#    dct['fovModel']                 = 'HALF_SLANT' # Use a 1/2 slant range mapping equation.
+    dct['fovModel']                 = 'GS' # Use the Ground Scatter Mapping Equation (Bristow et al., 1994, https://doi.org/10.1029/93JA01470, Pg. 324)
     dct['radars']                   = radars
     dct['list_sDate']               = datetime.datetime(year,  11,1)
     dct['list_eDate']               = datetime.datetime(year+1, 5,1)
-#    dct['list_sDate']               = datetime.datetime(2012,12,1)
-#    dct['list_eDate']               = datetime.datetime(2012,12,15)
-    dct['hanning_window_space']     = False # Set to False for MSTID Index Calculation
+    dct['hanning_window_space']     = False # Set to False for MSTID Index Calculation. This will prevent the data at the field-of-view edges from tapering to zero.
     dct['bad_range_km']             = None  # Set to None for MSTID Index Calculation
-    #dct['mongo_port']              = mongo_port
     dct['db_name']                  = db_name
-    dct['data_path']                = os.path.join(base_dir,'mstid_index')
-    dct['boxcar_filter']            = False
-#    dct['fitacf_dir']               = '/data/sd-data'
+    dct['data_path']                = os.path.join(base_dir,'mstid_index') # Output directory for PNG and Pickle files.
+
+    # FITACF data used was pre-filtered using the boxcar filter written by A.J. Ribeiro.
+    # See fitexfilter/ directory for binary and script for pre-filtering FITACF data.
     dct['fitacf_dir']               = '/data/sd-data_fitexfilter'
-    dct['rti_fraction_threshold']   = 0.5
+
+    # 'rti_fraction_threshold' is the Minimum fraction of scatter in an observational window to be considered "good" data and not discarded.
+    # Note that the value was 0.675 in Frissel et al. (2016), but is reduced to 0.25 for Frissell et al. (2024) GRL because the 2018-2019 season
+    # was in a lower portion of the solar cycle and had less useable ground scatter.
+    dct['rti_fraction_threshold']   = 0.25 
     dct_list                        = run_helper.create_music_run_list(**dct)
 
-    mstid_index         = True
+    mstid_index         = True      # If True, caculate the MSTID index.
     new_list            = True      # Create a completely fresh list of events in MongoDB. Delete an old list if it exists.
     recompute           = False     # Recalculate all events from raw data. If False, use existing cached pickle files.
-    reupdate_db         = True 
+    reupdate_db         = True      # Re-populate the MongoDB using the cached data files on disk.
 
-    music_process       = True
-    music_new_list      = True
-    music_reupdate_db   = True
+    music_process       = False     # If True, use the MUSIC algorithm to determine MSTID wavelength, propagation direction, and speed. Not used in Frissell et al. (2024) GRL
+    music_new_list      = True      # Create a completely fresh list of events in MongoDB for MUSIC processing. Delete an old list if it exists.
+    music_reupdate_db   = True      # Re-populate the MongoDB for MUSIC processing using the cached data files on disk.
 
-    nprocs              = 60
-    multiproc           = True
+    nprocs              = 60        # Number of threads to use with multiprocessing.
+    multiproc           = True      # Enable/disable multiprocessing.
 
     # Classification parameters go here. ###########################################
     classification_path = os.path.join(base_dir,'classification')

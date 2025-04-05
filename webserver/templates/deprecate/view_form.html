@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+{% block body %}
+
+  <table>
+    <tr>
+      <th>Parameter</th>
+      <th>Value</th>
+    </tr>
+    <tr>  
+    <form action="{{ url_for('db_upsert_view') }}" method=post class=add-entry>
+      <tr>
+        <td><strong>View Name</strong></td>
+        <td><input type=text size=40 name=viewName value="{{ params.viewName }}"></td>
+      </tr>
+      <!-- <tr><td colspan="2"><h2>[DEFAULT]</h2></td></tr>  --!>
+      <tr>
+        <td>data_type</td>
+        <td><input type=text size=40 name=data_type value="{{ params.data_type }}"></td>
+      </tr>
+      <tr>
+        <td>vg_files</td>
+        <td><input type=text size=40 name=vg_files value="{{ params.vg_files }}"></td>
+      </tr>
+      <tr>
+        <td>time_zone</td>
+        <td><input type=text size=40 name=time_zone value="{{ params.time_zone }}"></td>
+      </tr>
+      <tr>
+        <td>color_map</td>
+        <td><input type=text size=40 name=color_map value="{{ params.color_map }}"></td>
+      </tr>
+      <tr>
+        <td>plot_contours</td>
+        <td><input type=text size=40 name=plot_contours value="{{ params.plot_contours }}"></td>
+      </tr>
+      <tr>
+        <td>plot_meridians</td>
+        <td><input type=text size=40 name=plot_meridians value="{{ params.plot_meridians }}"></td>
+      </tr>
+      <tr>
+        <td>plot_parallels</td>
+        <td><input type=text size=40 name=plot_parallels value="{{ params.plot_parallels }}"></td>
+      </tr>
+      <tr>
+        <td>plot_terminator</td>
+        <td><input type=text size=40 name=plot_terminator value="{{ params.plot_terminator }}"></td>
+      </tr>
+      <tr>
+        <td>fileName</td>
+        <td><input type=text size=40 name=fileName value="{{ params.fileName }}"></td>
+      </tr>
+    <tr>
+      {% if edit %}
+        <input type="hidden" name="ObjectId" value="{{ _oid }}">
+        <td colspan="100" class=submit-cell><input type=submit value="Update View"></td>
+      {% else %}
+        <input type="hidden" name="ObjectId" value="">
+        <td colspan="100" class=submit-cell><input type=submit value="Add View"></td>
+      {% endif %}
+    </tr>
+    </form>
+  </table>
+
+
+{% endblock %}

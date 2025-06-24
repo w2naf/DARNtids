@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os
-import pickle
+from hdf5_api import loadMusicArrayFromHDF5
 import time
 
 import numpy as np
@@ -249,7 +249,7 @@ class Segment(Markers):
         super(Segment,self).__init__(markers,gray=gray)
 
 class MstidTracker(object):
-    def __init__(self,filename='../data/wal-20121101.1400-20121101.1600.p'):
+    def __init__(self,filename='../data/wal-20121101.1400-20121101.1600.h5'):
 
         settings= {}
         self.settings           = settings
@@ -276,8 +276,7 @@ class MstidTracker(object):
         settings['scale_factor'] = 3
         settings['cv_interp']   = cv2.INTER_LINEAR # or cv2.INTER_NEAREST
 
-        with open(settings['filename'],'rb') as file_obj:
-            dataObj = pickle.load(file_obj)
+        dataObj = loadMusicArrayFromHDF5(settings['filename'])
 
         self.currentData    = dataObj.DS000_originalFit
 
@@ -493,7 +492,7 @@ class AdjustSettings(wx.Frame):
         self.data.settings['brightness'] = event.GetPosition()/10.
 
 class ShowData(wx.Frame):
-    def __init__(self, parent, id, title, fps=15,filename='../data/wal-20121101.1400-20121101.1600.p'):
+    def __init__(self, parent, id, title, fps=15,filename='../data/wal-20121101.1400-20121101.1600.h5'):
         self.path       = filename
         self.initialize = True
 
@@ -504,8 +503,7 @@ class ShowData(wx.Frame):
         self.data       = MstidTracker(filename=self.path)
 
 
-#        with open('output/trackerObj.p','wb') as fl:
-#            pickle.dump(self.data,fl)
+#        saveMusicArrayToHDF5(self.data, 'output/trackerObj.h5')
 
 
 #        t1  = datetime.datetime.now()

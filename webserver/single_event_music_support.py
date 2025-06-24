@@ -3,7 +3,8 @@ import sys
 import utils
 import shutil
 import tempfile
-import pickle
+import h5py
+from hdf5_api import saveMusicArrayToHDF5, loadMusicArrayFromHDF5, saveDictToHDF5
 import datetime
 import glob
 
@@ -35,8 +36,8 @@ def get_output_path(radar,sDatetime,fDatetime,create=True):
             pass
     return path
 
-def get_pickle_name(radar,sDatetime,fDatetime,getPath=False,createPath=False):
-    fName = ('-'.join([radar.lower(),sDatetime.strftime('%Y%m%d.%H%M'),fDatetime.strftime('%Y%m%d.%H%M')]))+'.p'
+def get_hdf5_name(radar,sDatetime,fDatetime,getPath=False,createPath=False):
+    fName = ('-'.join([radar.lower(),sDatetime.strftime('%Y%m%d.%H%M'),fDatetime.strftime('%Y%m%d.%H%M')]))+'.h5'
     if getPath:
         path = get_output_path(radar,sDatetime,fDatetime,create=createPath)
         fName = os.path.join(path,fName)
@@ -44,21 +45,22 @@ def get_pickle_name(radar,sDatetime,fDatetime,getPath=False,createPath=False):
 
 class Runfile(object):
     def __init__(self,radar,sDatetime,fDatetime, runParamsDict):
-        picklePath = get_pickle_name(radar,sDatetime,fDatetime,getPath=True,createPath=True)
-        picklePath = picklePath[:-1] + 'runfile.p'
+        hdf5Path = get_hdf5_name(radar,sDatetime,fDatetime,getPath=True,createPath=True)
+        hdf5Path = hdf5Path[:-2] + 'runfile.h5'
         
         self.runParams = {}
         for key,value in runParamsDict.items():
             self.runParams[key] = value
 
-        self.runParams['runfile_path'] = picklePath
+        self.runParams['runfile_path'] = hdf5Path
         
-        pickle.dump(self,open(picklePath,'wb'))
+        with h5py.File(hdf5Path, 'w') as fl:
+            saveDictToHDF5(fl, self.__dict__)
         
 
 def load_runfile_path(path):
         try:
-            runFile = pickle.load(open(path,'rb'))
+            runFile = loadMusicArrayFromHDF5(path)
         except:
             runFile = None
         
@@ -66,10 +68,10 @@ def load_runfile_path(path):
 
 
 def load_runfile(radar,sDatetime,fDatetime):
-        picklePath = get_pickle_name(radar,sDatetime,fDatetime,getPath=True,createPath=True)
-        picklePath = picklePath[:-1] + 'runfile.p'
+        hdf5Path = get_hdf5_name(radar,sDatetime,fDatetime,getPath=True,createPath=True)
+        hdf5Path = hdf5Path[:-2] + 'runfile.h5'
 
-        return load_runfile_path(picklePath)
+        return load_runfile_path(hdf5Path)
         
 def createMusicObj(radar, sDatetime, fDatetime
         ,beamLimits                 = None
@@ -121,8 +123,8 @@ def createMusicObj(radar, sDatetime, fDatetime
     if bl != None:
         music.defineLimits(dataObj,beamLimits=bl)
 
-    picklePath = get_pickle_name(radar,sDatetime,fDatetime,getPath=True,createPath=True)
-    pickle.dump(dataObj,open(picklePath,'wb'))
+    hdf5Path = get_hdf5_name(radar,sDatetime,fDatetime,getPath=True,createPath=True)
+    saveMusicArrayToHDF5(dataObj, hdf5Path)
 
     return dataObj
 
@@ -165,7 +167,7 @@ def run_music(runfile_path):
     runFile         = load_runfile_path(runfile_path)
     musicParams     = runFile.runParams
     musicObj_path   = musicParams['musicObj_path']
-    dataObj         = pickle.load(open(musicObj_path,'rb'))
+    dataObj = loadMusicArrayFromHDF5(musicObj_path)
 
     rad         = musicParams['radar']
     interpRes   = musicParams['interpRes']
@@ -217,13 +219,13 @@ def run_music(runfile_path):
 
     music.detectSignals(dataObj,threshold=threshold,neighborhood=neighborhood)
 
-    pickle.dump(dataObj,open(musicObj_path,'wb'))
+    saveMusicArrayToHDF5(dataObj, musicObj_path)
 
 def music_plot_all(runfile_path):
     runFile         = load_runfile_path(runfile_path)
     musicParams     = runFile.runParams
     musicObj_path   = musicParams['musicObj_path']
-    dataObj         = pickle.load(open(musicObj_path,'rb'))
+    dataObj = loadMusicArrayFromHDF5(musicObj_path)
 
     rad         = musicParams['radar']
     interpRes   = musicParams['interpRes']
@@ -378,7 +380,7 @@ def music_plot_rti(runfile_path):
     runFile         = load_runfile_path(runfile_path)
     musicParams     = runFile.runParams
     musicObj_path   = musicParams['musicObj_path']
-    dataObj         = pickle.load(open(musicObj_path,'rb'))
+    dataObj = loadMusicArrayFromHDF5(musicObj_path)
 
     rad         = musicParams['radar']
     interpRes   = musicParams['interpRes']
@@ -408,7 +410,7 @@ def music_plot_fan(runfile_path,time=None,fileName='fan.png',scale=None):
     runFile         = load_runfile_path(runfile_path)
     musicParams     = runFile.runParams
     musicObj_path   = musicParams['musicObj_path']
-    dataObj         = pickle.load(open(musicObj_path,'rb'))
+    dataObj = loadMusicArrayFromHDF5(musicObj_path)
 
     rad         = musicParams['radar']
     interpRes   = musicParams['interpRes']
@@ -433,7 +435,7 @@ def music_plot_karr(runfile_path,fileName='karr.png',maxSignals=25):
     runFile         = load_runfile_path(runfile_path)
     musicParams     = runFile.runParams
     musicObj_path   = musicParams['musicObj_path']
-    dataObj         = pickle.load(open(musicObj_path,'rb'))
+    dataObj = loadMusicArrayFromHDF5(musicObj_path)
 
     fig = Figure(figsize=(10,10))
     pydarn.plotting.musicPlot.plotKarr(dataObj,fig=fig,maxSignals=maxSignals)

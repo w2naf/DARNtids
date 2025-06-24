@@ -1,13 +1,14 @@
 #!/usr/bin/env python
-#Script to inspect various things about pickled blob track dictionaries.
+#Script to inspect various things about hdf5d blob track dictionaries.
 #Right now, it prints out the name of every file that does not have a tracked blobs
 #of a minimum lifetime.
 
 # import music_support as msc
 
 import os
-import pickle
 import glob
+import h5py
+from hdf5_api import extractDataFromHDF5
 
 #mstid_list  = 'paper2_wal_2012'
 mstid_list  = 'paper2_bks_2010_2011_0817mlt'
@@ -16,14 +17,14 @@ output_dir          = os.path.join('output',mstid_list)
 output_dirs         = {}
 output_dirs['blob_dict']        = os.path.join(output_dir,'blob_dict')
 
-files   = glob.glob(os.path.join(output_dirs['blob_dict'],'*.blob_dict.p'))
+files   = glob.glob(os.path.join(output_dirs['blob_dict'],'*.blob_dict.h5'))
 
 good    = 0
 bad     = 0
 
 for fl_name in files:
-    with open(fl_name,'rb') as fl:
-        blob_dict = pickle.load(fl)
+    with h5py.File(fl_name, 'r') as fl:
+        blob_dict = extractDataFromHDF5(fl)
 
     lifetime = {}
     for _id in list(blob_dict.keys()):

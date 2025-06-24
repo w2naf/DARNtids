@@ -3,7 +3,7 @@
 import os
 # import shutil
 import datetime
-import pickle
+from hdf5_api import saveMusicArrayToHDF5
 
 import matplotlib
 matplotlib.use('Agg')
@@ -180,9 +180,8 @@ if __name__ == '__main__':
     if glbs.sort_by == 'r_sqrd' or glbs.sort_by == 'mean_pct_correct':
         sorted_ranking_list = sorted_ranking_list[::-1]
 
-    rank_file   = os.path.join(glbs.output_dirs['rank'],'sorted_rank.p')
-    with open(rank_file,'wb') as fl:
-        pickle.dump(sorted_ranking_list,fl)
+    rank_file   = os.path.join(glbs.output_dirs['rank'],'sorted_rank.h5')
+    saveMusicArrayToHDF5(sorted_ranking_list, rank_file)
 
 #    for item in sorted_ranking_list:
 #        print item[mean_mean_key]

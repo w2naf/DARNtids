@@ -8,7 +8,6 @@
 
 import os
 import copy
-import pickle
 import datetime
 import glob
 import shutil
@@ -39,6 +38,7 @@ import pymongo
 from .general_lib import prepare_output_dirs
 from . import more_music
 from .more_music import get_output_path
+from hdf5_api import loadMusicArrayFromHDF5, saveMusicArrayToHDF5
 
 def mstid_classification(radar,list_sDate,list_eDate,mstid_list,
         sort_key='meanSubIntSpect_by_rtiCnt',
@@ -481,22 +481,22 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
         2. Integrates spectra over beam and gate to give event spectra that is only a function of frequency.
         3. Interpolates all spectra to ensure every event is on an identical grid.
         4. Places all of this information into a dictionary containing pandas dataframes.
-        5. Pickles the output into a cache file.
+        5. hdf5s the output into a cache file.
 
     Note that this processing is only done on "uncategorized" events.  So, if you want to re-create
     cache files, you should start with an unclassified MSTID list and be prepared to re-classify
     everything afterward.
 
-    If use_cache is True and the routine can find a cached pickle file, that file will be loaded instead of
+    If use_cache is True and the routine can find a cached hdf5 file, that file will be loaded instead of
     processing the data from scratch.
 
     Finally, one dataframe is create that contains all of the event spectra in a single place.  This is
     created after all other processing and even cache loading.
 
     * mstid_list:   Name of MSTID List/mongo collection
-    * data_path:    Location of MUSIC dataObj pickle files.
-    * use_cache:    Try loading results of a previous run of this routine stored in pickle files.
-    * cache_dir:    Where the cached pickle files are located.
+    * data_path:    Location of MUSIC dataObj hdf5 files.
+    * use_cache:    Try loading results of a previous run of this routine stored in hdf5 files.
+    * cache_dir:    Where the cached hdf5 files are located.
     * read_only:    Safety switch to prevent overwriteing of files.  Useful when you don't want to 
                     fiddle with the cache.
     * test_mode:    Drop to ipdb after anlyzing 5 events.  Useful for debugging/development.
@@ -504,7 +504,7 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
     * mongo_port:   Port mongo should connect on.
     """
 
-    cache_name  = os.path.join(cache_dir,'classify_{}.{}.p'.format(mstid_list,os.path.basename(data_path)))
+    cache_name  = os.path.join(cache_dir,'classify_{}.{}.h5'.format(mstid_list,os.path.basename(data_path)))
 
     if (not os.path.exists(cache_name) or not use_cache) and (not read_only):
         mongo       = pymongo.MongoClient(port=mongo_port)
@@ -619,13 +619,11 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
             data_dict[categ]['spect_df'] = spect_df
 
         # Save all of that hard work to disk!
-        with open(cache_name,'wb') as fl:
-            pickle.dump(data_dict,fl)
+        saveMusicArrayToHDF5(data_dict, cache_name)
         mongo.close()
     else:
         print(("I'm using the cache! ({})".format(cache_name)))
-        with open(cache_name,'rb') as fl:
-            data_dict = pickle.load(fl)
+        data_dict = loadMusicArrayFromHDF5(cache_name)
 
     data_dict['all_spect_df'] = create_all_spect_df(data_dict)
     return data_dict

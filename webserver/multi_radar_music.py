@@ -4,7 +4,7 @@ sys.path.append('/data/mypython')
 
 import os
 import datetime
-import pickle
+from hdf5_api import saveMusicArrayToHDF5, loadMusicArrayFromHDF5
 import shutil
 from operator import itemgetter
 import glob
@@ -86,9 +86,8 @@ def check_list_for_bad_start_gate(event_list):
             sDatetime               = event['sDatetime']
             fDatetime               = event['fDatetime']
 
-            picklePath  = msc.get_pickle_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
-            with open(picklePath,'rb') as fl:
-                dataObj = pickle.load(fl)
+            hdf5Path  = msc.get_hdf5_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
+            dataObj = loadMusicArrayFromHDF5(hdf5Path)
 
             bad_range   = np.max(np.where(dataObj.DS000_originalFit.fov.slantRCenter < 0)[1])
             if np.min(dataObj.DS000_originalFit.metadata['gateLimits']) <= bad_range:
@@ -171,11 +170,10 @@ def run_music(event_list,
             now = datetime.datetime.now()
 
             #Only run processing if we are told to not recompute and if MUSIC has been run and signals have been detected.
-            picklePath  = msc.get_pickle_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
+            hdf5Path  = msc.get_hdf5_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
             if not recompute:
-                if os.path.exists(picklePath):
-                    with open(picklePath,'rb') as fl:
-                        test_obj    = pickle.load(fl)
+                if os.path.exists(hdf5Path):
+                    test_obj = loadMusicArrayFromHDF5(hdf5Path)
                     if hasattr(test_obj.active,'sigDetect'):
                         print(now,print_cat,'(%d of %d)' % (event_nr, nr_events), radar,sDatetime,'MUSIC already computed.  Skipping!!')
                         continue
@@ -291,7 +289,7 @@ def run_music(event_list,
                 tmpd                        = multi_radar_dict[dict_key]
 
                 tmpd['musicPath']   = msc.get_output_path(rad_key, sDatetime, fDatetime,sub_dir=tmpd['merge'])
-                tmpd['picklePath']  = msc.get_pickle_name(rad_key,sDatetime,fDatetime,getPath=True,sub_dir=tmpd['merge'],createPath=False)
+                tmpd['hdf5Path']  = msc.get_hdf5_name(rad_key,sDatetime,fDatetime,getPath=True,sub_dir=tmpd['merge'],createPath=False)
 
 #                if new_music_obj:
                 try:
@@ -307,7 +305,7 @@ def run_music(event_list,
                         ,filterNumtaps              = numtaps 
                         )
 #                else:
-#                    tmpd['dataObj'] = pickle.load(open(tmpd['picklePath'],'rb'))
+#                    tmpd['dataObj'] = loadMusicArrayFromHDF5(tmpd['hdf5Path'])
 
                 # Create a run file. ###########################################################
                 runParams = {}
@@ -321,7 +319,7 @@ def run_music(event_list,
                 runParams['filter_cutoff_low']  = cutoff_low
                 runParams['filter_cutoff_high'] = cutoff_high
                 runParams['path']               = tmpd['musicPath']
-                runParams['musicObj_path']      = tmpd['picklePath']
+                runParams['musicObj_path']      = tmpd['hdf5Path']
                 runParams['window_data']        = window_data
                 runParams['kx_max']             = kx_max
                 runParams['ky_max']             = ky_max
@@ -357,7 +355,7 @@ def run_music(event_list,
                     tmpd['runfile_obj']     = msc.Runfile(rad_key.lower(), sDatetime, fDatetime, runParams)
                     if 'dataObj' in tmpd:
                         pydarn.proc.music.defineLimits(tmpd['dataObj'],gateLimits=gateLimits)
-                        pickle.dump(tmpd['dataObj'],open(tmpd['picklePath'],'wb'))
+                        saveMusicArrayToHDF5(tmpd['dataObj'], tmpd['hdf5Path'])
 
                         #Plot the RTI plot for each radar.
                         msc.plot_music_rti(tmpd['dataObj'],fileName=os.path.join(tmpd['musicPath'],'000_originalFit_RTI.png'))
@@ -374,18 +372,17 @@ def run_music(event_list,
                     tmp_output_dir  = multi_radar_dict[dict_key]['musicPath']
                     tmp_split       = os.path.split(tmp_output_dir)
                     tmp_output_dir  = tmp_split[0]
-                    tmp_output_dir  = tmp_output_dir.replace(base_merge_type,'compare_pickle')  
+                    tmp_output_dir  = tmp_output_dir.replace(base_merge_type,'compare_hdf5')  
                     handling.prepare_output_dirs({0:tmp_output_dir})
 
-                    tmp_fName       = tmp_split[1]+'_'+radar+'.p'
-                    tmp_pickle = os.path.join(tmp_output_dir,tmp_fName)
-                    with open(tmp_pickle,'wb') as tp:
-                        pickle.dump(multi_radar_dict,tp)
+                    tmp_fName       = tmp_split[1]+'_'+radar+'.h5'
+                    tmp_hdf5 = os.path.join(tmp_output_dir,tmp_fName)
+                    saveMusicArrayToHDF5(multi_radar_dict, tmp_hdf5)
 #                    msc.music_plot_all(tmpd['runfile_path'],process_level=process_level)
 
                 if process_level == 'all':
                     # Print signals out to text file. ##############################################
-#                    dataObj     = pickle.load(open(picklePath,'rb'))
+#                    dataObj = loadMusicArrayFromHDF5(hdf5Path)
                     dataObj     = tmpd['dataObj']
                     dataSets    = dataObj.get_data_sets()
                     currentData = getattr(dataObj,dataSets[-1])

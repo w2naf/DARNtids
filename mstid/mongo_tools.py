@@ -333,7 +333,7 @@ def dataObj_update_mongoDb(radar,sTime,eTime,dataObj,
     if good_period:
         good_period = dataObj.DS000_originalFit.metadata.get('good_period')
 
-    status  = db[mstid_list].update_one({'_id':_id},{'$set': {'good_period':good_period} })
+    status  = db[mstid_list].update_one({'_id':_id},{'$set': {'good_period': bool(good_period)} })
     if not good_period:
         mongo.close()
         return
@@ -407,6 +407,9 @@ def updateDb_mstid_list_event(event_tuple):
 #    subprocess.check_call(cmd)
     
     dataObj     = more_music.get_dataObj(radar,sTime,eTime,data_path)
+    if dataObj is None:
+        print("No valid dataObj for {} {} - skipping update.".format(radar, sTime))
+        return
     status      = dataObj_update_mongoDb(radar,sTime,eTime,dataObj,mstid_list,
                     db_name,mongo_port)
 

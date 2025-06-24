@@ -7,7 +7,7 @@ import os
 import shutil
 import inspect
 import datetime
-import pickle
+from hdf5_api import saveMusicArrayToHDF5
 from operator import itemgetter
 import glob
 
@@ -298,10 +298,9 @@ save_obj = {}
 save_obj['mstid']   = mstid_data_dict
 save_obj['quiet']   = quiet_data_dict
 save_obj['none']    = none_data_dict
-pckl_file = os.path.join(output_dir,mstid_list+'.p')
+pckl_file = os.path.join(output_dir,mstid_list+'.h5')
 
-with open(pckl_file,'wb') as pckl_obj:
-    pickle.dump(save_obj,pckl_obj)
+saveMusicArrayToHDF5(save_obj, pckl_file)
 
 for param_code,param_dict in prm_dict.items():
     for var in list(param_dict.keys()):

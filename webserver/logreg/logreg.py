@@ -3,7 +3,7 @@ import sys
 import os
 import shutil
 import datetime
-import pickle
+import hdf5
 
 import matplotlib
 matplotlib.use('Agg')

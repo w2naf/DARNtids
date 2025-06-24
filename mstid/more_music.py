@@ -1,9 +1,10 @@
 import os
 import sys
 import shutil
-import pickle
 import datetime
 import json
+import h5py
+from hdf5_api import saveMusicArrayToHDF5, loadMusicArrayFromHDF5, saveDictToHDF5
 
 import matplotlib
 from matplotlib import pyplot as plt
@@ -108,44 +109,43 @@ def get_output_path(radar,sTime,eTime,data_path='music_data/music',create=False)
             pass
     return path
 
-def get_pickle_name(radar,sTime,eTime,data_path='music_data/music',getPath=False,createPath=False,
+def get_hdf5_name(radar,sTime,eTime,data_path='music_data/music',getPath=False,createPath=False,
         runfile=False,init_param=False):
-    fName = ('-'.join([radar.lower(),sTime.strftime('%Y%m%d.%H%M'),eTime.strftime('%Y%m%d.%H%M')]))+'.p'
+    fName = ('-'.join([radar.lower(), sTime.strftime('%Y%m%d.%H%M'), eTime.strftime('%Y%m%d.%H%M')])) + '.h5'
 
     if getPath:
         path    = get_output_path(radar,sTime,eTime,data_path=data_path,create=createPath)
         fName   = os.path.join(path,fName)
 
     if runfile:
-        fName = fName[:-1] + 'runfile.p'
+        fName = fName[:-2] + 'runfile.h5'
 
     if init_param:
-        fName = fName[:-1] + 'init.json'
+        fName = fName[:-2] + 'init.json'
 
     return fName
 
 class Runfile(object):
-    def __init__(self,radar,sTime,eTime,runParamsDict,data_path='music_data/music'):
-        pickle_path     = get_pickle_name(radar,sTime,eTime
-                ,getPath=True,createPath=True,data_path=data_path)
-        runfile_path    = pickle_path[:-1] + 'runfile.p'
+    def __init__(self, radar, sTime, eTime, runParamsDict, data_path='music_data/music'):
+        hdf5_path  = get_hdf5_name(radar, sTime, eTime, getPath=True, createPath=True, data_path=data_path)
+        runfile_path = hdf5_path[:-2] + 'runfile.h5'
         
         self.runParams = {}
-        for key,value in runParamsDict.items():
+        for key, value in runParamsDict.items():
             self.runParams[key] = value
 
         self.runParams['runfile_path'] = runfile_path
         
-        with open(runfile_path,'wb') as fl:
-            pickle.dump(self,fl)
-    
-        json_path           = pickle_path[:-1] + 'runfile.json'
-        json_dict           = dict(self.runParams)
-        json_dict['sTime']  = str(json_dict['sTime'])
-        json_dict['eTime']  = str(json_dict['eTime'])
-        with open(json_path,'w') as fl:
-            json.dump(json_dict,fl,indent=4,sort_keys=True,
-                    separators=(', ', ': '),ensure_ascii=False,cls=NumpyEncoder)
+        with h5py.File(runfile_path, 'w') as fl:
+            saveDictToHDF5(fl, self.__dict__)
+        
+        json_path = hdf5_path[:-2] + 'runfile.json'
+        json_dict = dict(self.runParams)
+        json_dict['sTime'] = str(json_dict['sTime'])
+        json_dict['eTime'] = str(json_dict['eTime'])
+        with open(json_path, 'w') as fl:
+            json.dump(json_dict, fl, indent=4, sort_keys=True,
+                      separators=(', ', ': '), ensure_ascii=False, cls=NumpyEncoder)
 
 def generate_initial_param_file(event,data_path='music_data/music',clear_init_params_dir=False,prefix=None):
     """
@@ -166,7 +166,7 @@ def generate_initial_param_file(event,data_path='music_data/music',clear_init_pa
     sTime   = event.get('sTime')
     eTime   = event.get('eTime')
 
-    json_fname  = get_pickle_name(radar,sTime,eTime,init_param=True)
+    json_fname  = get_hdf5_name(radar,sTime,eTime,init_param=True)
     if prefix is not None:
         json_fname = prefix + json_fname
     json_path   = os.path.join(init_params_dir,json_fname)
@@ -194,11 +194,10 @@ def read_init_param_file(json_path):
 
     return init_params
 
-def get_dataObj(radar,sTime,eTime,data_path='music_data/music'):
-    pickle_path = get_pickle_name(radar,sTime,eTime,data_path,getPath=True)
-    if os.path.exists(pickle_path):
-        with open(pickle_path,'rb') as fl:
-            dataObj = pickle.load(fl)
+def get_dataObj(radar, sTime, eTime, data_path='music_data/music'):
+    hdf5_path = get_hdf5_name(radar, sTime, eTime, data_path, getPath=True)
+    if os.path.exists(hdf5_path):
+        dataObj = loadMusicArrayFromHDF5(hdf5_path)
     else:
         dataObj = None
 
@@ -216,7 +215,7 @@ def create_music_obj(radar, sTime, eTime
         ,gscat              = 1
         ):
     """
-    srcPath:    Path to Saved Pickle Files
+    srcPath:    Path to Saved hdf5 Files
     fitacf_dir: Path to fitacf files
 
     * [**gscat**] (int): Ground scatter flag.
@@ -241,8 +240,7 @@ def create_music_obj(radar, sTime, eTime
 #        myPtr   = pydarn.sdio.radDataOpen(load_sTime,radar,eTime=load_eTime,filtered=fitfilter)
         fitacf  = pyDARNmusic.load_fitacf(radar,load_sTime,load_eTime,data_dir=fitacf_dir)
     else:
-        with open(srcPath,'rb') as fl:
-            myPtr   = pickle.load(fl)
+        myPtr = loadMusicArrayFromHDF5(srcPath)
 
         # Force load_sTime, load_eTime as if simulated data were real data.
         scan_inxs = []
@@ -532,7 +530,7 @@ def run_music(radar,sTime,eTime,
 
     process_level   = ProcessLevel(str(process_level))
     music_path  = get_output_path(radar, sTime, eTime,data_path=data_path,create=True)
-    pickle_path = get_pickle_name(radar,sTime,eTime,data_path=data_path,getPath=True)
+    hdf5_path = get_hdf5_name(radar,sTime,eTime,data_path=data_path,getPath=True)
 
     prepare_output_dirs({0:music_path},clear_output_dirs=True)
 
@@ -634,7 +632,7 @@ def run_music(radar,sTime,eTime,
     run_params['filter_cutoff_high']    = filter_cutoff_high
     run_params['music_path']            = music_path 
     run_params['data_path']             = data_path 
-    run_params['pickle_path']           = pickle_path
+    run_params['hdf5_path']           = hdf5_path
     run_params['detrend']               = detrend 
     run_params['hanning_window_space']  = hanning_window_space
     run_params['hanning_window_time']   = hanning_window_time
@@ -653,8 +651,7 @@ def run_music(radar,sTime,eTime,
         if db_name is not None:
             mongo_tools.dataObj_update_mongoDb(radar,sTime,eTime,dataObj,
                     mstid_list,db_name,mongo_port)
-        with open(pickle_path,'wb') as fl:
-            pickle.dump(dataObj,fl)
+        saveMusicArrayToHDF5(dataObj, hdf5_path)
         # Mark processing at MUSIC level to prevent trying to process again.
         mark_process_level('music',**run_params)
         return
@@ -721,8 +718,7 @@ def run_music(radar,sTime,eTime,
         completed_process_level = 'music'
 
     # Save the data file. ##########################################################  
-    with open(pickle_path,'wb') as fl:
-        pickle.dump(dataObj,fl)
+    saveMusicArrayToHDF5(dataObj, hdf5_path)
 
     mark_process_level(completed_process_level,**run_params)
 

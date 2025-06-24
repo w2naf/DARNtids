@@ -4,7 +4,7 @@ sys.path.append('/data/mypython')
 import os
 import shutil
 import datetime
-import pickle
+from hdf5_api import loadMusicArrayFromHDF5
 import glob
 
 import matplotlib
@@ -18,7 +18,7 @@ import multi_radar_music_support as msc
 #import music_support as msc
 import plot_movies
 
-runfile_path    = '/data/mstid/statistics/webserver/static/multi_radar_music/fhw_fhe/20121103.1400-20121103.1600/fhw_fhe-20121103.1400-20121103.1600.runfile.p'
+runfile_path    = '/data/mstid/statistics/webserver/static/multi_radar_music/fhw_fhe/20121103.1400-20121103.1600/fhw_fhe-20121103.1400-20121103.1600.runfile.h5'
 #process_level   = 'all'
 #msc.music_plot_all(runfile_path,process_level=process_level)
 
@@ -29,7 +29,7 @@ dirs.append('/data/mstid/statistics/webserver/static/music/fhw/20121105.1400-201
 dirs.append('/data/mstid/statistics/webserver/static/music/fhe/20121105.1400-20121105.1600')
 
 for mydir in dirs:
-    runfile_path    = glob.glob(os.path.join(mydir,'*.runfile.p'))
+    runfile_path    = glob.glob(os.path.join(mydir,'*.runfile.h5'))
 #    try:
     if True:
         runfile_path    = runfile_path[0]
@@ -37,7 +37,7 @@ for mydir in dirs:
         runFile         = msc.load_runfile_path(runfile_path)
         musicParams     = runFile.runParams
         musicObj_path   = musicParams['musicObj_path']
-        dataObj         = pickle.load(open(musicObj_path,'rb'))
+        dataObj = loadMusicArrayFromHDF5(musicObj_path)
 
         rad         = musicParams['radar']
         interpRes   = musicParams['interpRes']

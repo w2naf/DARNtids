@@ -4,7 +4,7 @@
 
 import os
 import datetime
-import pickle
+from hdf5_api import loadMusicArrayFromHDF5
 import shutil
 from operator import itemgetter
 import glob
@@ -115,7 +115,7 @@ def run_music(event_list,
 
             ################################################################################ 
             musicPath   = msc.get_output_path(radar, sDatetime, fDatetime)
-            picklePath  = msc.get_pickle_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
+            hdf5Path  = msc.get_hdf5_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
 
             if 'category' in event:
                 print_cat = '(%s)' % event['category']
@@ -124,8 +124,8 @@ def run_music(event_list,
             now = datetime.datetime.now()
 
             print(now,print_cat,'(%d of %d)' % (event_nr, nr_events), 'Processing: ', radar, sDatetime)
-            if os.path.exists(picklePath):
-                dataObj     = pickle.load(open(picklePath,'rb'))
+            if os.path.exists(hdf5Path):
+                dataObj = loadMusicArrayFromHDF5(hdf5Path)
             else:
 
                 ################################################################################ 

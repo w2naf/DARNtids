@@ -12,11 +12,12 @@ matplotlib.use('Agg')
 
 import numpy as np
 import scipy as sp
+from hdf5_api import saveMusicArrayToHDF5, loadMusicArrayFromHDF5
 
 from matplotlib import pyplot as plt
 from scipy import stats as stats
 
-#pickle.dump(dataObj,open('dataObj.p','wb'))
+#saveMusicArrayToHDF5(dataObj, 'dataObj.h5')
 
 def auto_range(dataObj,runParams,figsize = (20,7),outputDir = 'output',plot=False):
 
@@ -24,8 +25,8 @@ def auto_range(dataObj,runParams,figsize = (20,7),outputDir = 'output',plot=Fals
     eTime   = runParams['fDatetime']
     radar   = runParams['radar']
 
-#    fileName    = '/data/mstid/statistics/data/music_data/main_run/bks/20101119.1400-20101119.1600/bks-20101119.1400-20101119.1600.p'
-#    dataObj     = pickle.load(open(fileName,'rb'))
+#    fileName    = '/data/mstid/statistics/data/music_data/main_run/bks/20101119.1400-20101119.1600/bks-20101119.1400-20101119.1600.h5'
+#    dataObj = loadMusicArrayFromHDF5(fileName)
     # Auto-ranging code ############################################################
     currentData = dataObj.DS000_originalFit
     timeInx = np.where(np.logical_and(currentData.time >= sTime,currentData.time <= eTime))[0]

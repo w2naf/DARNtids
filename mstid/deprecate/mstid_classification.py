@@ -6,8 +6,9 @@
 
 import os
 import copy
-import pickle
+from hdf5_api import loadMusicArrayFromHDF5, saveDictToHDF5, extractDataFromHDF5
 import datetime
+import h5py
 
 import matplotlib
 matplotlib.use('Agg')
@@ -109,7 +110,7 @@ def classify_none_events(mstid_list,rti_fraction_threshold=0.675,terminator_frac
     print('low_termin_fract: {!s}'.format(low_termin_fract))
 
 def load_data_dict(mstid_list,data_source,use_cache=True,cache_dir='data',test_mode=False):
-    cache_name  = os.path.join(cache_dir,'classify_{}.{}.p'.format(mstid_list,os.path.basename(data_source)))
+    cache_name  = os.path.join(cache_dir,'classify_{}.{}.h5'.format(mstid_list,os.path.basename(data_source)))
 
     if not os.path.exists(cache_name) or not use_cache:
         data_dict   = {'unclassified':{'color':'blue'},
@@ -136,10 +137,9 @@ def load_data_dict(mstid_list,data_source,use_cache=True,cache_dir='data',test_m
                 sDatetime   = item['sDatetime']
                 fDatetime   = item['fDatetime']
 
-                picklePath  = msc.get_pickle_name(radar,sDatetime,fDatetime,data_path=data_source,getPath=True)
-                if os.path.exists(picklePath):
-                    with open(picklePath,'rb') as fl:
-                        dataObj = pickle.load(fl)
+                hdf5Path  = msc.get_hdf5_name(radar,sDatetime,fDatetime,data_path=data_source,getPath=True)
+                if os.path.exists(hdf5Path):
+                    dataObj = loadMusicArrayFromHDF5(hdf5Path)
         
                 if not hasattr(dataObj.active,'spectrum'):
                     continue
@@ -195,12 +195,12 @@ def load_data_dict(mstid_list,data_source,use_cache=True,cache_dir='data',test_m
             del spect_df['tmp']
 
             data_dict[categ]['spect_df'] = spect_df
-        with open(cache_name,'wb') as fl:
-            pickle.dump(data_dict,fl)
+        with h5py.File(cache_name, 'w') as fl:
+            saveDictToHDF5(fl, data_dict)
     else:
         print("I'm using the cache! ({})".format(cache_name))
-        with open(cache_name,'rb') as fl:
-            data_dict = pickle.load(fl)
+        with h5py.File(cache_name, 'r') as fl:
+            data_dict = extractDataFromHDF5(fl)
 
     data_dict['all_spect_df'] = create_all_spect_df(data_dict)
     return data_dict

@@ -12,7 +12,7 @@ import datetime
 import os
 import shutil
 # import sys
-import pickle
+from hdf5_api import saveMusicArrayToHDF5, loadMusicArrayFromHDF5
 
 import numpy as np
 import glob
@@ -569,24 +569,23 @@ def music_edit():
     eTime   = musicParams.get('fDatetime',musicParams.get('eTime'))
 
     musicPath   = msc.get_output_path(musicParams['radar'],sTime,eTime)
-    pickleName  = msc.get_pickle_name(musicParams['radar'],sTime,eTime)
-    picklePath  = os.path.join(musicPath,pickleName)
+    hdf5Name  = msc.get_hdf5_name(musicParams['radar'],sTime,eTime)
+    hdf5Path  = os.path.join(musicPath,hdf5Name)
 
     dataObj = None
     try:
-        with open(picklePath,'rb') as fl:
-            dataObj     = pickle.load(fl)
-            webData['musicObjStatusClass']  = 'statusNormal'
-            webData['musicObjStatus']       = 'Using musicObj file < '+ picklePath +' >.'
+        dataObj = loadMusicArrayFromHDF5(hdf5Path)
+        webData['musicObjStatusClass']  = 'statusNormal'
+        webData['musicObjStatus']       = 'Using musicObj file < '+ hdf5Path +' >.'
     except:
-            webData['musicObjStatusClass']  = 'warning'
-            webData['musicObjStatus']       = 'MusicObj does not exist: %s' % picklePath
+        webData['musicObjStatusClass']  = 'warning'
+        webData['musicObjStatus']       = 'MusicObj does not exist: %s' % hdf5Path
 
     no_data = False
     if hasattr(dataObj,'messages'):
         if 'No data for this time period.' in dataObj.messages:
             no_data = True
-            webData['good_period_warn']       = 'No data for time period. (%s)' % picklePath
+            webData['good_period_warn']       = 'No data for time period. (%s)' % hdf5Path
 
     if webData['musicObjStatusClass'] == 'statusNormal' and not no_data:
         dataObj     = checkDataQuality(dataObj,dataSet='originalFit',sTime=sDatetime,eTime=fDatetime)
@@ -832,7 +831,7 @@ def create_music_obj():
         )
     
 
-    picklePath  = msc.get_pickle_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
+    hdf5Path  = msc.get_hdf5_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
 
 
     # Create a run file. ###########################################################
@@ -847,7 +846,7 @@ def create_music_obj():
     runParams['filter_cutoff_low']  = cutoff_low
     runParams['filter_cutoff_high'] = cutoff_high
     runParams['path']               = musicPath
-    runParams['musicObj_path']      = picklePath
+    runParams['musicObj_path']      = hdf5Path
     runParams['window_data']        = window_data
     runParams['kx_max']             = kx_max
     runParams['ky_max']             = ky_max
@@ -937,7 +936,7 @@ def music_plot_rti():
     runFile         = msc.load_runfile_path(runfile_path)
     musicParams     = runFile.runParams
     musicObj_path   = musicParams['musicObj_path']
-    dataObj         = pickle.load(open(musicObj_path,'rb'))
+    dataObj = loadMusicArrayFromHDF5(musicObj_path)
 
     xlim = (sDatetime,eDatetime)
 
@@ -964,9 +963,9 @@ def add_music_params_db():
 
     #Load the runfile and the associated musicObj.
     runfile         = msc.load_runfile_path(runfile_path)
-    picklePath      = runfile.runParams['musicObj_path']
+    hdf5Path      = runfile.runParams['musicObj_path']
 
-    dataObj     = pickle.load(open(picklePath,'rb'))
+    dataObj = loadMusicArrayFromHDF5(hdf5Path)
     dataSets    = dataObj.get_data_sets()
     currentData = getattr(dataObj,dataSets[-1])
 
@@ -1070,12 +1069,12 @@ def add_to_detected():
 
     #Load the runfile and the associated musicObj.
     runfile         = msc.load_runfile_path(runfile_path)
-    picklePath      = runfile.runParams['musicObj_path']
+    hdf5Path      = runfile.runParams['musicObj_path']
     musicPath       = runfile.runParams['path']
 
-    dataObj     = pickle.load(open(picklePath,'rb'))
+    dataObj = loadMusicArrayFromHDF5(hdf5Path)
     add_signal(new_kx,new_ky,dataObj,dataSet='active')
-    pickle.dump(dataObj,open(picklePath,'wb'))
+    saveMusicArrayToHDF5(dataObj, hdf5Path)
 
     karrPath    = glob.glob(os.path.join(musicPath,'*karr.png'))[0]
     msc.music_plot_karr(runfile_path,karrPath)
@@ -1097,12 +1096,12 @@ def del_from_detected():
 
     #Load the runfile and the associated musicObj.
     runfile         = msc.load_runfile_path(runfile_path)
-    picklePath      = runfile.runParams['musicObj_path']
+    hdf5Path      = runfile.runParams['musicObj_path']
     musicPath       = runfile.runParams['path']
 
-    dataObj     = pickle.load(open(picklePath,'rb'))
+    dataObj = loadMusicArrayFromHDF5(hdf5Path)
     del_signal(signal_order_list,dataObj,dataSet='active')
-    pickle.dump(dataObj,open(picklePath,'wb'))
+    saveMusicArrayToHDF5(dataObj, hdf5Path)
 
     karrPath    = glob.glob(os.path.join(musicPath,'*karr.png'))[0]
     msc.music_plot_karr(runfile_path,karrPath)

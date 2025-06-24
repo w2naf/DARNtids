@@ -5,7 +5,6 @@ sys.path.append('/data/mstid/statistics/webserver')
 import os
 import inspect
 import datetime
-import pickle
 import shutil
 
 import numpy as np
@@ -44,7 +43,7 @@ for item in cursor:
 
     print(radar,sDatetime)
     if True:
-        runfile_path = msc.get_pickle_name(radar,sDatetime,fDatetime,getPath=True,createPath=False,runfile=True)
+        runfile_path = msc.get_hdf5_name(radar,sDatetime,fDatetime,getPath=True,createPath=False,runfile=True)
 
         karr_file = os.path.join(os.path.dirname(runfile_path),'014_karr.png')
         if os.path.exists(karr_file):

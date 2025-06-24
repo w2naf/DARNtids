@@ -7,10 +7,10 @@
 import os
 import time
 import datetime
-import pickle
 import pymongo
 import music_support as msc
 import multiprocessing
+from hdf5_api import loadMusicArrayFromHDF5
 
 mongo = pymongo.MongoClient()
 db    = mongo.mstid
@@ -21,7 +21,7 @@ def main(event):
     eDatetime   = event['fDatetime']
 
     try:
-        runfile_path    = msc.get_pickle_name(radar,sDatetime,eDatetime,getPath=True,runfile=True)
+        runfile_path    = msc.get_hdf5_name(radar,sDatetime,eDatetime,getPath=True,runfile=True)
         runFile         = msc.load_runfile_path(runfile_path)
         musicParams     = runFile.runParams
         musicObj_path   = musicParams['musicObj_path']
@@ -32,7 +32,7 @@ def main(event):
             mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(rtiPath))
             if mod_time > datetime.datetime(2014,3,15): return 
 
-        dataObj         = pickle.load(open(musicObj_path,'rb'))
+        dataObj = loadMusicArrayFromHDF5(musicObj_path)
 
         xlim = (sDatetime,eDatetime)
 

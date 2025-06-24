@@ -6,13 +6,14 @@ import datetime
 import multiprocessing
 
 import copy
-import pickle
+
 
 import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 from matplotlib.collections import PolyCollection
 from mpl_toolkits.basemap import Basemap
+from hdf5_api import saveDictToHDF5, extractDataFromHDF5
 
 import numpy as np
 
@@ -323,7 +324,7 @@ def get_processed_grib_data(sDate=None,eDate=None,season=None,name='Geopotential
     if cache_dir is None:
         cache_dir   = os.path.join(data_dir,'cache')
 
-    cache_path      = os.path.join(cache_dir,'{}_{}_{!s}mbar.p'.format(season,calculation_type,mbar_level))
+    cache_path      = os.path.join(cache_dir,'{}_{}_{!s}mbar.h5'.format(season,calculation_type,mbar_level))
 
     if (not os.path.exists(cache_path)) or (not use_cache):
         values_list     = []
@@ -427,12 +428,12 @@ def get_processed_grib_data(sDate=None,eDate=None,season=None,name='Geopotential
             if not os.path.exists(cache_dir):
                 os.makedirs(cache_dir)
 
-            with open(cache_path,'wb') as fl:
-                pickle.dump(plot_lists,fl)
+            with h5py.File(cache_path, 'w') as fl:
+                saveDictToHDF5(fl, plot_lists)
     else:
         print('Loading CACHED RDA 111.2 file: {}'.format(cache_path))
-        with open(cache_path,'rb') as fl:
-            plot_lists  = pickle.load(fl)
+        with h5py.File(cache_path, 'r') as fl:
+            plot_lists = extractDataFromHDF5(fl)
 
     return plot_lists
 

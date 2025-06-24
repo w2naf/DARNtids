@@ -7,7 +7,8 @@ import datetime
 import music_support as msc
 
 import os
-import pickle
+import h5py
+from hdf5_api import saveDictToHDF5, extractDataFromHDF5
 from wx_pretrack import *
 from auto_range_music import run_music
 # import operator
@@ -57,16 +58,16 @@ for event in crsr:
     sTime       = event['sDatetime']
     eTime       = event['fDatetime']
     radar       = event['radar']
-    filename    = msc.get_pickle_name(radar,sTime,eTime,getPath=True)
+    filename    = msc.get_hdf5_name(radar,sTime,eTime,getPath=True)
     fig_name    = os.path.basename(filename)[:-2]
-    pkl_name    = os.path.join(output_dirs['blob_dict'],fig_name+'.blob_dict.p')
+    pkl_name    = os.path.join(output_dirs['blob_dict'],fig_name+'.blob_dict.h5')
 
     try:
         t0  = datetime.datetime.now()
         if os.path.exists(pkl_name) and not recompute: 
             # Load blob diction if it exists. ############################################## 
-            with open(pkl_name,'rb') as fl:
-                blob_dict = pickle.load(fl)
+            with h5py.File(pkl_name, 'r') as fl:
+                blob_dict = extractDataFromHDF5(fl)
         elif not os.path.exists(pkl_name) and not recompute: 
             continue
         else:
@@ -123,8 +124,8 @@ for event in crsr:
                 if lt <= lifetime_min_hours: continue
                 lifetime[_id] = lt
 
-        with open(pkl_name,'wb') as fl:
-            pickle.dump(blob_dict,fl)
+        with h5py.File(pkl_name, 'w') as fl:
+            saveDictToHDF5(fl, blob_dict)
 
         t1      = datetime.datetime.now()
         t_tot   = t1 - t0

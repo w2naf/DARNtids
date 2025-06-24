@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os,sys,pickle,datetime
+import os,sys,datetime
 import glob
 import copy
 
@@ -27,6 +27,7 @@ from davitpy import pydarn
 from davitpy import utils
 from davitpy.pydarn.proc import music
 import handling
+from hdf5_api import saveMusicArrayToHDF5, loadMusicArrayFromHDF5
 
 class MusicFromDataSet(music.musicArray):
     def __init__(self,curr_data):
@@ -1186,7 +1187,7 @@ class ConcatenateMusic(music.musicDataObj):
             lt_lat = fov.latCenter[lt_bm,lt_rg]
             lt_lon = fov.lonCenter[lt_bm,lt_rg]
 
-            # Find all pickle files that seem to meet the radar/date criteria, 
+            # Find all hdf5 files that seem to meet the radar/date criteria, 
             # but don't load anything yet.
             pkl_paths = []
             for dr in globs:
@@ -1205,7 +1206,7 @@ class ConcatenateMusic(music.musicDataObj):
                     if slt < tselect[0] or slt >= tselect[1]:
                         continue
 
-                pkl_name    = '{0}-{1}.p'.format(radar,basename)
+                pkl_name    = '{0}-{1}.h5'.format(radar,basename)
                 pkl_path    = os.path.join(dr,pkl_name)
                 if os.path.exists(pkl_path):
                         pkl_paths.append( (pkl_path,pkl_sTime,pkl_eTime) )
@@ -1214,13 +1215,12 @@ class ConcatenateMusic(music.musicDataObj):
                 else:
                     print(('Pkl file not found: {}'.format(pkl_path)))
 
-            # Load dataSets for each pickle object.
+            # Load dataSets for each hdf5 object.
             # Keep track of the maximum beam/gate dimensions.
             # Keep track of all of the time stamps.
             for pkl_path,pkl_sTime,pkl_eTime in pkl_paths:
                 logging.info('Loading pkl file: {}'.format(pkl_path))
-                with open(pkl_path,'rb') as fl:
-                    data_obj    = pickle.load(fl)
+                data_obj = loadMusicArrayFromHDF5(pkl_path)
 
                 data_sets = [x for x in data_obj.get_data_sets() if ds_name in x]
 
@@ -1845,13 +1845,12 @@ def get_radar_data(sTime,eTime,radar,
 
     # Define the filename of the datadict file.
     tstring     = '{}-{}'.format(sTime.strftime('%Y%m%d.%H%M'),eTime.strftime('%Y%m%d.%H%M'))
-    filename    = 'catMusic_{time}_{dataset}_{radar}{beamstr}.p'.format(time=tstring,dataset=ds_name,radar=radar,beamstr=beamstr)
+    filename    = 'catMusic_{time}_{dataset}_{radar}{beamstr}.h5'.format(time=tstring,dataset=ds_name,radar=radar,beamstr=beamstr)
     filepath    = os.path.join(data_dir,filename)
 
     if use_cache:
         if os.path.exists(filepath):
-            with open(filepath) as fl:
-                return pickle.load(fl)
+            return loadMusicArrayFromHDF5(filepath)
 
     print('concat_music.py: {}'.format(radar))
     catMusic = ConcatenateMusic(radar,sTime,eTime,ds_name=ds_name,base_path=base_path,beams=beams)
@@ -1868,7 +1867,6 @@ def get_radar_data(sTime,eTime,radar,
         except:
             pass
 
-        with open(filepath,'wb') as fl:
-            pickle.dump(catMusic,fl)
+        saveMusicArrayToHDF5(catMusic, filepath)
 
     return catMusic

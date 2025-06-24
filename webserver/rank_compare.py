@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import os
 import glob
-import pickle
+import h5py
+from hdf5_api import extractDataFromHDF5
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -16,11 +17,11 @@ logreg_dirs    = [x for x in glob.glob(os.path.join(base_dir,'*')) if os.path.is
 ranks       = {}
 nr_combos_list  = []
 for logreg_dir in logreg_dirs:
-    pckl_fl     = os.path.join(logreg_dir,'rank','sorted_rank.p')
+    pckl_fl     = os.path.join(logreg_dir,'rank','sorted_rank.h5')
     mstid_list  = os.path.basename(logreg_dir)
     if os.path.exists(pckl_fl):
-        with open(pckl_fl) as fl:
-            ranks[mstid_list] = pickle.load(fl)
+        with h5py.File(pckl_fl, 'r') as fl:
+            ranks[mstid_list] = extractDataFromHDF5(fl)
 
         nr_combos_list.append(len(ranks[mstid_list]))
 

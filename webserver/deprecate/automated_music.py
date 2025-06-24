@@ -6,7 +6,7 @@ sys.path.append('/data/mstid/statistics/webserver')
 import os
 import inspect
 import datetime
-import pickle
+from hdf5_api import loadMusicArrayFromHDF5
 import shutil
 from operator import itemgetter
 import glob
@@ -244,7 +244,7 @@ for event in allEvents:
             ,filterNumtaps              = numtaps 
             )
 
-        picklePath  = msc.get_pickle_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
+        hdf5Path  = msc.get_hdf5_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
 
 
         # Create a run file. ###########################################################
@@ -259,7 +259,7 @@ for event in allEvents:
         runParams['filter_cutoff_low']  = cutoff_low
         runParams['filter_cutoff_high'] = cutoff_high
         runParams['path']               = musicPath
-        runParams['musicObj_path']      = picklePath
+        runParams['musicObj_path']      = hdf5Path
         runParams['window_data']        = window_data
         runParams['kx_max']             = kx_max
         runParams['ky_max']             = ky_max
@@ -281,7 +281,7 @@ for event in allEvents:
 #           msc.music_plot_all(runfile_path)
 
             # Add all signals to database. #################################################
-            dataObj     = pickle.load(open(picklePath,'rb'))
+            dataObj = loadMusicArrayFromHDF5(hdf5Path)
             dataSets    = dataObj.get_data_sets()
             currentData = getattr(dataObj,dataSets[-1])
 

@@ -4,7 +4,7 @@
 
 import os
 import datetime
-import pickle
+from hdf5_api import loadMusicArrayFromHDF5, saveMusicArrayToHDF5
 import shutil
 # from operator import itemgetter
 # import glob
@@ -33,21 +33,20 @@ def check_already_computed(q,event,quick_check=True):
     sDatetime   = event['sDatetime']
     fDatetime   = event['fDatetime']
 
-    picklePath  = msc.get_pickle_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
-    if os.path.exists(picklePath):
+    hdf5Path  = msc.get_hdf5_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
+    if os.path.exists(hdf5Path):
         if quick_check:
             event = None
         else:
             try:
-                with open(picklePath,'rb') as fl:
-                    test_obj    = pickle.load(fl)
+                test_obj = loadMusicArrayFromHDF5(hdf5Path)
                 if not hasattr(test_obj,'active'):
                     pass
                 elif hasattr(test_obj.active,'sigDetect'):
                     now = datetime.datetime.now()
                     event = None
             except:
-                print(f"Bad file: {picklePath}")
+                print(f"Bad file: {hdf5Path}")
 #    return event
     q.put(event)
 
@@ -124,9 +123,8 @@ def check_list_for_bad_start_gate(event_list):
             sDatetime               = event['sDatetime']
             fDatetime               = event['fDatetime']
 
-            picklePath  = msc.get_pickle_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
-            with open(picklePath,'rb') as fl:
-                dataObj = pickle.load(fl)
+            hdf5Path  = msc.get_hdf5_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
+            dataObj = loadMusicArrayFromHDF5(hdf5Path)
 
             bad_range   = np.max(np.where(dataObj.DS000_originalFit.fov.slantRCenter < 0)[1])
             if np.min(dataObj.DS000_originalFit.metadata['gateLimits']) <= bad_range:
@@ -206,7 +204,7 @@ def run_music(event_list,
 
             ################################################################################ 
             musicPath   = msc.get_output_path(radar, sDatetime, fDatetime)
-            picklePath  = msc.get_pickle_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
+            hdf5Path  = msc.get_hdf5_name(radar,sDatetime,fDatetime,getPath=True,createPath=False)
 
             if 'category' in event:
                 print_cat = '(%s)' % event['category']
@@ -311,8 +309,7 @@ def run_music(event_list,
                     ,fitfilter                  = fitfilter
                     )
             else:
-                with open(picklePath,'rb') as fl:
-                    dataObj     = pickle.load(fl)
+                dataObj = loadMusicArrayFromHDF5(hdf5Path)
 
             if hasattr(dataObj,'messages'):
                 messages = '\n'.join([musicPath]+dataObj.messages)
@@ -335,7 +332,7 @@ def run_music(event_list,
             runParams['filter_cutoff_low']  = cutoff_low
             runParams['filter_cutoff_high'] = cutoff_high
             runParams['path']               = musicPath
-            runParams['musicObj_path']      = picklePath
+            runParams['musicObj_path']      = hdf5Path
 #            runParams['window_data']        = window_data
             runParams['kx_max']             = kx_max
             runParams['ky_max']             = ky_max
@@ -356,8 +353,7 @@ def run_music(event_list,
                     runParams['gateLimits'] = gateLimits
                     runfile_obj             = msc.Runfile(radar.lower(), sDatetime, fDatetime, runParams)
                     defineLimits(dataObj,gateLimits=gateLimits)
-                    with open(picklePath,'wb') as fl:
-                        pickle.dump(dataObj,fl)
+                    saveMusicArrayToHDF5(dataObj, hdf5Path)
                 except:
                     pass
 
@@ -374,8 +370,7 @@ def run_music(event_list,
 
                 if process_level == 'all':
                     # Print signals out to text file. ##############################################
-                    with open(picklePath,'rb') as fl:
-                        dataObj     = pickle.load(fl)
+                    dataObj = loadMusicArrayFromHDF5(hdf5Path)
                     dataSets    = dataObj.get_data_sets()
                     currentData = getattr(dataObj,dataSets[-1])
 

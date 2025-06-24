@@ -1,8 +1,7 @@
-import pickle
+from hdf5_api import loadMusicArrayFromHDF5
 
-filename    = 'static/music/bks/20100601.2000-20100601.2200/bks-20100601.2000-20100601.2200.p'
+filename    = 'static/music/bks/20100601.2000-20100601.2200/bks-20100601.2000-20100601.2200.h5'
 
-with open(filename,'rb') as fl:
-    dataObj = pickle.load(fl)
+dataObj = loadMusicArrayFromHDF5(filename)
 
 

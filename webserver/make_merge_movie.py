@@ -2,7 +2,7 @@
 import os,sys
 sys.path.append('/data/mypython')
 
-import pickle
+from hdf5_api import loadMusicArrayFromHDF5
 import glob
 import datetime
 
@@ -28,7 +28,7 @@ def plot_maps(input_tuple):
 
 def main(data_path,parallel=False):
 
-    data_files  = glob.glob(os.path.join(data_path,'*.p'))
+    data_files  = glob.glob(os.path.join(data_path,'*.h5'))
     data_files.sort()
     
     clear_output_dirs = True
@@ -41,8 +41,7 @@ def main(data_path,parallel=False):
         sTime       = datetime.datetime.strptime(sTime_str,'%Y%m%d.%H%M')
         eTime       = datetime.datetime.strptime(eTime_str,'%Y%m%d.%H%M')
 
-        with open(data_file,'rb') as tmp:
-            multi_radar_dict = pickle.load(tmp)
+        multi_radar_dict = loadMusicArrayFromHDF5(data_file)
 
         base_merge_type = 'direct'
         sub_dir         = 'merge_compare_movie'
@@ -77,7 +76,7 @@ def main(data_path,parallel=False):
                 plot_maps(input_tuple)
 
 if __name__ == '__main__':
-    data_path   = '/data/mstid/statistics/paper2/multi_radar_music_scripts/multi_radar_music/fhw_fhe/compare_pickle'
+    data_path   = '/data/mstid/statistics/paper2/multi_radar_music_scripts/multi_radar_music/fhw_fhe/compare_hdf5'
     parallel    = False
     parallel    = True
     main(data_path,parallel=parallel)

@@ -12,8 +12,9 @@ sys.path.append('/data/mypthon')
 import os
 import shutil
 import datetime
-import pickle
 import copy
+import h5py
+from hdf5_api import saveDictToHDF5, extractDataFromHDF5
 
 import numpy as np
 import scipy as sp
@@ -999,8 +1000,8 @@ if __name__ == '__main__':
             date_fmt    = '%Y%m%d.%H%M'
             date_str    = '{}-{}'.format(st.strftime(date_fmt),et.strftime(date_fmt))
             spect_name  = os.path.join(output_dirs['calc_spect'],'{}_{}_spect.png'.format(date_str,radar))
-            fft_pname   = os.path.join(output_dirs['regrid_fft'],'{}_{}_fft.p'.format(date_str,radar))
-            lsp_pname   = os.path.join(output_dirs['regrid_lsp'],'{}_{}_lsp.p'.format(date_str,radar))
+            fft_pname   = os.path.join(output_dirs['regrid_fft'],'{}_{}_fft.h5'.format(date_str,radar))
+            lsp_pname   = os.path.join(output_dirs['regrid_lsp'],'{}_{}_lsp.h5'.format(date_str,radar))
 
             if not recalculate:
                 recalculate_this = False
@@ -1025,19 +1026,19 @@ if __name__ == '__main__':
 
                 if calculate_fft:
                     grid_fft_dict   = regrid_spect_dict(result['fft_dict'],time_prior,time_post,minimum_spectrum_time=minimum_spectrum_time)
-                    with open(fft_pname,'wb') as fl:
-                        pickle.dump(grid_fft_dict,fl)
+                    with h5py.File(fft_pname, 'w') as fl:
+                        saveDictToHDF5(fl, grid_fft_dict)
                 if calculate_lsp:
                     grid_lsp_dict   = regrid_spect_dict(result['lspgram_dict'],time_prior,time_post,minimum_spectrum_time=minimum_spectrum_time)
-                    with open(lsp_pname,'wb') as fl:
-                        pickle.dump(grid_lsp_dict,fl)
+                    with h5py.File(lsp_pname, 'w') as fl:
+                        saveDictToHDF5(fl, grid_lsp_dict)
             else:
                 if calculate_fft:
-                    with open(fft_pname,'rb') as fl:
-                        grid_fft_dict = pickle.load(fl)
+                    with h5py.File(fft_pname, 'r') as fl:
+                        grid_fft_dict = extractDataFromHDF5(fl)
                 if calculate_lsp:
-                    with open(lsp_pname,'rb') as fl:
-                        grid_lsp_dict = pickle.load(fl)
+                    with h5py.File(lsp_pname, 'r') as fl:
+                        grid_lsp_dict = extractDataFromHDF5(fl)
 
             if calculate_fft:
                 # Save a good spect_dict as a template for later...

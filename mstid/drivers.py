@@ -1,6 +1,6 @@
 # import os
 # import datetime
-# import pickle
+# import hdf5
 # import copy
 # import re
 # import gme
@@ -880,7 +880,7 @@
 #     input_path  = os.path.join(base_path,'cache')
 #     output_path = os.path.join(input_path,'mbar_diff')
     
-#     cache_fname = '{}_{!s}_{!s}_mbar_diff.p'.format(season,mbars[0],mbars[1])
+#     cache_fname = '{}_{!s}_{!s}_mbar_diff.h5'.format(season,mbars[0],mbars[1])
 #     cache_fpath = os.path.join(output_path,cache_fname)
     
 #     if (not cache) or (not os.path.exists(cache_fpath)):
@@ -890,11 +890,10 @@
 #         files_in    = []
 #         data_in     = []
 #         for mbar in mbars:
-#             fname   = '{}_delta_{!s}mbar.p'.format(season,mbar)
+#             fname   = '{}_delta_{!s}mbar.h5'.format(season,mbar)
 #             fpath   = os.path.join(input_path,fname)
 
-#             with open(fpath,'rb') as fl:
-#                 data = pickle.load(fl)
+#             data = loadMusicArrayFromHDF5(fpath)
 
 #             files_in.append(fname)
 #             data_in.append(data)
@@ -939,11 +938,9 @@
 #             if not os.path.exists(output_path): 
 #                 os.makedirs(output_path)
 
-#             with open(cache_fpath,'wb') as fl:
-#                 pickle.dump(df,fl)
+#             saveMusicArrayToHDF5(df, cache_fpath)
 #     else:
-#         with open(cache_fpath,'rb') as fl:
-#             df = pickle.load(fl)
+#         df = loadMusicArrayFromHDF5(cache_fpath)
 
 #     # Write out some statistics about the original data.
 #     txt = []
@@ -978,7 +975,7 @@
 #     input_path  = os.path.join(base_path,'cache')
 #     output_path = os.path.join(input_path,'mbar_corr')
     
-#     cache_fname = '{}_{!s}_{!s}_mbar_diff.p'.format(season,mbars[0],mbars[1])
+#     cache_fname = '{}_{!s}_{!s}_mbar_diff.h5'.format(season,mbars[0],mbars[1])
 #     cache_fpath = os.path.join(output_path,cache_fname)
 
 #     if (not cache) or (not os.path.exists(cache_fpath)):
@@ -988,11 +985,10 @@
 #         files_in    = []
 #         data_in     = []
 #         for mbar in mbars:
-#             fname   = '{}_delta_{!s}mbar.p'.format(season,mbar)
+#             fname   = '{}_delta_{!s}mbar.h5'.format(season,mbar)
 #             fpath   = os.path.join(input_path,fname)
 
-#             with open(fpath,'rb') as fl:
-#                 data = pickle.load(fl)
+#             data = loadMusicArrayFromHDF5(fpath)
 
 #             files_in.append(fname)
 #             data_in.append(data)
@@ -1028,11 +1024,9 @@
 #             if not os.path.exists(output_path): 
 #                 os.makedirs(output_path)
 
-#             with open(cache_fpath,'wb') as fl:
-#                 pickle.dump(df,fl)
+#             saveMusicArrayToHDF5(df, cache_fpath)
 #     else:
-#         with open(cache_fpath,'rb') as fl:
-#             df = pickle.load(fl)
+#         df = loadMusicArrayFromHDF5(cache_fpath)
 
 #     return df
 

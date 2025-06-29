@@ -76,14 +76,14 @@ def saveDictToHDF5(hdf5Group, dictionary):
 
             # Store values that are the datetime class (from diffs, time, metadata, history attributes) as a string.
             if values is datetime.datetime:
-                hdf5Group.create_dataset(key, data=np.string_("datetime.datetime"))
+                hdf5Group.create_dataset(key, data=np.bytes_("datetime.datetime"))
                 continue
 
             if key == "fov":
                 if key not in hdf5Group:
                     # Save datetime instances as numpy ISO strings directly within a dataset.
                     if isinstance(values, datetime.datetime):
-                        hdf5Group.create_dataset(key, data=np.string_(values.isoformat()))
+                        hdf5Group.create_dataset(key, data=np.bytes_(values.isoformat()))
                         continue
                     # Save lists as numpy arrays directly within a dataset.
                     if isinstance(values, list):
@@ -97,10 +97,10 @@ def saveDictToHDF5(hdf5Group, dictionary):
                         saveDictToHDF5(subGroup, values)
                     # Save scalars directly within a dataset (or as a numpy string if the values are strings).
                     elif isinstance(values, (int, float, str)):
-                        hdf5Group.create_dataset(key, data=np.string_(values) if isinstance(values, str) else values)
+                        hdf5Group.create_dataset(key, data=np.bytes_(values) if isinstance(values, str) else values)
             # Save datetimes as datasets composed of formatted numpy strings.
             elif isinstance(values, datetime.datetime):
-                hdf5Group.create_dataset(key, data=np.string_(formatData(values)))
+                hdf5Group.create_dataset(key, data=np.bytes_(formatData(values)))
                 continue
             # Save lists of datetimes as datasets composed of numpy arrays of formatted datetimes.
             elif isinstance(values, list) and all(isinstance(v, datetime.datetime) for v in values):
@@ -135,7 +135,7 @@ def saveDictToHDF5(hdf5Group, dictionary):
             # Otherwise, saves the data in its own dataset composed of numpy strings of formatted values.
             else:
                 formattedValue = formatData(values)
-                hdf5Group.create_dataset(key, data=np.string_(formattedValue))
+                hdf5Group.create_dataset(key, data=np.bytes_(formattedValue))
         except Exception as e:
             print(f"Could not save {key} in {hdf5Group.name}: {e}")
 

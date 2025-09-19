@@ -12,57 +12,63 @@ import multiprocessing
 import mstid
 from mstid import run_helper
 
-#years = list(range(2015,2016))
-years = [2015]
+years = list(range(2015,2017))
+#years = [2015]
 radars = []
-#radars.append('ade')
-#radars.append('adw')
-radars.append('bks')
-radars.append('cve')
-radars.append('cvw')
-#radars.append('cly')
-radars.append('fhe')
-radars.append('fhw')
-radars.append('gbr')
-#radars.append('han')
-#radars.append('hok')
-#radars.append('hkw')
-#radars.append('inv')
-#radars.append('jme')
-#radars.append('ksr')
-#radars.append('kod')
-#radars.append('lyr')
-#radars.append('pyk')
-radars.append('pgr')
-#radars.append('rkn')
-radars.append('sas')
-#radars.append('sch')
-#radars.append('sto')
-radars.append('wal')
+
+# radars.append('ade')
+# radars.append('adw')
+# radars.append('bks')
+# radars.append('cve')
+# radars.append('cvw')
+# radars.append('cly')
+# radars.append('fhe')
+# radars.append('fhw')
+# radars.append('gbr')
+# radars.append('han')
+# radars.append('hok')
+# radars.append('hkw')
+# radars.append('inv')
+# radars.append('jme')
+# radars.append('kap')
+# radars.append('ksr')
+# radars.append('kod')
+# radars.append('lyr')
+# radars.append('pyk')
+# radars.append('pgr')
+# radars.append('rkn')
+# radars.append('sas')
+# radars.append('sch')
+# radars.append('sto')
+# radars.append('wal')
 
 ## Standard North American Radars
-#radars.append('cvw')
-#radars.append('cve')
-#radars.append('fhw')
-#Vradars.append('fhe')
-#radars.append('bks')
-#radars.append('wal')
+radars.append('cvw')
+radars.append('cve')
+radars.append('fhw')
+radars.append('fhe')
+radars.append('bks')
+radars.append('wal')
 
-#radars.append('sas')
-#radars.append('pgr')
+radars.append('sas')
+radars.append('pgr')
 radars.append('kap')
-#radars.append('gbr')
+radars.append('gbr')
 
-# Southern Radars
+# # European Radars
+radars.append('han')
+radars.append('pyk')
+
+# #Southern Radars
 # radars.append('san')
 # radars.append('fir')
 # radars.append('tig')
 # radars.append('unw')
-# buckland park
-# radars.append('bkp')
+# #buckland park
+# #radars.append('bkp')
 
-db_name                     = 'mstid_GSMR_fitexfilter'
-base_dir                    = db_name
+db_name                     = 'mstid_GSMR_fitexfilter_HDF5_fig3'
+base_dir                    = os.path.join('mstid_data',db_name)
 # Used for creating an SSH tunnel when running the MSTID database on a remote machine.
 #tunnel,mongo_port           = mstid.createTunnel() 
 
@@ -71,19 +77,22 @@ for year in years:
 #    dct['fovModel']                 = 'HALF_SLANT'
     dct['fovModel']                 = 'GS'
     dct['radars']                   = radars
-    #dct['list_sDate']               = datetime.datetime(year,  11,1)
-    #dct['list_eDate']               = datetime.datetime(year+1, 5,1)
-    dct['list_sDate']               = datetime.datetime(year,12,1)
-    dct['list_eDate']               = datetime.datetime(year + 1,1,31)
+#    dct['list_sDate']               = datetime.datetime(year,  11,1)
+#    dct['list_eDate']               = datetime.datetime(year+1, 5,1)
+#    dct['list_sDate']               = datetime.datetime(year,12,1)
+#    dct['list_eDate']               = datetime.datetime(year + 1,1,31)
+    dct['list_sDate']               = datetime.datetime(year,1,1)
+    dct['list_eDate']               = datetime.datetime(year,12,31)
     dct['hanning_window_space']     = False # Set to False for MSTID Index Calculation
     dct['bad_range_km']             = None  # Set to None for MSTID Index Calculation
     #dct['mongo_port']              = mongo_port
     dct['db_name']                  = db_name
     dct['data_path']                = os.path.join(base_dir,'mstid_index')
     dct['boxcar_filter']            = False
-#    dct['fitacf_dir']               = '/data/sd-data'
-    dct['fitacf_dir']               = '/sd-data'
-    dct['rti_fraction_threshold']   = 0.25
+    dct['fitacf_dir']               = '/data/sd-data_fitexfilter'
+    dct['slt_range']                     = (2,20) #(6,18) # Range of local times sent to mongo_tools.generate_mongo_list()
+    dct['rti_fraction_threshold']        = 0.25
+    dct['terminator_fraction_threshold'] = 1.0
     # Takes dct and explodes it into run_helper function
     # 
     dct_list                        = run_helper.create_music_run_list(**dct)
@@ -94,11 +103,11 @@ for year in years:
     recompute           = False     # Recalculate all events from raw data. If False, use existing cached hdf5 files.
     reupdate_db         = True 
 
-    music_process       = True
+    music_process       = False
     music_new_list      = True
     music_reupdate_db   = True
 
-    nprocs              = 12
+    nprocs              = 60
     multiproc           = True
 
     # Classification parameters go here. ###########################################
@@ -110,7 +119,7 @@ for year in years:
     if mstid_index:
         # Generate MSTID List and do rti_interp level processing.
         run_helper.get_events_and_run(dct_list,process_level='rti_interp',new_list=new_list,
-                recompute=recompute,multiproc=multiproc,nprocs=nprocs)
+                recompute=recompute,multiproc=multiproc,nprocs=nprocs,**dct)
         # Reload RTI Data into MongoDb. ################################################
         if reupdate_db:
             for dct in dct_list:

@@ -90,7 +90,7 @@ for year in years:
     dct['data_path']                = os.path.join(base_dir,'mstid_index')
     dct['boxcar_filter']            = False
     dct['fitacf_dir']               = '/data/sd-data_fitexfilter'
-    dct['slt_range']                     = (2,20) #(6,18) # Range of local times sent to mongo_tools.generate_mongo_list()
+    dct['slt_range']                     = None #(6,18) # Range of local times sent to mongo_tools.generate_mongo_list()
     dct['rti_fraction_threshold']        = 0.25
     dct['terminator_fraction_threshold'] = 1.0
     # Takes dct and explodes it into run_helper function

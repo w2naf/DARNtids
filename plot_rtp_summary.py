@@ -68,13 +68,30 @@ for year in years:
             ds       = musicObj.DS000_originalFit
             time_tf  = np.logical_and(ds.time >= sTime, ds.time < eTime)
 
+            # Get range of raw data.
+            my_range_km = ds.fov['slantRCenter'][beam]
+            range_tf    = np.isfinite(my_range_km)
+            my_range_km = my_range_km[range_tf]
+            # Get time vector of raw data in minutes relative to sTime.
+            my_time     = ds.time[time_tf]
+            my_time_mn  = my_time - sTime
+            my_time_mn  = np.array([x.total_seconds() for x in my_time_mn])/60.
+            # Get data array of raw data.
+            my_data     = ds.data[time_tf,beam,:]
+            my_data     = my_data[:,range_tf]
+
             event_name = os.path.splitext(os.path.basename(hdf_file))[0]
             png_fname  = f'{event_name}.png'
             png_fpath  = os.path.join(output_dir,png_fname)
-
             
-            fig = plt.figure()
+            fig = plt.figure(figsize=(10,8))
             ax  = fig.add_subplot(2,1,1)
+
+            mpbl = ax.pcolormesh(my_time_mn,my_range_km,my_data[:-1,:-1].T)
+            ax.set_xlabel('Time [min]')
+            ax.set_ylabel('Range [km]')
+            ax.set_title(event_name)
+            fig.colorbar(mpbl,label=r'$\lambda$ Power [dB]')
 
             ax  = fig.add_subplot(2,1,2)
 

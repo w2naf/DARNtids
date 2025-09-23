@@ -42,33 +42,18 @@ class RtpSummary(object):
         self.win_rng_km  = win_rng_km
 
         nDays               = (list_eDate - list_sDate).days
-        rtp_summary         = np.full( (len(win_time_mn)*nDays, len(win_rng_km)), np.nan, dtype=float )
+
+        nTimes              = len(win_time_mn)*nDays
+        nRanges             = len(win_rng_km)
+
+        times               = np.full(nTimes, None, dtype=object)
+        tfreqs              = np.full(nTimes, np.nan, dtype=float)
+        rtp_summary         = np.full( (nTimes, nRanges), np.nan, dtype=float )
+
+        self.times          = times
+        self.tfreqs         = tfreqs
         self.data           = rtp_summary
-    def get_date_mask(self,date):
-        """
-        Get boolean mask for data array corresponding to a specific date.
 
-        Parameters
-        ----------
-        date : datetime.datetime
-            Date to get mask for.
-
-        Returns
-        -------
-        date_mask : np.array
-            Boolean mask for data array corresponding to the input date.
-        """
-
-        nDays       = (self.list_eDate - self.list_sDate).days
-        if (date < self.list_sDate) or (date >= self.list_eDate):
-            raise ValueError('Input date is out of range of the RtpSummary object.')
-
-        day_index      = (date - self.list_sDate).days
-        date_mask_1d   = np.zeros(self.data.shape[0],dtype=bool)
-        date_mask_1d[day_index*len(self.win_time_mn):(day_index+1)*len(self.win_time_mn)] = True
-
-        date_mask      = np.repeat(date_mask_1d[:,np.newaxis],self.data.shape[1],axis=1)
-        return date_mask
     def get_date_inxs(self,date):
         """
         Get indices for data array corresponding to a specific date.
@@ -194,10 +179,12 @@ for year in years:
                 my_range_km = ds.fov['slantRCenter'][beam]
                 range_tf    = np.isfinite(my_range_km)
                 my_range_km = my_range_km[range_tf]
+
                 # Get time vector of raw data in minutes relative to sTime.
                 my_time     = ds.time[time_tf]
                 my_time_mn  = my_time - sTime
                 my_time_mn  = np.array([x.total_seconds() for x in my_time_mn])/60.
+                
                 # Get data array of raw data.
                 try:
                     my_data     = ds.data[time_tf,beam,:]
@@ -207,8 +194,31 @@ for year in years:
                     print(f"  WARNING: HDF5 file {hdf_file} appears to be an empty array.")
                     continue
 
-                # Insert into summary array.
+                # Get indices for this event's data in the summary array.
                 dinx_0, dinx_1 = rtp_summary.get_date_inxs(sTime)
+
+                # Calculate and store time vector.
+                win_time = pd.to_timedelta(win_time_mn,unit='m') + sTime
+                rtp_summary.times[dinx_0:dinx_1] = win_time
+
+                # Get tfreq vector.
+                prm_tm      = musicObj.prm['time']
+                tf = np.logical_and(prm_tm >= sTime-datetime.timedelta(minutes=5), prm_tm < eTime+datetime.timedelta(minutes=5))
+                prm_tm      = prm_tm[tf]
+                prm_tm_dt   = prm_tm - sTime
+                prm_tm_mn   = np.array([x.total_seconds() for x in prm_tm_dt])/60.
+
+                tfreq       = musicObj.prm['tfreq']
+                tfreq       = tfreq[tf]
+                # Resample tfreq to win_time_mn using nearest neighbor interpolation.
+                try:
+                    tfreqs_resampled = interpn( (prm_tm_mn,), tfreq, win_time_mn, method='nearest', bounds_error=False)
+                    rtp_summary.tfreqs[dinx_0:dinx_1] = tfreqs_resampled
+
+                except:
+                    print(f" WARNING: Could not interpolate tfreq for event {event_name}. Setting to NaN.")
+
+                # Insert into summary array.
                 rtp_summary.data[dinx_0:dinx_1,:] = win_data
 
                 # Plot raw and gridded data for this event.
@@ -263,6 +273,12 @@ for year in years:
         ax.set_title(f'RTP Summary {radar} {list_sDate.strftime("%Y")}\n{db_name} st{st_bin:02d}')
         fig.colorbar(mpbl,label=r'$\lambda$ Power [dB]')
 
+        ax2 = ax.twinx()
+        ax2.plot(XX,rtp_summary.tfreqs*1e-3,'r-')
+        ax2.set_ylabel('Transmit Frequency [MHz]',color='r')
+        ax2.tick_params(axis='y', labelcolor='r')
+        ax2.set_ylim(0,50)
+
         date_0 = rtp_summary.list_sDate
         date_1 = rtp_summary.list_eDate
         months = pd.date_range(date_0,date_1,freq='MS') #.strftime('%Y-%m-%d').tolist()
@@ -276,4 +292,4 @@ for year in years:
         print(f'SAVED {png_fpath}')
         plt.close(fig)
 
-print("I'm done!")
+I undprint("I'm done!")

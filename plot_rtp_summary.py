@@ -79,17 +79,18 @@ class RtpSummary(object):
 
         return (inx_0, inx_1)
 
-years = [2015]
+summary_sDate = datetime.datetime(2015,12,1)
+summary_eDate = datetime.datetime(2016,2,1)
+
 radars = []
 radars.append('bks')
-# radars.append('pyk')
 
 db_name                     = 'mstid_GSMR_fitexfilter_HDF5_fig3'
 base_dir                    = os.path.join('mstid_data',db_name)
 
-beam        = 7   # Radar beam index to plot
-st_bin      = 18  # UTC bin start time
-plot_events = False  # If True, plot each event's raw and gridded data.
+beam        = 7     # Radar beam index to plot
+st_bin      = 18    # UTC bin start time
+plot_events = True  # If True, plot each event's raw and gridded data.
 
 output_dir = os.path.join('output','summary_rtp',db_name)
 mstid.general_lib.prepare_output_dirs({0:output_dir},clear_output_dirs=True)
@@ -108,38 +109,38 @@ win_rng_km    = np.arange(win_rng_0_km,win_rng_1_km,win_rng_dr_km)
 # Build 2D query grid (ny, nx)
 Tq, Rq      = np.meshgrid(win_time_mn, win_rng_km, indexing='xy')  # shapes (len(win_rng_km), len(win_time_mn))
 
-for year in years:
-    dct                             = {}
-    dct['radars']                   = radars
-    dct['list_sDate']               = datetime.datetime(year,1,1)
-    dct['list_eDate']               = datetime.datetime(year,12,31)
-    dct['db_name']                  = db_name
-    dct['data_path']                = os.path.join(base_dir,'mstid_index')
+# Get list of years to process.
+years  = list(set([summary_sDate.year,summary_eDate.year]))
+years.sort()
 
-    dct_list                        = run_helper.create_music_run_list(**dct)
-  
-    for dct_list_item in dct_list:
-        radar              = dct_list_item['radar']
-        list_sDate         = dct_list_item['list_sDate']
-        list_eDate         = dct_list_item['list_eDate']
-        mstid_list         = dct_list_item['mstid_list']
-        mongo_port         = dct_list_item['mongo_port']
-        db_name            = dct_list_item['db_name']
-        data_path          = dct_list_item['data_path']
-        print(f"Processing {radar} {list_sDate} to {list_eDate} from {mstid_list}")
- 
-        cache_name = f'rtp_summary_{radar}_{list_sDate.strftime("%Y%m%d")}_{list_eDate.strftime("%Y%m%d")}_st{st_bin:02d}_{db_name}.pkl'
+# Create dictionary to hold events to be run.
+summary = {}
+for radar in radars:
+    summary[radar] = {}
+    summary_events = summary[radar]['events'] = []
+    for year in years:
+        dct                             = {}
+        dct['radars']                   = [radar]
+        dct['list_sDate']               = datetime.datetime(year,1,1)
+        dct['list_eDate']               = datetime.datetime(year,12,31)
+        dct['db_name']                  = db_name
+        dct['data_path']                = os.path.join(base_dir,'mstid_index')
 
-        cache_path = os.path.join(output_dir,cache_name)
-        if os.path.isfile(cache_path):
-            print(f'  Found cache file {cache_path}. Loading and skipping processing.')
-            with open(cache_path,'rb') as file_obj:
-                rtp_summary = pickle.load(file_obj)
-        else:
-            print(f'  No cache file {cache_path}. Processing and saving to cache after processing.')
+        dct_list                        = run_helper.create_music_run_list(**dct)
+    
+        for dct_list_item in dct_list:
+            if (dct_list_item['list_eDate'] < summary_sDate) or (dct_list_item['list_sDate'] > summary_eDate):
+                continue
 
-            # Pre-allocate np.array for final plot.
-            rtp_summary        = RtpSummary(list_sDate,list_eDate,win_time_mn,win_rng_km)
+            radar              = dct_list_item['radar']
+            list_sDate         = dct_list_item['list_sDate']
+            list_eDate         = dct_list_item['list_eDate']
+            mstid_list         = dct_list_item['mstid_list']
+            mongo_port         = dct_list_item['mongo_port']
+            db_name            = dct_list_item['db_name']
+            data_path          = dct_list_item['data_path']
+
+            print(f"Evaluating MongoDB Collection {db_name}/{mstid_list}")
 
             # Get events from MongoDB
             # Note that recompute=True does not actually recompute or change anything in the database.
@@ -147,115 +148,143 @@ for year in years:
             events = mstid.mongo_tools.events_from_mongo(**dct_list_item,process_level='rti_interp',recompute=True)
 
             # Keep only events that are matching the requested st_bin.
-            these_events = []
             for event in events:
                 sTime = event['sTime']
-                if sTime.hour == st_bin:
-                    these_events.append(event)
-
-            for event in these_events:
-                sTime = event['sTime']
                 eTime = event['eTime']
-                # Get HDF file for event.
-                hdf_file = mstid.more_music.get_hdf5_name(event['radar'],sTime,eTime,data_path=data_path,getPath=True)
-                event_name = os.path.splitext(os.path.basename(hdf_file))[0]
 
-                print(f"--> Processing event {event_name}")
-
-                if not os.path.isfile(hdf_file):
-                    print(f"  WARNING: HDF5 file {hdf_file} not found.")
+                if sTime < summary_sDate or sTime >= summary_eDate:
                     continue
 
-                musicObj = loadMusicArrayFromHDF5(hdf_file)
-                try:
-                    ds       = musicObj.DS000_originalFit
-                except:
-                    print(f"  WARNING: HDF5 file {hdf_file} has no DS000_originalFit.")
-                    continue
-
-                time_tf  = np.logical_and(ds.time >= sTime, ds.time < eTime)
-
-                # Get range of raw data.
-                my_range_km = ds.fov['slantRCenter'][beam]
-                range_tf    = np.isfinite(my_range_km)
-                my_range_km = my_range_km[range_tf]
-
-                # Get time vector of raw data in minutes relative to sTime.
-                my_time     = ds.time[time_tf]
-                my_time_mn  = my_time - sTime
-                my_time_mn  = np.array([x.total_seconds() for x in my_time_mn])/60.
+                if sTime.hour == st_bin:
+                    summary[radar]['events'].append(event)
+                    print(f'     Including event {event["mstid_list"]}:{event["sTime"]}-{event["eTime"]}.')
                 
-                # Get data array of raw data.
-                try:
-                    my_data     = ds.data[time_tf,beam,:]
-                    my_data     = my_data[:,range_tf]
-                    win_data    = (interpn((my_time_mn,my_range_km), my_data, (Tq, Rq), method='linear',bounds_error=False)).T  # shape (len(win_time_mn), len(win_rng_km))
-                except:
-                    print(f"  WARNING: HDF5 file {hdf_file} appears to be an empty array.")
-                    continue
+    cache_name = f'rtp_summary_{radar}_{summary_sDate.strftime("%Y%m%d")}_{summary_eDate.strftime("%Y%m%d")}_st{st_bin:02d}_{db_name}.pkl'
+    summary[radar]['cache_name'] = cache_name
+    
+    nEvents = len(summary[radar]['events'])
+    print(f'Found {nEvents} events for:\n   {cache_name}')
 
-                # Get indices for this event's data in the summary array.
-                dinx_0, dinx_1 = rtp_summary.get_date_inxs(sTime)
 
-                # Calculate and store time vector.
-                win_time = pd.to_timedelta(win_time_mn,unit='m') + sTime
-                rtp_summary.times[dinx_0:dinx_1] = win_time
 
-                # Get tfreq vector.
-                prm_tm      = musicObj.prm['time']
-                tf = np.logical_and(prm_tm >= sTime-datetime.timedelta(minutes=5), prm_tm < eTime+datetime.timedelta(minutes=5))
-                prm_tm      = prm_tm[tf]
-                prm_tm_dt   = prm_tm - sTime
-                prm_tm_mn   = np.array([x.total_seconds() for x in prm_tm_dt])/60.
+##########
+for radar, radar_summary in summary.items():
+    cache_name = radar_summary['cache_name']
 
-                tfreq       = musicObj.prm['tfreq']
-                tfreq       = tfreq[tf]
-                # Resample tfreq to win_time_mn using nearest neighbor interpolation.
-                try:
-                    tfreqs_resampled = interpn( (prm_tm_mn,), tfreq, win_time_mn, method='nearest', bounds_error=False)
-                    rtp_summary.tfreqs[dinx_0:dinx_1] = tfreqs_resampled
+    cache_path = os.path.join(output_dir,cache_name)
+    if os.path.isfile(cache_path):
+        print(f'  Found cache file {cache_path}. Loading and skipping processing.')
+        with open(cache_path,'rb') as file_obj:
+            rtp_summary = pickle.load(file_obj)
+    else:
+        print(f'  No cache file {cache_path}. Processing and saving to cache after processing.')
 
-                except:
-                    print(f" WARNING: Could not interpolate tfreq for event {event_name}. Setting to NaN.")
+        # Pre-allocate np.array for final plot.
+        rtp_summary        = RtpSummary(summary_sDate,summary_eDate,win_time_mn,win_rng_km)
 
-                # Insert into summary array.
-                rtp_summary.data[dinx_0:dinx_1,:] = win_data
+        for event in radar_summary['events']:
+            sTime = event['sTime']
+            eTime = event['eTime']
+            # Get HDF file for event.
+            hdf_file = mstid.more_music.get_hdf5_name(event['radar'],sTime,eTime,data_path=data_path,getPath=True)
+            event_name = os.path.splitext(os.path.basename(hdf_file))[0]
 
-                # Plot raw and gridded data for this event.
-                if plot_events:
-                    png_fname  = f'{event_name}.png'
-                    png_fpath  = os.path.join(output_dir,png_fname)
-                    
-                    fig = plt.figure(figsize=(10,8))
-                    
-                    ax  = fig.add_subplot(2,1,1)
-                    mpbl = ax.pcolormesh(my_time_mn,my_range_km,my_data[:-1,:-1].T)
-                    ax.set_xlim(win_time_0_mn,win_time_1_mn)
-                    ax.set_ylim(win_rng_0_km,win_rng_1_km)
-                    ax.set_xlabel('Time [min]')
-                    ax.set_ylabel('GS Mapped Range [km]')
-                    ax.set_title(event_name+'\nRaw Data')
-                    fig.colorbar(mpbl,label=r'$\lambda$ Power [dB]')
+            print(f"--> Processing event {event_name}")
 
-                    ax  = fig.add_subplot(2,1,2)
-                    mpbl = ax.pcolormesh(win_time_mn,win_rng_km,win_data[:-1,:-1].T)
-                    ax.set_xlim(win_time_0_mn,win_time_1_mn)
-                    ax.set_ylim(win_rng_0_km,win_rng_1_km)
-                    ax.set_xlabel('Time [min]')
-                    ax.set_ylabel('GS Mappend Range [km]')
-                    ax.set_title('Gridded Data')
-                    fig.colorbar(mpbl,label=r'$\lambda$ Power [dB]')
+            if not os.path.isfile(hdf_file):
+                print(f"  WARNING: HDF5 file {hdf_file} not found.")
+                continue
 
-                    fig.tight_layout()
-                    fig.savefig(png_fpath,bbox_inches='tight')
-                    print(f'SAVED {png_fpath}')
-                    plt.close(fig)
+            musicObj = loadMusicArrayFromHDF5(hdf_file)
+            try:
+                ds       = musicObj.DS000_originalFit
+            except:
+                print(f"  WARNING: HDF5 file {hdf_file} has no DS000_originalFit.")
+                continue
+
+            time_tf  = np.logical_and(ds.time >= sTime, ds.time < eTime)
+
+            # Get range of raw data.
+            my_range_km = ds.fov['slantRCenter'][beam]
+            range_tf    = np.isfinite(my_range_km)
+            my_range_km = my_range_km[range_tf]
+
+            # Get time vector of raw data in minutes relative to sTime.
+            my_time     = ds.time[time_tf]
+            my_time_mn  = my_time - sTime
+            my_time_mn  = np.array([x.total_seconds() for x in my_time_mn])/60.
+            
+            # Get data array of raw data.
+            try:
+                my_data     = ds.data[time_tf,beam,:]
+                my_data     = my_data[:,range_tf]
+                win_data    = (interpn((my_time_mn,my_range_km), my_data, (Tq, Rq), method='linear',bounds_error=False)).T  # shape (len(win_time_mn), len(win_rng_km))
+            except:
+                print(f"  WARNING: HDF5 file {hdf_file} appears to be an empty array.")
+                continue
+
+            # Get indices for this event's data in the summary array.
+            dinx_0, dinx_1 = rtp_summary.get_date_inxs(sTime)
+
+            # Calculate and store time vector.
+            win_time = pd.to_timedelta(win_time_mn,unit='m') + sTime
+            rtp_summary.times[dinx_0:dinx_1] = win_time
+
+            # Get tfreq vector.
+            prm_tm      = musicObj.prm['time']
+            tf = np.logical_and(prm_tm >= sTime-datetime.timedelta(minutes=5), prm_tm < eTime+datetime.timedelta(minutes=5))
+            prm_tm      = prm_tm[tf]
+            prm_tm_dt   = prm_tm - sTime
+            prm_tm_mn   = np.array([x.total_seconds() for x in prm_tm_dt])/60.
+
+            tfreq       = musicObj.prm['tfreq']
+            tfreq       = tfreq[tf]
+            # Resample tfreq to win_time_mn using nearest neighbor interpolation.
+            try:
+                tfreqs_resampled = interpn( (prm_tm_mn,), tfreq, win_time_mn, method='nearest', bounds_error=False)
+                rtp_summary.tfreqs[dinx_0:dinx_1] = tfreqs_resampled
+
+            except:
+                print(f" WARNING: Could not interpolate tfreq for event {event_name}. Setting to NaN.")
+
+            # Insert into summary array.
+            rtp_summary.data[dinx_0:dinx_1,:] = win_data
+
+            # Plot raw and gridded data for this event.
+            if plot_events:
+                png_fname  = f'{event_name}.png'
+                png_fpath  = os.path.join(output_dir,png_fname)
                 
-            # Save cache file.
-            with open(cache_path,'wb') as file_obj:
-                pickle.dump(rtp_summary,file_obj)
-            print(f'  SAVED cache file {cache_path}.')
-            print(f"  END Processing {radar} {list_sDate} to {list_eDate} from {mstid_list}")
+                fig = plt.figure(figsize=(10,8))
+                
+                ax  = fig.add_subplot(2,1,1)
+                mpbl = ax.pcolormesh(my_time_mn,my_range_km,my_data[:-1,:-1].T)
+                ax.set_xlim(win_time_0_mn,win_time_1_mn)
+                ax.set_ylim(win_rng_0_km,win_rng_1_km)
+                ax.set_xlabel('Time [min]')
+                ax.set_ylabel('GS Mapped Range [km]')
+                ax.set_title(event_name+'\nRaw Data')
+                fig.colorbar(mpbl,label=r'$\lambda$ Power [dB]')
+
+                ax  = fig.add_subplot(2,1,2)
+                mpbl = ax.pcolormesh(win_time_mn,win_rng_km,win_data[:-1,:-1].T)
+                ax.set_xlim(win_time_0_mn,win_time_1_mn)
+                ax.set_ylim(win_rng_0_km,win_rng_1_km)
+                ax.set_xlabel('Time [min]')
+                ax.set_ylabel('GS Mappend Range [km]')
+                ax.set_title('Gridded Data')
+                fig.colorbar(mpbl,label=r'$\lambda$ Power [dB]')
+
+                fig.tight_layout()
+                fig.savefig(png_fpath,bbox_inches='tight')
+                print(f'SAVED {png_fpath}')
+                plt.close(fig)
+            
+        # Save cache file.
+        with open(cache_path,'wb') as file_obj:
+            pickle.dump(rtp_summary,file_obj)
+        print(f'  SAVED cache file {cache_path}.')
+        print(f"  END Processing {radar} {list_sDate} to {list_eDate} from {mstid_list}")
 
 # Plot summary for this radar and year.
         png_fname  = cache_name.replace('.pkl','.png')

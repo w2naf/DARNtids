@@ -92,7 +92,7 @@ st_bin      = 18  # UTC bin start time
 plot_events = False  # If True, plot each event's raw and gridded data.
 
 output_dir = os.path.join('output','summary_rtp',db_name)
-mstid.general_lib.prepare_output_dirs({0:output_dir},clear_output_dirs=False)
+mstid.general_lib.prepare_output_dirs({0:output_dir},clear_output_dirs=True)
 
 # Define time and range grid for individual radar windows.
 win_time_0_mn  = 0
@@ -233,7 +233,7 @@ for year in years:
                     ax.set_xlim(win_time_0_mn,win_time_1_mn)
                     ax.set_ylim(win_rng_0_km,win_rng_1_km)
                     ax.set_xlabel('Time [min]')
-                    ax.set_ylabel('Range [km]')
+                    ax.set_ylabel('GS Mapped Range [km]')
                     ax.set_title(event_name+'\nRaw Data')
                     fig.colorbar(mpbl,label=r'$\lambda$ Power [dB]')
 
@@ -242,7 +242,7 @@ for year in years:
                     ax.set_xlim(win_time_0_mn,win_time_1_mn)
                     ax.set_ylim(win_rng_0_km,win_rng_1_km)
                     ax.set_xlabel('Time [min]')
-                    ax.set_ylabel('Range [km]')
+                    ax.set_ylabel('GS Mappend Range [km]')
                     ax.set_title('Gridded Data')
                     fig.colorbar(mpbl,label=r'$\lambda$ Power [dB]')
 
@@ -269,7 +269,7 @@ for year in years:
         # ax.set_xlim(0,120*10)
         # ax.set_ylim(win_rng_0_km,win_rng_1_km)
         ax.set_xlabel('Time')
-        ax.set_ylabel('Range [km]')
+        ax.set_ylabel('GS Mapped Range [km]')
         ax.set_title(f'RTP Summary {radar} {list_sDate.strftime("%Y")}\n{db_name} st{st_bin:02d}')
         fig.colorbar(mpbl,label=r'$\lambda$ Power [dB]')
 
@@ -292,4 +292,4 @@ for year in years:
         print(f'SAVED {png_fpath}')
         plt.close(fig)
 
-I undprint("I'm done!")
+print("I'm done!")

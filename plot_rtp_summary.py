@@ -19,6 +19,14 @@ from mstid import run_helper
 
 from hdf5_api import loadMusicArrayFromHDF5
 
+plt.rcParams['font.size'] = 16
+# plt.rcParams['font.weight'] = 'bold'
+# plt.rcParams['axes.grid'] = True
+plt.rcParams['axes.xmargin'] = 0
+plt.rcParams['axes.ymargin'] = 0
+plt.rcParams['grid.linestyle'] = ':'
+plt.rcParams['figure.figsize'] = (8,6)
+
 class RtpSummary(object):
     def __init__(self,list_sDate,list_eDate,win_time_mn,win_rng_km):
         """
@@ -83,7 +91,19 @@ summary_sDate = datetime.datetime(2015,12,1)
 summary_eDate = datetime.datetime(2016,2,1)
 
 radars = []
+radars.append('han')
+radars.append('pyk')
+
+radars.append('cvw')
+radars.append('pgr')
+radars.append('cve')
+radars.append('fhw')
+radars.append('sas')
+radars.append('fhe')
+radars.append('kap')
 radars.append('bks')
+radars.append('wal')
+radars.append('gbr')
 
 db_name                     = 'mstid_GSMR_fitexfilter_HDF5_fig3'
 base_dir                    = os.path.join('mstid_data',db_name)
@@ -93,7 +113,10 @@ st_bin      = 18    # UTC bin start time
 plot_events = True  # If True, plot each event's raw and gridded data.
 
 output_dir = os.path.join('output','summary_rtp',db_name)
-mstid.general_lib.prepare_output_dirs({0:output_dir},clear_output_dirs=True)
+mstid.general_lib.prepare_output_dirs({0:output_dir},clear_output_dirs=False)
+for radar in radars:
+    radar_output_dir = os.path.join(output_dir,radar)
+    mstid.general_lib.prepare_output_dirs({0:radar_output_dir},clear_output_dirs=False)
 
 # Define time and range grid for individual radar windows.
 win_time_0_mn  = 0
@@ -165,13 +188,13 @@ for radar in radars:
     nEvents = len(summary[radar]['events'])
     print(f'Found {nEvents} events for:\n   {cache_name}')
 
-
-
 ##########
 for radar, radar_summary in summary.items():
-    cache_name = radar_summary['cache_name']
+    radar_output_dir = os.path.join(output_dir,radar)
+    print(f"Processing radar {radar} into {radar_output_dir}")
 
-    cache_path = os.path.join(output_dir,cache_name)
+    cache_name = radar_summary['cache_name']
+    cache_path = os.path.join(radar_output_dir,cache_name)
     if os.path.isfile(cache_path):
         print(f'  Found cache file {cache_path}. Loading and skipping processing.')
         with open(cache_path,'rb') as file_obj:
@@ -253,7 +276,7 @@ for radar, radar_summary in summary.items():
             # Plot raw and gridded data for this event.
             if plot_events:
                 png_fname  = f'{event_name}.png'
-                png_fpath  = os.path.join(output_dir,png_fname)
+                png_fpath  = os.path.join(radar_output_dir,png_fname)
                 
                 fig = plt.figure(figsize=(10,8))
                 
@@ -286,9 +309,9 @@ for radar, radar_summary in summary.items():
         print(f'  SAVED cache file {cache_path}.')
         print(f"  END Processing {radar} {list_sDate} to {list_eDate} from {mstid_list}")
 
-# Plot summary for this radar and year.
+        # Plot summary for this radar and year.
         png_fname  = cache_name.replace('.pkl','.png')
-        png_fpath  = os.path.join(output_dir,png_fname)
+        png_fpath  = os.path.join(radar_output_dir,png_fname)
         fig = plt.figure(figsize=(20,4))
         ax  = fig.add_subplot(1,1,1)
         XX  = np.arange(rtp_summary.data.shape[0])
@@ -320,5 +343,63 @@ for radar, radar_summary in summary.items():
         fig.savefig(png_fpath,bbox_inches='tight')
         print(f'SAVED {png_fpath}')
         plt.close(fig)
+
+
+################################################################################
+# Make Complete Summary Plot
+png_fname   = f'rtp_summary_{summary_sDate.strftime("%Y%m%d")}_{summary_eDate.strftime("%Y%m%d")}_st{st_bin:02d}_{db_name}.png'
+png_fpath   = os.path.join(output_dir,png_fname)
+nRadars     = len(summary.keys())
+
+fig = plt.figure(figsize=(20,3*nRadars))
+for pinx, (radar, radar_summary) in enumerate(summary.items()):
+    radar_output_dir = os.path.join(output_dir,radar)
+
+    ax  = fig.add_subplot(nRadars,1,pinx+1)
+    print(f"Plotting radar {radar} in complete summary plot.")
+
+    cache_name = radar_summary['cache_name']
+    cache_path = os.path.join(radar_output_dir,cache_name)
+    with open(cache_path,'rb') as file_obj:
+        rtp_summary = pickle.load(file_obj)
+
+    # Plot summary for this radar and year.
+    XX  = np.arange(rtp_summary.data.shape[0])
+    YY  = rtp_summary.win_rng_km
+    ZZ  = rtp_summary.data[:-1,:-1].T
+    mpbl = ax.pcolormesh(XX,YY,ZZ)
+    # ax.set_xlim(0,120*10)
+    # ax.set_ylim(win_rng_0_km,win_rng_1_km)
+    ax.set_ylabel('GS Mapped Range\n[km]')
+    # ax.set_title(f'RTP Summary {radar} {list_sDate.strftime("%Y")}\n{db_name} st{st_bin:02d}')
+
+    ax.set_title(f'{radar.upper()}: {st_bin}-{st_bin+2} UTC',loc='left')
+    if pinx == 0:
+        ax.set_title(f'MongoDB: {db_name}',loc='right')
+
+    fig.colorbar(mpbl,label=r'$\lambda$ Power [dB]')
+
+    ax2 = ax.twinx()
+    ax2.plot(XX,rtp_summary.tfreqs*1e-3,'r-')
+    ax2.set_ylabel('TX Freq [MHz]',color='r')
+    ax2.tick_params(axis='y', labelcolor='r')
+    ax2.set_ylim(0,50)
+
+    date_0 = rtp_summary.list_sDate
+    date_1 = rtp_summary.list_eDate
+    months = pd.date_range(date_0,date_1,freq='MS') #.strftime('%Y-%m-%d').tolist()
+    xticks = months.map(lambda x: (x - date_0).days * len(rtp_summary.win_time_mn)).to_numpy()
+    # xlabels = months.strftime('%b\n%Y').tolist()
+    xlabels = months.strftime('%b %Y').tolist()
+
+    ax.grid(True,which='both',axis='x',ls=':',color='k',alpha=0.5)
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(xlabels,ha='left')
+
+ax.set_xlabel('Time')
+fig.tight_layout()
+fig.savefig(png_fpath,bbox_inches='tight')
+print(f'SAVED {png_fpath}')
+plt.close(fig)
 
 print("I'm done!")

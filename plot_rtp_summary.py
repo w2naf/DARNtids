@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+"""
+Script to plot summary of RTP data over multiple days for multiple radars for a single UTC time bin.
+This is useful for seeing long-term trends in RTP data and understanding the raw data going into the
+MSTID index.
+
+NAF - 30 September 2025
+"""
+
 import sys
 import os
 import datetime
